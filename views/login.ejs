@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Up</title>
+</head>
+<body>
+    <h1>Welcome Back!</h1>
+    <% if (error) { %>
+        <%= error %>
+    <% } %>
+
+    <form method="POST" action="/signup">
+    <table>
+        <tr><td>Username: </td></tr>
+        <tr>
+            <td>
+                <input type="text" name="username" placeholder="Username" required style="width: 400; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+            </td>
+        </tr>
+        <tr></tr>
+
+        <tr><td>Password: </td></tr>
+        <tr>
+            <td><input type="password" name="password" placeholder="Password" required  style="width: 400; padding: 12px; border: 1px solid #ddd; border-radius: 6px;"></td>
+        </tr><tr></tr>
+        
+        <tr>
+            <td colspan="2"><button type="submit" class="btn" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background-color: rgb(108, 147, 231); align-self: center;">Sign Up</button></td>
+        </tr>
+    </table>
+    </form>
+    
+    <p>
+      Don't have an account? <a href="/signup">Sign Up</a>
+    </p>
+    <p><a href="/events">← Back to Events</a></p>
+</body>
+</html>

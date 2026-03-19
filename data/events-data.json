@@ -1,0 +1,50 @@
+[
+{
+  "id": "1", "category": "CCA", "name": "Photography Club", "title": "Spring Orientation 2026", "details": "Join our photography club orientation. Learn about workshops, competitions, and field trips. Open to all skill levels.", "image": "https://via.placeholder.com/100?text=Photo+Club", "link": "#"
+},
+{
+  "id": "2", "category": "CCA", "name": "Debate Society", "title": "Freshman Debate Workshop", "details": "Learn debate techniques and join our team. Practice sessions every Saturday. No experience required.", "image": "https://via.placeholder.com/100?text=Debate", "link": "#"
+},
+{
+  "id": "3", "category": "CCA", "name": "Chess Club", "title": "Monthly Tournament", "details": "Compete in our monthly chess tournament. Prizes for top 3. All skill levels welcome.", "image": "https://via.placeholder.com/100?text=Chess", "link": "#"
+},
+{
+  "id": "4", "category": "CCA", "name": "Music Society", "title": "Band Auditions", "details": "Audition for our university band. Guitar, drums, vocals needed. Rehearsals twice weekly.", "image": "https://via.placeholder.com/100?text=Music", "link": "#"
+},
+{
+  "id": "5", "category": "Hackathons", "name": "SMU.Hack", "title": "Spring Hackathon 2026", "details": "24-hour hackathon focused on EdTech solutions. Prizes worth $5000. Team registration open.", "image": "https://via.placeholder.com/100?text=SMU.Hack", "link": "#"
+},
+{
+  "id": "6", "category": "Hackathons", "name": "CodeFest Asia", "title": "AI/ML Challenge", "details": "Regional hackathon for AI/ML projects. Submit by April 15th. Mentorship provided.", "image": "https://via.placeholder.com/100?text=CodeFest", "link": "#"
+},
+{
+  "id": "7", "category": "Hackathons", "name": "HackNTU", "title": "Sustainability Hack", "details": "36-hour sustainability-focused hackathon. Partnered with Green initiatives. Register now.", "image": "https://via.placeholder.com/100?text=HackNTU", "link": "#"
+},
+{
+  "id": "8", "category": "Hackathons", "name": "DevC Challenge", "title": "Web3 Hackathon", "details": "Build on blockchain technologies. $10K prize pool. Workshops included.", "image": "https://via.placeholder.com/100?text=DevC", "link": "#"
+},
+{
+  "id": "9", "category": "Career", "name": "Google", "title": "Software Engineering Info Session", "details": "Learn about Google STEP internship. Networking with engineers. RSVP required.", "image": "https://via.placeholder.com/100?text=Google", "link": "#"
+},
+{
+  "id": "10", "category": "Career", "name": "Grab", "title": "Engineering Career Fair", "details": "Meet Grab engineering teams. Live coding challenges. Immediate interviews.", "image": "https://via.placeholder.com/100?text=Grab", "link": "#"
+},
+{
+  "id": "11", "category": "Career", "name": "Shopee", "title": "Backend Developer Talk", "details": "Deep dive into Shopee's backend systems. Q&A with senior engineers.", "image": "https://via.placeholder.com/100?text=Shopee", "link": "#"
+},
+{
+  "id": "12", "category": "Career", "name": "DBS Bank", "title": "FinTech Workshop", "details": "Learn about fintech careers at DBS. Hands-on API session included.", "image": "https://via.placeholder.com/100?text=DBS", "link": "#"
+},
+{
+  "id": "13", "category": "Part Time Jobs", "name": "Starbucks", "title": "Barista Positions", "details": "Flexible hours, staff meals provided. Training included. Apply by March 20th.", "image": "https://via.placeholder.com/100?text=Starbucks", "link": "#"
+},
+{
+  "id": "14", "category": "Part Time Jobs", "name": "Foodpanda", "title": "Rider Recruitment", "details": "Earn $20+/hour. Flexible scheduling. Bike/e-scooter provided.", "image": "https://via.placeholder.com/100?text=Foodpanda", "link": "#"
+},
+{
+  "id": "15", "category": "Part Time Jobs", "name": "Tutor Matching", "title": "Programming Tutors Needed", "details": "Teach Python/C++/Java. $25-40/hour. Flexible timings for students.", "image": "https://via.placeholder.com/100?text=Tutor", "link": "#"
+},
+{
+  "id": "16", "category": "Part Time Jobs", "name": "Library", "title": "Student Assistants", "details": "Shelving, customer service. 12-15 hours/week. $12/hour.", "image": "https://via.placeholder.com/100?text=Library", "link": "#"
+}
+]
