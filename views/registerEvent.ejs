@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register Event</title>
+</head>
+
+<body>
+
+<table width="100%">
+
+<tr>
+
+<td width="80">
+<img src="/images/smu.webp" width="70">
+</td>
+
+<td>
+<h1>Register for Event</h1>
+</td>
+
+</tr>
+
+</table>
+
+<br>
+
+<table cellpadding="10" width="500">
+
+<tr>
+<td colspan="2" align="center">
+
+<img src="/images/<%= event.image %>" width="350">
+
+<h2><%= event.title %></h2>
+
+</td>
+</tr>
+
+<tr>
+<td colspan="2">
+
+<!-- ✅ FIXED HERE -->
+<form action="/events/<%= event._id %>/register" method="POST">
+
+<table cellpadding="6">
+
+<tr>
+<td><b>Name</b></td>
+<td>
+<input type="text" name="name" required>
+</td>
+</tr>
+
+<tr>
+<td><b>Student ID</b></td>
+<td>
+<input type="text" name="studentId" required>
+</td>
+</tr>
+
+<tr>
+<td><b>Email</b></td>
+<td>
+<input type="email" name="email" required>
+</td>
+</tr>
+
+<tr>
+<td valign="top"><b>Comments</b></td>
+<td>
+<textarea name="comments" rows="4" cols="30"></textarea>
+</td>
+</tr>
+
+<tr>
+<td></td>
+<td>
+<button type="submit">Submit Registration</button>
+</td>
+</tr>
+
+</table>
+
+</form>
+
+</td>
+</tr>
+
+</table>
+
+<br>
+
+<a href="/events/<%= event._id %>">Back to Event Details</a>
+
+</body>
+</html>

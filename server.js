@@ -1,6 +1,7 @@
 // server.js
 const express = require("express");
 const dotenv = require('dotenv');
+dotenv.config({ path: './config.env' }); 
 const mongoose = require('mongoose');
 const path = require('path'); // ← ADD for views path
 const multer = require('multer');
@@ -16,16 +17,21 @@ const server = express();
 
 server.use('/', authRoutes);  // Before eventRoutes
 server.use('/events', eventRoutes);
-server.use(express.static(path.join(__dirname, 'public'))); 
-server.use(multer({ storage: multer.memoryStorage() }).any()); // image uploads
+
+const ccaRoutes = require("./routes/ccaRoutes");
+server.use("/events", ccaRoutes);
+
+// server.use(express.static(path.join(__dirname, 'public'))); 
+// server.use(multer({ storage: multer.memoryStorage() }).any()); // image uploads
 server.use(express.urlencoded({ extended: true })); // for form posting
 server.use(express.json()); // express.json() is a middleware
 server.use(express.static(path.join(__dirname, 'public')));
+
 server.set("view engine", "ejs"); // Set EJS as the view engine for rendering dynamic HTML pages
 server.set('views', path.join(__dirname, 'views')); // ← ADD: explicit views path
 
 // root routes
-server.use('/', eventRoutes);
+// server.use('/', eventRoutes);
 
 // Specify the path to the environment variablef file 'config.env'
 dotenv.config({ path: './config.env' });
