@@ -1,6 +1,19 @@
-// const express = require('express');
-// const User = require('../models/User');
-// const router = express.Router();
+const express = require('express');
+const User = require('../models/User');
+const authController = require('../controllers/authController'); // added by John 21 March
+const router = express.Router();
+
+// John's section
+
+// Expecting POST requests because we are sending sensitive form data
+router.post('/signup', authController.signup);
+router.post('/login', authController.login);
+
+// GET requests to display the EJS pages
+router.get('/signup', authController.renderSignup);
+router.get('/login', authController.renderLogin);
+
+// John end + comment out the rest
 
 // // Signup GET
 // router.get('/signup', (req, res) => {
@@ -62,4 +75,4 @@
 //   res.redirect('/events');
 // });
 
-// module.exports = router;
+module.exports = router;

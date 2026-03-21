@@ -14,13 +14,15 @@ const Event = require('./models/Event'); // ← ADD (assumes models/events.js ex
 
 const server = express();
 
-server.use('/', authRoutes);  // Before eventRoutes
-server.use('/events', eventRoutes);
 server.use(express.static(path.join(__dirname, 'public'))); 
-server.use(multer({ storage: multer.memoryStorage() }).any()); // image uploads
 server.use(express.urlencoded({ extended: true })); // for form posting
 server.use(express.json()); // express.json() is a middleware
-server.use(express.static(path.join(__dirname, 'public')));
+
+server.use('/', authRoutes);  // Before eventRoutes
+server.use('/events', eventRoutes);
+
+server.use(multer({ storage: multer.memoryStorage() }).any()); // image uploads
+
 server.set("view engine", "ejs"); // Set EJS as the view engine for rendering dynamic HTML pages
 server.set('views', path.join(__dirname, 'views')); // ← ADD: explicit views path
 

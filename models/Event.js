@@ -13,8 +13,6 @@ const eventSchema = new mongoose.Schema({
   }
 });
 
-
-
 const Event = mongoose.model('Event', eventSchema, 'events');
 
 // CORRECT EXPORT ↓
