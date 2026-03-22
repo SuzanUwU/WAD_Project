@@ -1,6 +1,8 @@
+const dotenv = require('dotenv');
+// Specify the path to the environment variablef file 'config.env'
+dotenv.config({ path: './config.env' });
 // server.js
 const express = require("express");
-const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const path = require('path'); // ← ADD for views path
 const multer = require('multer');
@@ -10,6 +12,8 @@ const eventRoutes = require('./routes/eventRoutes');
 const authRoutes = require('./routes/authRoutes');
 
 const ccaRoutes = require('./routes/ccaRoutes'); // Khin
+
+const hackathonRoutes = require('./routes/hackathonRoutes'); // Ari
 
 // Import Event model for quick test (optional, remove after testing)
 const Event = require('./models/Event'); // ← ADD (assumes models/events.js exists)
@@ -27,6 +31,8 @@ server.use('/events', eventRoutes);
 
 server.use('/events', ccaRoutes); // Khin
 
+server.use('/events/hackathons', hackathonRoutes); // Ari
+
 server.set("view engine", "ejs"); // Set EJS as the view engine for rendering dynamic HTML pages
 server.set('views', path.join(__dirname, 'views')); // ← ADD: explicit views path
 
@@ -34,7 +40,7 @@ server.set('views', path.join(__dirname, 'views')); // ← ADD: explicit views p
 // server.use('/', eventRoutes);
 
 // Specify the path to the environment variablef file 'config.env'
-dotenv.config({ path: './config.env' });
+//dotenv.config({ path: './config.env' });
 
 // async function to connect to DB
 async function connectDB() {
