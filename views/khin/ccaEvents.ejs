@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CCA Events</title>
+</head>
+
+<body>
+
+<table width="100%">
+
+<tr>
+
+<td width="80">
+<img src="/images/smu.webp" width="70">
+</td>
+
+<td>
+<h1>SMU CCA Club Activities</h1>
+</td>
+
+</tr>
+
+</table>
+
+
+<!-- Search and Filter -->
+
+<form method="GET" action="/events/cca">
+
+<table>
+
+<tr>
+
+<td>Search Event:</td>
+
+<td>
+<input type="text" name="search" value="<%= search %>">
+</td>
+
+<td>Filter Club Type:</td>
+
+<td>
+
+<select name="club">
+
+<option value="All" <%= club==="All" ? "selected" : "" %>>All</option>
+
+<option value="Sports" <%= club==="Sports" ? "selected" : "" %>>Sports</option>
+
+<option value="Arts" <%= club==="Arts" ? "selected" : "" %>>Arts</option>
+
+<option value="Academic" <%= club==="Academic" ? "selected" : "" %>>Academic</option>
+
+</select>
+
+</td>
+
+<td>
+<button type="submit">Search</button>
+</td>
+
+</tr>
+
+</table>
+
+</form>
+
+<br>
+
+<a href="/events/my-events">My Registered Events</a>
+
+<br><br>
+
+
+<!-- Event Cards -->
+
+<table cellpadding="5">
+
+<% events.forEach((event) => { %>
+
+<tr>
+
+    <!-- IMAGE DISPLAY -->
+    <td>
+        <% if (event.image && event.image.data) { %>
+            <img 
+                src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>" 
+                width="200"
+            >
+        <% } else { %>
+            <img src="/images/default.png" width="200">
+        <% } %>
+    </td>
+
+    <%
+        const today = new Date().toISOString().split("T")[0];
+
+        let status = "";
+
+        if (event.date > today) {
+            status = "Upcoming";
+        } else if (event.date === today) {
+            status = "Ongoing";
+        } else {
+            status = "Past";
+        }
+    %>
+
+    <td width="220">
+        <h3><%= event.title %></h3>
+        <p>
+        <b>Date:</b> <%= event.date %><br>
+        <b>Location:</b> <%= event.location %><br>
+        <b>Club Type:</b> <%= event.clubType %><br>
+        <b>Status:</b> <%= status %>
+        </p>
+    </td>
+
+    <td>
+        <a href="/events/<%= event._id %>">View Details</a>
+    </td>
+
+</tr>
+
+<% }) %>
+
+</table>
+
+</body>
+</html>

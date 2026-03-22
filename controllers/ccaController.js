@@ -1,12 +1,12 @@
 const mongoose = require("mongoose");
-const Event = require("../models/Event");
+const CCA = require("../models/CCA");
 const RSVP = require("../models/RSVP");
-
+const Review = require("../models/Review");
 
 // CCA Events List
 exports.getCCAEvents = async (req, res) => {
   try {
-    let ccaEvents = await Event.find({ category: "CCA" });
+    let ccaEvents = await CCA.find({ category: "CCA" });
 
     const search = req.query.search;
     const club = req.query.club;
@@ -23,7 +23,7 @@ exports.getCCAEvents = async (req, res) => {
       );
     }
 
-    res.render("ccaEvents", {
+    res.render("khin/ccaEvents", {
       events: ccaEvents,
       search: search || "",
       club: club || "All"
@@ -36,39 +36,6 @@ exports.getCCAEvents = async (req, res) => {
 };
 
 
-
-// Event Detail Page
-exports.getEventDetail = async (req, res) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.send("Invalid event ID");
-    }
-
-    const eventId = new mongoose.Types.ObjectId(req.params.id);
-
-    const event = await Event.findById(eventId);
-
-    if (!event) {
-      return res.send("Event not found");
-    }
-
-    const { studentId } = req.query; // 🔥 FIXED
-
-    const registration = await RSVP.findOne({ eventId, studentId });
-
-    res.render("eventDetail", {
-      event,
-      registered: registration ? true : false
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.send("Error loading event detail");
-  }
-};
-
-
-
 // Show Registration Form
 exports.showRegisterForm = async (req, res) => {
   try {
@@ -78,17 +45,17 @@ exports.showRegisterForm = async (req, res) => {
 
     const eventId = new mongoose.Types.ObjectId(req.params.id);
 
-    const event = await Event.findById(eventId);
+    const event = await CCA.findById(eventId);
 
     if (!event) {
       return res.send("Event not found");
     }
 
-    const { studentId } = req.query; // 🔥 FIXED
+    const { studentId } = req.query; 
 
     const registration = await RSVP.findOne({ eventId, studentId });
 
-    res.render("registerEvent", {
+    res.render("khin/registerEvent", {
       event,
       registered: registration ? true : false
     });
@@ -114,7 +81,7 @@ exports.registerEvent = async (req, res) => {
     const existing = await RSVP.findOne({ eventId, studentId });
 
     if (existing) {
-      return res.redirect("/events/my-events");
+      return res.redirect("/my-events");
     }
 
     const newRegistration = new RSVP({
@@ -127,7 +94,7 @@ exports.registerEvent = async (req, res) => {
 
     await newRegistration.save();
 
-    res.render("registrationSuccess", {
+    res.render("khin/registrationSuccess", {
       name,
       studentId,
       email
@@ -153,7 +120,7 @@ exports.getMyEvents = async (req, res) => {
       } : null;
     }).filter(Boolean);
 
-    res.render("myEvents", { events: myEvents });
+    res.render("khin/myEvents", { events: myEvents });
 
   } catch (err) {
     console.error(err);
@@ -171,7 +138,7 @@ exports.rsvpEvent = async (req, res) => {
     }
 
     const eventId = new mongoose.Types.ObjectId(req.params.id);
-    const { studentId } = req.body; // 🔥 FIXED
+    const { studentId } = req.body;
 
     const registration = await RSVP.findOne({ eventId, studentId });
 
@@ -180,7 +147,7 @@ exports.rsvpEvent = async (req, res) => {
       await registration.save();
     }
 
-    res.redirect("/events/my-events");
+    res.redirect("/my-events");
 
   } catch (err) {
     console.error(err);
@@ -198,7 +165,7 @@ exports.cancelRsvp = async (req, res) => {
     }
 
     const eventId = new mongoose.Types.ObjectId(req.params.id);
-    const { studentId } = req.body; // 🔥 FIXED
+    const { studentId } = req.body;
 
     const registration = await RSVP.findOne({ eventId, studentId });
 
@@ -207,10 +174,109 @@ exports.cancelRsvp = async (req, res) => {
       await registration.save();
     }
 
-    res.redirect("/events/my-events");
+    res.redirect("/my-events");
 
   } catch (err) {
     console.error(err);
     res.send("Error cancelling RSVP");
+  }
+};
+
+
+exports.getEventDetail = async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.send("Invalid event ID");
+    }
+
+    const eventId = new mongoose.Types.ObjectId(req.params.id);
+
+    const event = await CCA.findById(eventId);
+
+    if (!event) {
+      return res.send("Event not found");
+    }
+
+    const { studentId } = req.query;
+
+    const registration = await RSVP.findOne({ eventId, studentId });
+
+    const reviews = await Review.find({ eventId: req.params.id });
+
+    res.render("khin/eventDetail", {
+      event,
+      registered: registration ? true : false,
+      reviews,
+      studentId   
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error loading event detail");
+  }
+};
+
+exports.showReviewForm = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const { studentId } = req.query;
+
+    if (!studentId) {
+      return res.send("Student ID is required.");
+    }
+
+    const registration = await RSVP.findOne({ eventId, studentId });
+
+    if (!registration || !registration.rsvp) {
+      return res.send("Only confirmed attendees can leave a review.");
+    }
+
+    res.render('khin/reviewForm', { 
+      eventId,
+      studentId
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error loading review form");
+  }
+};
+
+exports.submitReview = async (req, res) => {
+  try {
+    const eventId = req.params.id;
+    const { studentId, name, rating, comment } = req.body;
+
+    if (!studentId) {
+      return res.send("Student ID is required.");
+    }
+
+    const registration = await RSVP.findOne({ eventId, studentId });
+
+    if (!registration || !registration.rsvp) {
+      return res.send("Only confirmed attendees can leave a review.");
+    }
+
+    const existingReview = await Review.findOne({ eventId, studentId });
+
+    if (existingReview) {
+      return res.send("You have already submitted a review.");
+    }
+
+    const newReview = new Review({
+      eventId,
+      studentId,
+      name,
+      rating,
+      comment
+    });
+
+    await newReview.save();
+
+    res.redirect(`/events/${eventId}`);
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error submitting review");
   }
 };

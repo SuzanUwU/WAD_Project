@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Events</title>
+</head>
+
+<body>
+
+<table width="100%">
+
+<tr>
+
+<td width="80">
+<img src="/images/smu.webp" width="70">
+</td>
+
+<td>
+<h1>My Registered Events</h1>
+</td>
+
+</tr>
+
+</table>
+
+<a href="/events/cca">Browse More Events</a>
+
+<br><br>
+
+<% if(events.length === 0){ %>
+
+<p>You have not registered for any events yet.</p>
+
+<a href="/events/cca">
+<button>Browse CCA Events</button>
+</a>
+
+<% } else { %>
+
+<table border="1" cellpadding="10" width="800">
+
+<% events.forEach(event => { %>
+
+<tr>
+
+<!-- Image -->
+<td width="220">
+    <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>" width="200">
+</td>
+
+<!-- Event Info + RSVP -->
+<td>
+
+<h3><%= event.title %></h3>
+
+<p>
+<b>Date:</b> <%= event.date %>
+</p>
+
+<!-- ✅ FIXED -->
+<a href="/events/<%= event._id %>">View Details</a>
+
+<br><br>
+
+<% if (event.rsvp) { %>
+
+<b>RSVP Confirmed</b>
+
+<br><br>
+
+<!-- ✅ FIXED -->
+<form action="/events/<%= event._id %>/cancel-rsvp" method="POST">
+    <input type="hidden" name="studentId" value="12345">
+    <button type="submit">Cancel RSVP</button>
+</form>
+
+<% } else { %>
+
+<!-- ✅ FIXED -->
+<form action="/events/<%= event._id %>/rsvp" method="POST">
+    <input type="hidden" name="studentId" value="12345">
+    <button type="submit">RSVP</button>
+</form>
+
+<% } %>
+
+</td>
+
+</tr>
+
+<% }) %>
+
+</table>
+
+<% } %>
+
+</body>
+</html>

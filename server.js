@@ -9,6 +9,8 @@ const multer = require('multer');
 const eventRoutes = require('./routes/eventRoutes');
 const authRoutes = require('./routes/authRoutes');
 
+const ccaRoutes = require('./routes/ccaRoutes'); // Khin
+
 // Import Event model for quick test (optional, remove after testing)
 const Event = require('./models/Event'); // ← ADD (assumes models/events.js exists)
 
@@ -18,16 +20,18 @@ server.use(express.static(path.join(__dirname, 'public')));
 server.use(express.urlencoded({ extended: true })); // for form posting
 server.use(express.json()); // express.json() is a middleware
 
+// server.use(multer({ storage: multer.memoryStorage() }).any()); // image uploads
+
 server.use('/', authRoutes);  // Before eventRoutes
 server.use('/events', eventRoutes);
 
-server.use(multer({ storage: multer.memoryStorage() }).any()); // image uploads
+server.use('/events', ccaRoutes); // Khin
 
 server.set("view engine", "ejs"); // Set EJS as the view engine for rendering dynamic HTML pages
 server.set('views', path.join(__dirname, 'views')); // ← ADD: explicit views path
 
 // root routes
-server.use('/', eventRoutes);
+// server.use('/', eventRoutes);
 
 // Specify the path to the environment variablef file 'config.env'
 dotenv.config({ path: './config.env' });
