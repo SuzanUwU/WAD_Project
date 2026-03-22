@@ -2,10 +2,38 @@
 <html>
 <head>
   <title>All Events</title>
+  <style>
+    /* Bare‑bones fixed nav */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #f8f8f8;
+      padding: 5px 10px;
+      border-bottom: 1px solid #ccc;
+      z-index: 1000;
+    }
+    body {
+      margin: 0;
+      padding-top: 40px; /* room for the navbar */
+    }
+  </style>
 </head>
 <body>
-  
+  <!-- FIXED NAV BAR -->
+  <nav class="navbar">
+    <a href="#latest-events">Latest Events</a>
+    &nbsp;|&nbsp;
+    <a href="#all-events">All Event</a>
+    &nbsp;|&nbsp;
+    <a href="#org-sec">Organizers Section</a>
+    &nbsp;|&nbsp;
+    <a href="#edit-event">Create or Edit Event</a>
+  </nav>
+
   <!-- LATEST EVENTS SECTION -->
+  <section id="latest-events">
   <h1>Latest Events</h1>
   <% const latestEvents = events.slice(0, 6); %>
   <% if (latestEvents.length > 0) { %>
@@ -80,100 +108,88 @@
       </tr>
     </table>
   <% } %>
+  </section>
 
-  <!-- ALL EVENTS SECTION (same structure) -->
+  <!-- ALL EVENTS SECTION (row-based table) -->
+   <section id="all-events">
   <h1>All Events</h1>
-  <% const allEvents = events.slice(6); %>
-  <% if (allEvents.length > 0) { %>
-    <% const firstBatch = allEvents.slice(0, 6); %>
-    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; margin-bottom: 40px; table-layout: fixed;">
-      <!-- ROW 1: Images (220px colspan, 300px height) -->
-      <tr>
-        <% firstBatch.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; vertical-align: top; height: 300px;">
-            <% if (event.image && event.image.data) { %>
-              <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>" 
-                   alt="<%= event.title %>" width=100% height="300" style="display: block;">
-            <% } else { %>
-              <div style="width: 100%; height: 300px; background: #eee; text-align: center; line-height: 140px;">
-                No Image
-              </div>
-            <% } %>
-          </td>
-        <% }) %>
-        <!-- padding cells -->
-      </tr>
+  <% const allEvents = events.slice(0); %>
 
-      <!-- ROW 2: Titles (220px colspan) -->
-      <tr>
-        <% firstBatch.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; word-wrap: break-word;"><strong><%= event.title %></strong></td>
-        <% }) %>
-      </tr>
+  <% if (allEvents.length > 0) { %> 
+    <div style="width: 60%; margin: 0 auto;">
+    <table border="1" cellpadding="6" cellspacing="0" 
+          style="border-collapse: collapse; width: 100%;">
+      <thead>
+        <tr>
+          <th>Event No.</th>
+          <th>Event Poster</th>
+          <th>Event Information</th>
+          <th>See More</th>
+          <th>Save</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% allEvents.forEach(function(event, index) { %>
+          <tr>
+            <!-- Event No. -->
+            <td style="width: 40px; text-align: center;"><%= index + 1 %></td>
 
-      <!-- ROW 3: Organizers (220px colspan) -->
-      <tr>
-        <% firstBatch.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; word-wrap: break-word;"><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></td>
-        <% }) %>
-      </tr>
+            <!-- Event Poster -->
+            <td style="width: 140px;">
+              <% if (event.image && event.image.data) { %>
+                <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
+                    alt="<%= event.title %>"
+                    style="width: 100%; height: 80%; display: block;">
+              <% } else { %>
+                <div style="width: 100%; height: 160px; background: #eee; text-align: center; line-height: 160px;">
+                  No Image
+                </div>
+              <% } %>
+            </td>
 
-      <!-- ROW 4: Descriptions (220px colspan) -->
-      <tr>
-        <% firstBatch.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; word-wrap: break-word;"><%= event.description || 'No description available' %></td>
-        <% }) %>
-      </tr>
+            <!-- Event Info (multi‑line field group) -->
+            <td style="word-wrap: break-word; width: 450px; vertical-align: center;">
+              <div><strong>Event Name:</strong> <%= event.title %></div>
+              <div><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></div>
+              <div><strong>Description:</strong> <%= event.description || 'No description available' %></div>
+            </td>
 
-      <!-- ROW 5: Date (90px + 130px = 220px) -->
-      <tr>
-        <% firstBatch.forEach(function(event) { %>
-          <td style="width: 90px; word-wrap: break-word;">Date:</td>
-          <td style="width: 130px; word-wrap: break-word;"><%= event.date ? new Date(event.date).toLocaleDateString('en-GB') : 'TBD' %></td>
-        <% }) %>
-      </tr>
+            <!-- See More (link to detail page where they can view full info and register) -->
+            <td style="text-align: center; width: 100px;">
+              <a href="/events/<%= event._id %>" 
+                style="display: inline-block; padding: 6px 12px; background-color: #285789; color: #fff; text-decoration: none; border-radius: 4px;">
+                See More
+              </a>
+            </td>
 
-      <!-- ROW 6: Time (90px + 130px = 220px) -->
-      <tr>
-        <% firstBatch.forEach(function(event) { %>
-          <td style="width: 90px; word-wrap: break-word;">Time:</td>
-          <td style="width: 130px; word-wrap: break-word;"><%= event.date ? new Date(event.date).toLocaleTimeString('en-SG', {hour: '2-digit', minute: '2-digit'}) + ' - 18:00' : 'TBD' %></td>
+            <!-- Save button -->
+            <td style="text-align: center; width: 100px;">
+              <button style="background-color: rgb(229, 229, 137); padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc;"
+                      onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">
+                Save
+              </button>
+            </td>
+          </tr>
         <% }) %>
-      </tr>
-
-      <!-- ROW 7: Location (60px + 160px = 220px) -->
-      <tr>
-        <% firstBatch.forEach(function(event) { %>
-          <td style="width: 60px; word-wrap: break-word;">Location:</td>
-          <td style="width: 160px; word-wrap: break-word;"><%= event.location || 'TBD' %></td>
-        <% }) %>
-      </tr>
-
-      <!-- ROW 8: Buttons (220px total per event) -->
-      <tr>
-        <% firstBatch.forEach(function(event) { %>
-          <td style="width: 110px; text-align: center;"><button style="background-color: rgb(159, 222, 159); width: 80%; height: 25px" onclick="register('<%= event._id %>')">Register</button></td>
-          <td style="width: 110px; text-align: center;"><button style="background-color: rgb(226, 226, 153); width: 80%; height: 25px;" onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">Save</button></td>
-        <% }) %>
-      </tr>
-
+      </tbody>
     </table>
   <% } %>
+  </section>
   <br>
 
-  <h3>Things The Admin should be able to do</h3>
-  <br>
-  <a href="/events/create">Create New Event</a>
+  <section id="edit-event">
+    <h3>Creationg Edit Events</h3>
+    <a href="/events/create">Create New Event</a><br><br>
+    <a href="/events/editevent">Edit Event Information</a>
+  </section>
+  <br><br>
 
-  <br>
-  <a href="/events/addorg">Add a New Organizer</a>
-
-  <br>
-  <a href="/events/removeorg">Remove Organizer</a>
-
-  <br>
-  <a href="/events/updateorg">Remove Organizer</a>
-
+  <section id="edit-org">
+    <h3>Editing the Organizer Stuff</h3>
+    <a href="/events/addorg">Add a New Organizer</a><br><br>
+    <a href="/events/removeorg">Remove Organizer</a><br><br>
+    <a href="/events/updateorg">Update Organizer Information</a>
+  </section>
 
 
 

@@ -119,6 +119,76 @@ router.get('/saved/:userId', async (req, res) => {
   }
 });
 
+// ------------- EDIT EVENT -------------
+
+// GET /events/editevent - show form with all events
+router.get('/editevent', async (req, res) => {
+  try {
+    const events = await Event.find();  // get ALL fields
+    console.log('📋 Events with ALL fields:');
+    events.forEach(e => console.log('→', e._id, e.title, e.organizer, e.category));
+    res.render('suzan/edit-event', { events });
+  } catch (err) {
+    console.error(err);
+    res.render('suzan/edit-event', { events: [] });
+  }
+});
+
+
+// GET /events/edit/:eventId - show single event form (optional detail page)
+router.get('/edit/:eventId', async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.eventId);
+    if (!event) return res.redirect('/events/editevent');
+    res.render('suzan/edit-event-form', { event });
+  } catch (err) {
+    console.error('❌ Event not found:', err);
+    res.redirect('/events/editevent');
+  }
+});
+
+// POST /events/editevent - handle update
+router.post('/editevent', upload.single('eventImage'), async (req, res) => {
+  try {
+    const { eventId, title, category, date, location, description } = req.body;
+
+    if (!eventId) {
+      console.log('❌ Missing eventId in form');
+      return res.redirect('/events/editevent');
+    }
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      console.log('❌ Event not found:', eventId);
+      return res.redirect('/events/editevent');
+    }
+
+    // Update fields
+    event.title = title || event.title;
+    event.category = category || event.category;
+    event.date = date ? new Date(date) : event.date;
+    event.location = location || event.location;
+    event.description = description || event.description;
+
+    // Update image if new file uploaded
+    if (req.file) {
+      event.image = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype
+      };
+    }
+
+    await event.save();
+    console.log('✅ Updated event:', eventId, '→', event.title);
+    res.redirect('/events');
+  } catch (err) {
+    console.error('❌ Edit event error:', err);
+    res.status(500).send('Error: ' + err.message);
+  }
+});
+
+// ------------- EDIT EVENT END -------------
+
 // organizers section
 // GET /events/addorg
 router.get('/addorg', (req, res) => {
