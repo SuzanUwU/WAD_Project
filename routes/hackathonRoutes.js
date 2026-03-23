@@ -20,10 +20,10 @@ const upload = multer({
 });
 
 // GET /hackathons — main listing page
-router.get('/hackathons', hackathonController.showHackathons);
+router.get('/', hackathonController.showHackathons)
  
 // GET /api/majors?school=xxx — dynamic major dropdown (called by frontend JS fetch)
-router.get('/hackathons/api/majors', hackathonController.getMajorsBySchool);
+router.get('/api/majors', hackathonController.getMajorsBySchool);
 
 // GET  /hackathons/new — show blank create form
 // NOTE: /new must be declared BEFORE /:id routes, otherwise Express matches "new" as an :id parameter and calls the wrong handler

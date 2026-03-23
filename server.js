@@ -27,11 +27,12 @@ server.use(express.json()); // express.json() is a middleware
 // server.use(multer({ storage: multer.memoryStorage() }).any()); // image uploads
 
 server.use('/', authRoutes);  // Before eventRoutes
-server.use('/events', eventRoutes);
+
+server.use('/events/hackathons', hackathonRoutes); // Ari
 
 server.use('/events', ccaRoutes); // Khin
 
-server.use('/events/hackathons', hackathonRoutes); // Ari
+server.use('/events', eventRoutes);
 
 server.set("view engine", "ejs"); // Set EJS as the view engine for rendering dynamic HTML pages
 server.set('views', path.join(__dirname, 'views')); // ← ADD: explicit views path
