@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= event.title %> — Campus Event Board</title>
+</head>
+<body>
+
+  <!-- BACK NAV -->
+  <a href="/career-events">← Back to listings</a>
+
+  <hr/>
+
+  <table width="100%"cellpadding="8">
+    <tr style="vertical-align: top">
+
+      <!-- LEFT: event info -->
+      <td width="65%" style="border-right: 1px solid #ccc;">
+
+        <% if (event.image) { %>
+          <img src="/uploads/<%= event.image %>" alt="<%= event.title %>" width="100%" style="max-height:200px; object-fit:cover;"/>
+        <% } %>
+       
+        <p><small><%= event.type %> — <%= event.careerType || '' %></small></p>
+        <h1><%= event.title %></h1>
+        <p>by <strong><%= event.organizer %></strong></p>
+
+        <hr/>
+
+        <table border="0" cellpadding="4">
+          <tr>
+            <td><strong>Date and Time</strong></td>
+            <td><%= new Date(event.startDate).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+             to <%= new Date(event.endDate).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' , hour: '2-digit', minute: '2-digit'}) %>
+            </td>
+          </tr>
+        
+          <% if (event.deadline) { %>
+            <tr>
+              <td><strong>Apply by</strong></td>
+              <td><%= new Date(event.deadline).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'long', year: 'numeric' }) %></td>
+            </tr>
+          <% } %>
+          <% if (event.location) { %>
+            <tr>
+              <td><strong>Location</strong></td>
+              <td><%= event.location %></td>
+            </tr>
+          <% } %>
+          <% if (event.salary) { %>
+            <tr>
+              <td><strong>Salary</strong></td>
+              <td>$<%= event.salary %>/month</td>
+            </tr>
+          <% } %>
+          <% if (event.sector) { %>
+            <tr>
+              <td><strong>Sector</strong></td>
+              <td><%= event.sector %></td>
+            </tr>
+          <% } %>
+        </table>
+
+        <hr/>
+
+        <p style="white-space: pre-wrap;"><%= event.description %></p>
+
+      </td>
+
+      <!-- RIGHT: action panel -->
+      <td width="35%" style="padding-left: 1rem;">
+
+        <h3>Interested?</h3>
+        
+        <% if (event.applyLink) { %>
+
+          <p>Apply directly on the company's website.</p>
+          <a href="<%= event.applyLink %>" target="_blank">Apply Now →</a>
+
+        <% } else { %>
+          <p>This is a free workshop. Register to save your spot.</p>
+          <form method="POST" action="/rsvp-join">
+            <input type="hidden" name="eventId" value="<%= event.eventId %>"/>
+            <% if (registered) {%>
+              <button type="submit" disabled>Joined</button>
+            <%}else{%>
+              <button type="submit">Join</button>
+            <%}%>
+          </form>
+
+        <%}%>
+        <hr/>
+
+        <!-- BOOKMARK -->
+        <form method="POST" action="/rsvp-bookmark">
+          <input type="hidden" name="eventId" value="<%= event._id %>"/>
+          <button type="submit">Save for later</button>
+        </form>
+
+        <hr/>
+
+        <p>Questions? Contact your <a href="mailto:placement@smu.edu.sg">academic advisor</a></p>
+
+      </td>
+
+    </tr>
+  </table>
+
+</body>
+</html>

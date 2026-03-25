@@ -81,7 +81,7 @@ exports.updateRsvp = async (req, res) => {
     await RSVP.updateNote(req.body.rsvpId, req.body.note);
     res.redirect('/dashboard?msg=Note+updated');
   } catch (error) {
-    res.sned(error);
+    res.send(error);
   }
 }
 

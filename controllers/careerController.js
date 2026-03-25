@@ -73,7 +73,7 @@ exports.displayCareers = async (req, res) => {
       q,
     });
   } catch (error) {
-    res.send(error)
+    res.status(500).send(error.message)
   }
 };
 
@@ -84,7 +84,7 @@ exports.careerDetail = async (req, res) => {
     const registered = await RSVP.isAlreadyRSVPd(req.query.id, tempUserId);
     res.render('event-detail', { event, registered });
   } catch (error) {
-    res.send(error)
+    res.status(500).send(error.message)
   }
 };
 
@@ -100,7 +100,7 @@ exports.showCareerForm = async (req, res) => {
       sectors
     });
   } catch (error) {
-    res.send(error)
+    res.status(500).send(error.message)
   }
 };
 
@@ -160,10 +160,11 @@ exports.updateCareer = async (req, res) => {
 exports.deleteCareer = async (req, res) => {
   try {
     const career = await Career.findById(req.body.careerID);
+    await RSVP.deleteByEventId(career.eventId);
     await Career.deleteById(req.body.careerID);
     await Event.deleteById(career.eventId);
     res.redirect('/career-events?msg=Event+deleted');
   } catch (error) {
-    res.send(error)
+    res.status(500).send(error.message)
   }
 };

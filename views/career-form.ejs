@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career form</title>
+</head>
+<body>
+    <% function toDatetimeLocal(d) {
+        if (!d) return '';
+        return new Date(d).toISOString().slice(0, 16);
+    } %>
+
+    <h1><%= event ? "Edit Career Event" : "New Career Event" %></h1>
+    <% if (error) { %>
+    <p style="color:red;"><%= error %></p>
+    <% } %>
+    <form method="POST" action="<%= action %>">
+        <% if (event) { %>
+          <input type="hidden" name="careerID" value="<%= event._id %>"/>
+        <% } %>
+        <table cellpadding="4">
+        <tr>
+            <td><label>Title</label></td>
+            <td><input type="text" name="title" value="<%= event?.title || '' %>" required/></td>
+        </tr>
+        <tr>
+            <td><label>Organizer</label></td>
+            <td><input type="text" name="organizer" value="<%= event?.organizer || '' %>" required/></td>
+        </tr>
+        <tr>
+            <td><label>Type</label></td>
+            <td>
+            <select name="careerType">
+                <% categories.forEach(cat => { %>
+                <option value="<%= cat %>" <%= event?.careerType === cat ? 'selected' : '' %>><%= cat %></option>
+                <% }) %>
+            </select>
+            </td>
+        </tr>
+        <tr>    
+            <td><label>Sector</label></td>
+            <td>
+            <select name="sector">
+                <option value="">Not Applicable</option>
+                <% sectors.forEach(s => { %>
+                <option value="<%= s %>" <%= event?.sector === s ? 'selected' : '' %>><%= s %></option>
+                <% }) %>
+            </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label>Salary ($/month)</label></td>
+            <td><input type="number" name="salary" value="<%= event?.salary || '' %>"/></td>
+        </tr>
+        <tr>
+            <td><label>Location</label></td>
+            <td><input type="text" name="location" value="<%= event?.location || '' %>"/></td>
+        </tr>
+        <tr>
+            <td><label>Start Date</label></td>
+            <td><input type="datetime-local" name="startDate" value="<%= toDatetimeLocal(event?.startDate) %>" required/></td>
+        </tr>
+        <tr>
+            <td><label>End Date</label></td>
+            <td><input type="datetime-local" name="endDate" value="<%= toDatetimeLocal(event?.endDate) %>" required/></td>
+        </tr>
+        <tr>
+            <td><label>Deadline</label></td>
+            <td><input type="datetime-local" name="deadline" value="<%= toDatetimeLocal(event?.deadline) %>"/></td>
+        </tr>
+        <tr>
+            <td><label>Apply Link</label></td>
+            <td><input type="url" name="applyLink" value="<%= event?.applyLink || '' %>"/></td>
+        </tr>
+        <tr>
+            <!-- TODO: swap for multer file upload once branch is merged -->
+            <td><label>Banner Image</label></td>
+            <td><input type="text" name="image" value="<%= event?.image || '' %>" placeholder="e.g. mckinsey-cover.jpg"/></td>
+        </tr>
+        <tr>
+            <td><label>Description</label></td>
+            <td><textarea name="description" rows="20" cols="80"><%= event?.description || '' %></textarea></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><button type="submit"><%= event ? 'Update' : 'Create' %> Event</button></td>
+        </tr>
+        </table>
+    </form>
+
+</body>
+</html>
