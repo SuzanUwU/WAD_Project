@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Event Attendees</title>
+</head>
+
+<body>
+
+<h1>Attendees for <%= event.title %></h1>
+
+<table border="1" cellpadding="10">
+
+<tr>
+<th>Name</th>
+<th>Student ID</th>
+<th>Email</th>
+</tr>
+
+<% attendees.forEach(a => { %>
+
+<tr>
+<td><%= a.name %></td>
+<td><%= a.studentId %></td>
+<td><%= a.email %></td>
+</tr>
+
+<% }) %>
+
+</table>
+
+<br>
+
+<b>Total Attendees: <%= attendees.length %></b>
+
+<br><br>
+
+<a href="/events/ccaAdmin">Back to Admin Events</a>
+
+</body>
+</html>
