@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const careerSchema = new mongoose.Schema({
-  eventId:    { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },//addition not guaranteed avoid using
+  eventId:    { type: mongoose.Schema.Types.ObjectId, ref: 'Event' , required: true },
   title:      { type: String, required: true },
   organizer:  { type: String, required: true },
   category:   { type: String, default: 'Career'},
@@ -43,4 +43,15 @@ exports.findByEventId = function (ev) {
 
 exports.findWithFilter = function(filter) {
   return Career.find(filter);
+}
+exports.deleteById = function(id) {
+  return Career.deleteOne({ _id: id });
+}
+
+exports.create = function(data) {
+  return Career.create(data);
+}
+
+exports.updateById = function(id, data) {
+  return Career.updateOne({ _id: id }, data );
 }

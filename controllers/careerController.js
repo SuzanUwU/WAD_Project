@@ -1,75 +1,169 @@
 const Career = require('../models/careerModel');
-const RSVP   = require('../models/rsvpModel');
+const RSVP = require('../models/rsvpModel');
+const Event = require('../models/eventModel');
 
 const tempUserId = '65a000000000000000000001';
 const categories = ['full-time', 'internship', 'workshop'];
-const sectors    = ['Information Technology', 'Banking', 'Marketing', 'Accounting', 'Human Resources', 'Consulting', 'Legal', 'Operations', 'Other'];
+const sectors = ['Information Technology', 'Banking', 'Marketing', 'Accounting', 'Human Resources', 'Consulting', 'Legal', 'Operations', 'Other'];
 
-async function getPinned(allEvents) {
-  try {
-    const rsvps      = await RSVP.getUserRSVP(tempUserId);
-    const pinnedIDs  = rsvps.map(r => r.event.toString());
-    return allEvents.filter(event => pinnedIDs.includes(event.eventId.toString()));
-  } catch (error) {
-    console.error('getPinned error:', error.message);
-    return [];
-  }
+//handle incoming career/form req.body
+function clean(body) {
+  return {
+    title: body.title?.trim(),
+    organizer: body.organizer?.trim(),
+    careerType: body.careerType?.trim(),
+    description: body.description?.trim() || undefined,
+    location: body.location?.trim() || undefined,
+    image: body.image?.trim() || undefined,
+    applyLink: body.applyLink?.trim() || undefined,
+    sector: body.sector || undefined,
+    salary: body.salary ? Number(body.salary) : undefined,
+    startDate: body.startDate ? new Date(body.startDate) : undefined,
+    endDate: body.endDate ? new Date(body.endDate) : undefined,
+    deadline: body.deadline ? new Date(body.deadline) : undefined,
+  };
 }
 
-// GET /careers 
+function validate(data) {
+  if (!data.description) return 'Description cannot be empty';
+  if (data.startDate && data.endDate && data.startDate >= data.endDate) return 'End date must be later than start date.';
+  return null;
+}
+
+// GET /career-events
 exports.displayCareers = async (req, res) => {
-  const { careerType, dateFrom, dateTo } = req.query;
-  const selectedSectors = Array.isArray(req.query.selectedSectors)
-    ? req.query.selectedSectors
-    : req.query.selectedSectors
-      ? [req.query.selectedSectors]
-      : [];
-  const q = req.query.q?.trim() || '';
-
-  const isFiltered = careerType || dateFrom || dateTo || selectedSectors.length || q;
-
-  const filter = {};
-  if (careerType) filter.careerType = careerType;
-  if (selectedSectors.length) filter.sector = { $in: selectedSectors };
-  if (dateFrom || dateTo) {
-    filter.startDate = {};
-    if (dateFrom) filter.startDate.$gte = new Date(dateFrom);
-    if (dateTo)   filter.startDate.$lte = new Date(dateTo);
-  }
-  if (q) filter.title = { $regex: q, $options: 'i' };
-
   try {
+    const { careerType, dateFrom, dateTo } = req.query;
+    const q = req.query.q?.trim() || '';
+    const selectedSectors = Array.isArray(req.query.selectedSectors)
+      ? req.query.selectedSectors
+      : req.query.selectedSectors ? [req.query.selectedSectors] : [];
+
+    let msg = req.query.msg || '';
+    if (req.query.filtered && !careerType && !dateFrom && !dateTo && !q && !selectedSectors.length) {
+      msg = 'No filters have been applied';
+    }
+
+    const filter = {};
+    if (careerType) filter.careerType = careerType;
+    if (selectedSectors.length) filter.sector = { $in: selectedSectors };
+    if (dateFrom || dateTo) {
+      filter.startDate = {};
+      if (dateFrom) filter.startDate.$gte = new Date(dateFrom);
+      if (dateTo) filter.startDate.$lte = new Date(dateTo);
+    }
+    if (q) filter.title = { $regex: q, $options: 'i' };
+
     const careerEvents = await Career.findWithFilter(filter);
-    const jobs         = careerEvents.filter(e => e.careerType !== 'workshop');
-    const workshops    = careerEvents.filter(e => e.careerType === 'workshop');
-    const pinned       = await getPinned(careerEvents);
+    const rsvps = await RSVP.getUserRSVP(tempUserId);
+    const pinnedIDs = rsvps.map(r => r.event.toString());
 
     res.render('career', {
-      jobs,
-      workshops,
-      pinned,
+      jobs: careerEvents.filter(e => e.careerType !== 'workshop'),
+      workshops: careerEvents.filter(e => e.careerType === 'workshop'),
+      pinned: careerEvents.filter(e => pinnedIDs.includes(e.eventId.toString())),
+      rsvps,
       categories,
       sectors,
       selectedSectors,
-      msg:        !isFiltered && Object.keys(req.query).length>0 ? 'No filters were selected' : '',
-      careerType: careerType  || '',
-      dateFrom:   dateFrom    || '',
-      dateTo:     dateTo      || '',
+      msg,
+      careerType: careerType || '',
+      dateFrom: dateFrom || '',
+      dateTo: dateTo || '',
       q,
     });
   } catch (error) {
-    res.send(error);
-    }
+    res.send(error)
+  }
 };
 
-// GET /careers/detail
+// GET /career/detail
 exports.careerDetail = async (req, res) => {
-  const eventId = req.query.id;//id of event
   try {
-    const event = await Career.findByEventId(eventId);//grab specific document
-    const registered = await RSVP.isAlreadyRSVPd(eventId, tempUserId);//change ejs so that users who already joined cannot click apply
-    res.render('career-detail', { event, registered });
+    const event = await Career.findByEventId(req.query.id);
+    const registered = await RSVP.isAlreadyRSVPd(req.query.id, tempUserId);
+    res.render('event-detail', { event, registered });
   } catch (error) {
-    res.send(error + "this error is from careerDetail");
+    res.send(error)
+  }
+};
+
+// GET /career/form
+exports.showCareerForm = async (req, res) => {
+  try {
+    const event = req.query.id ? await Career.findById(req.query.id) : null;
+    res.render('career-form', {
+      event,
+      action: req.query.id ? '/career-update' : '/career-create',
+      error: null,
+      categories,
+      sectors
+    });
+  } catch (error) {
+    res.send(error)
+  }
+};
+
+// POST /career-create
+exports.createCareer = async (req, res) => {
+  try {
+    const data  = clean(req.body);
+    const error = validate(data);
+    if (error) {
+      return res.render('career-form', { event: data, action: '/career-create', categories, sectors, error });
     }
+    const event = await Event.create({
+      title:       data.title,
+      organizer:   data.organizer,
+      category:    'Career',
+      description: data.description,
+      startDate:   data.startDate,
+      endDate:     data.endDate,
+      location:    data.location,
+      image:       data.image,
+    });
+    await Career.create({ eventId: event._id, ...data });
+    res.redirect('/career-events?msg=Event+created');
+  } catch (error) {
+    res.send(error.message);
+  }
+};
+// POST /career-update
+exports.updateCareer = async (req, res) => {
+  const { careerID } = req.body;
+  try {
+    const data  = clean(req.body);
+    const error = validate(data);
+    if (error) {
+      const event = await Career.findById(careerID);
+      return res.render('career-form', { event, action: '/career-update', categories, sectors, error });
+    }
+    const career = await Career.findById(careerID);
+    await Career.updateById(careerID, data);
+    await Event.updateById(career.eventId, {
+      title:       data.title,
+      organizer:   data.organizer,
+      category:    'Career',
+      description: data.description,
+      startDate:   data.startDate,
+      endDate:     data.endDate,
+      location:    data.location,
+      image:       data.image,
+    });
+    res.redirect('/career-events?msg=Event+updated');
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+// POST /career-delete
+exports.deleteCareer = async (req, res) => {
+  try {
+    const career = await Career.findById(req.body.careerID);
+    await Career.deleteById(req.body.careerID);
+    await Event.deleteById(career.eventId);
+    res.redirect('/career-events?msg=Event+deleted');
+  } catch (error) {
+    res.send(error)
+  }
 };

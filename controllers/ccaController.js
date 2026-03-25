@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const Event = require("../models/Event");
-const RSVP = require("../models/RSVP");
+const Event = require("../models/eventModel");
+const RSVP = require("../models/rsvpModel");
 
 
 // CCA Events List
