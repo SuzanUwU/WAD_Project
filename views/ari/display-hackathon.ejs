@@ -29,12 +29,12 @@
   </p>
 <% } %>
 
-<p><a href="/events">← Back to Events Dashboard</a></p>
-<p><a href="/events/hackathons/new">+ Create New Hackathon</a></p>
+<p><a href="/all-events">← Back to Events Dashboard</a></p>
+<p><a href="/hack-events/new">+ Create New Hackathon</a></p>
 
 <!--   FILTER SECTION      -->
 <section>
-  <form method="GET" action="/events/hackathons">
+  <form method="GET" action="/hack-events">
     <!-- School dropdown -->
     <label for="filter-school">School:</label>
     <select id="filter-school" name="school">
@@ -68,7 +68,7 @@
     &nbsp;
 
     <button type="submit">Apply Filters</button>
-    <a href="/events/hackathons"><button type="button">Clear</button></a>
+    <a href="/hack-events"><button type="button">Clear</button></a>
   </form>
 </section>
 
@@ -79,7 +79,7 @@
   <h2>Listings</h2>
 
   <% if (hackathons.length === 0) { %>
-    <p><em>No hackathons found matching your filters. <a href="/events/hackathons">Clear filters</a></em></p>
+    <p><em>No hackathons found matching your filters. <a href="/hack-events">Clear filters</a></em></p>
   <% } else { %>
 
     <table border="1" cellpadding="6" cellspacing="0">
@@ -168,12 +168,22 @@
                 cancelled: 'Cancelled',
               };
             %>
-            <td><%= statusLabels[h.status] || h.status %></td>
+            <td>
+              <%= statusLabels[h.status] || h.status %>
+              <% if (h.status === 'open') { %>
+                <br/>
+                <a href="/hack-events/<%= h._id %>/signup">
+                  <button type="button">Sign Up</button>
+                </a>
+              <% } %>
+            </td>
 
             <td>
-              <a href="/events/hackathons/<%= h._id %>/edit">[Edit]</a>
+              <a href="/hack-events/<%= h._id %>/edit">[Edit]</a>
               &nbsp;
-              <form method="POST" action="/events/hackathons/<%= h._id %>/delete"
+              <a href="/hack-events/<%= h._id %>/attendees">[View Attendees]</a>
+              &nbsp;
+              <form method="POST" action="/hack-events/<%= h._id %>/delete"
                     style="display:inline"
                     onsubmit="return confirm('Delete <%= h.name %>? This cannot be undone.')">
                 <button type="submit">Delete</button>
@@ -204,7 +214,7 @@
     if (!schoolCode || schoolCode === 'open') return;
 
     try {
-      const res = await fetch(`/events/hackathons/api/majors?school=${schoolCode}`);
+      const res = await fetch(`/hack-events/api/majors?school=${schoolCode}`);
       const majors = await res.json();
 
       majors.forEach(m => {

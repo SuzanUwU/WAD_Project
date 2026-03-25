@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SMU Events Management System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 80px auto;
+      text-align: center;
+    }
+    h1 { margin-bottom: 10px; }
+    p { color: #555; margin-bottom: 30px; }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      margin: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-primary { background: #4CAF50; color: #fff; }
+    .btn-secondary { background: #2196F3; color: #fff; }
+  </style>
+</head>
+<body>
+  <h2>Welcome to </h2>
+  <h1>SMU Events Management System</h1>
+    
+  <p>Browse, save, and manage campus events in one place.</p>
+
+  <% if (user) { %>
+    <p>You are logged in as <strong><%= user.username %></strong> (<%= user.userId %>).</p>
+    <a href="/events" class="btn btn-primary">Go to Events</a>
+    <a href="/logout" class="btn btn-secondary">Logout</a>
+  <% } else { %>
+    <div>    
+        Already have an account? 
+        <a href="/login" class="btn btn-primary">Login</a>
+    </div>
+    <div>
+        New here? 
+        <a href="/signup" class="btn btn-secondary">Sign Up</a>
+    </div>
+  <% } %>
+</body>
+</html>

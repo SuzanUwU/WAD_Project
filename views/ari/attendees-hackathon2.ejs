@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Attendees — <%= hackathon.name %></title>
+</head>
+<body>
+
+<h1>Attendees — <%= hackathon.name %></h1>
+<p><small><%= hackathon.title %></small></p>
+<p><a href="/events/hackathons">← Back to Listings</a></p>
+
+<p>
+  <strong>Total teams registered:</strong> <%= registrations.length %>
+  &nbsp;|&nbsp;
+  <strong>Team size range:</strong> <%= hackathon.teamSizeMin %>–<%= hackathon.teamSizeMax %>
+</p>
+
+<% if (registrations.length === 0) { %>
+  <p><em>No registrations yet.</em></p>
+<% } else { %>
+
+  <table border="1" cellpadding="6" cellspacing="0">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Team Leader</th>
+        <th>Email</th>
+        <th>School</th>
+        <th>Major</th>
+        <th>Team Size</th>
+        <th>Team Members</th>
+        <th>Registered At</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% registrations.forEach((r, i) => { %>
+        <tr>
+          <td><%= i + 1 %></td>
+          <td><%= r.username %></td>
+          <td><%= r.email %></td>
+          <td><%= schoolMap[r.school] || r.school %></td>
+          <td><%= majorMap[r.major]   || r.major %></td>
+          <td><%= r.teamSize %></td>
+          <td>
+            <% if (r.teamMembers && r.teamMembers.length > 0) { %>
+              <ul style="margin:0; padding-left:16px;">
+                <% r.teamMembers.forEach(m => { %>
+                  <li><%= m.username || m.email %> &lt;<%= m.email %>&gt;</li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <em>Solo</em>
+            <% } %>
+          </td>
+          <td><%= r.registeredAt.toLocaleDateString('en-GB') %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+<% } %>
+
+</body>
+</html>

@@ -10,19 +10,25 @@ const upload = multer({ storage });
 
 
 // ================= USER ROUTES =================
-router.get("/cca", ccaController.getCCAEvents);
+router.get("/cca", ccaController.getCCAEvents); // to display all events for each category
+    // cca-events
+    // hack-events
+    // ptjob-events
+    // career-events
 
-router.get("/my-events", ccaController.getMyEvents);
+router.get("/my-events", ccaController.getMyEvents); 
+// change to my-cca-events
 
-router.get("/:id/register", ccaController.showRegisterForm);
+router.get("/:id/register", ccaController.showRegisterForm); // "/:id/cca-register"
+// "/:id/hack-register, career-register, ptjob-register"
 router.post("/:id/register", ccaController.registerEvent);
 
-router.post("/:id/rsvp", ccaController.rsvpEvent);
-router.post("/:id/cancel-rsvp", ccaController.cancelRsvp);
+router.post("/:id/rsvp", ccaController.rsvpEvent); // delete for Khin
+router.post("/:id/cancel-rsvp", ccaController.cancelRsvp); // delete
 
 
 // ================= ADMIN ROUTES =================
-router.get("/ccaAdmin", ccaAdminController.getAllEvents);
+router.get("/ccaAdmin", ccaAdminController.getAllEvents); 
 
 router.get("/ccaAdmin/create", ccaAdminController.showCreateForm);
 router.post("/ccaAdmin/create", upload.single("image"), ccaAdminController.createEvent);
@@ -38,7 +44,7 @@ router.get("/ccaAdmin/:id/attendees", ccaAdminController.getAttendees);
 // ================= EVENT DETAIL =================
 router.get("/:id", ccaController.getEventDetail);
 
-router.get("/:id/review", ccaController.showReviewForm);
+router.get("/:id/review", ccaController.showReviewForm); // cca-review
 router.post("/:id/review", ccaController.submitReview);
 
 

@@ -1,5 +1,6 @@
+// routes/hackathonRoutes.js
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 const multer  = require('multer');
 
 const hackathonController = require('./../controllers/hackathonController');
@@ -19,27 +20,27 @@ const upload = multer({
   },
 });
 
-// GET /hackathons — main listing page
-router.get('/', hackathonController.showHackathons)
- 
-// GET /api/majors?school=xxx — dynamic major dropdown (called by frontend JS fetch)
-router.get('/api/majors', hackathonController.getMajorsBySchool);
+// GET  /hackathons              — listings page
+router.get('/',               hackathonController.showHackathons);
 
-// GET  /hackathons/new — show blank create form
-// NOTE: /new must be declared BEFORE /:id routes, otherwise Express matches "new" as an :id parameter and calls the wrong handler
-router.get('/new', hackathonController.showCreateForm);
+// GET  /hackathons/api/majors   — dynamic major dropdown
+router.get('/api/majors',     hackathonController.getMajorsBySchool);
 
-// POST /hackathons/new  — validate and save new hackathon
-router.post('/new', upload.single('bannerImage'), hackathonController.createHackathon);
+// GET  /hackathons/new          — blank create form
+router.get('/new',            hackathonController.showCreateForm);
 
-// GET  /hackathons/:id/edit — show pre-filled edit form
-router.get('/:id/edit', hackathonController.showEditForm);
+// POST /hackathons/new          — upload.single runs before controller,
+//                                 attaches file to req.file if provided
+router.post('/new',           upload.single('bannerImage'), hackathonController.createHackathon);
 
-// POST /hackathons/:id/edit — submit edits, validate, update in DB
-router.post('/:id/edit', upload.single('bannerImage'), hackathonController.updateHackathon);
+// GET  /hackathons/:id/edit     — pre-filled edit form
+router.get('/:id/edit',       hackathonController.showEditForm);
 
-// POST /hackathons/:id/delete — delete hackathon
-router.post('/:id/delete', hackathonController.deleteHackathon);
+// POST /hackathons/:id/edit     — same Multer middleware for edit
+router.post('/:id/edit',      upload.single('bannerImage'), hackathonController.updateHackathon);
+
+// POST /hackathons/:id/delete   — delete hackathon
+router.post('/:id/delete',    hackathonController.deleteHackathon);
 
 // GET  /hackathons/:id/signup   — show sign-up form
 // NOTE: must be before /:id/edit so Express doesn't confuse 'signup' with an edit subroute
@@ -50,6 +51,5 @@ router.post('/:id/signup',    hackathonController.registerAttendee);
 
 // GET  /hackathons/:id/attendees — view attendee list
 router.get('/:id/attendees',  hackathonController.showAttendees);
- 
-module.exports = router;
 
+module.exports = router;
