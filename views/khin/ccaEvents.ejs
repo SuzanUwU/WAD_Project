@@ -2,129 +2,297 @@
 <html>
 <head>
 <title>CCA Events</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-bar input,
+.search-bar select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.search-bar button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    background: black;
+    color: white;
+    cursor: pointer;
+}
+
+.top-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #007bff;
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #45a049;
+}
+
+.event-card {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    align-items: center;
+}
+
+.event-image img {
+    width: 180px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-info h3 {
+    margin: 0 0 10px 0;
+}
+
+.event-info p {
+    margin: 4px 0;
+    color: #555;
+}
+
+.status-upcoming {
+    color: green;
+    font-weight: bold;
+}
+
+.status-ongoing {
+    color: orange;
+    font-weight: bold;
+}
+
+.status-past {
+    color: gray;
+    font-weight: bold;
+}
+
+.view-btn {
+    padding: 10px 16px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.registered-badge {
+    margin-left: 10px;
+    background: #e6f4ea;
+    color: #2e7d32;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.empty {
+    text-align: center;
+    color: #888;
+    margin-top: 40px;
+}
+</style>
+
 </head>
 
 <body>
 
-<table width="100%">
+<div class="header">
 
-<tr>
+    <div style="display:flex; align-items:center; gap:15px;">
+        <img src="/images/smu.webp" width="70">
+        <h2>CCA Club Events</h2>
+    </div>
 
-<td width="80">
-<img src="/images/smu.webp" width="70">
-</td>
+    <div style="margin-left:auto; text-align:right;">
 
-<td>
-<h1>SMU CCA Club Activities</h1>
-</td>
+        <% if (user) { %>
+            <div>
+                Logged in as <b><%= user.username %></b> (<%= user.role %>)
+            </div>
 
-</tr>
+            <a href="/logout">Logout</a>
+        <% } %>
 
-</table>
+    </div>
 
+</div>
 
-<!-- Search and Filter -->
+<div class="container">
 
-<form method="GET" action="/events/cca">
+    <form action="/cca-events/my-cca-events" method="GET" style="margin-bottom:15px;">
+        <button type="submit" class="btn btn-primary">
+            My Registered Events
+        </button>
+    </form>
 
-<table>
+<form method="GET" action="/cca-events/cca" class="search-bar">
 
-<tr>
+    <input type="text" name="search" placeholder="Search Event..." value="<%= search %>">
 
-<td>Search Event:</td>
+    <!-- CLUB FILTER -->
+    <select name="club">
+        <option value="All" <%= club==="All" ? "selected" : "" %>>All</option>
+        <option value="Sports" <%= club==="Sports" ? "selected" : "" %>>Sports</option>
+        <option value="Arts" <%= club==="Arts" ? "selected" : "" %>>Arts</option>
+        <option value="Academic" <%= club==="Academic" ? "selected" : "" %>>Academic</option>
+        <option value="Community" <%= club==="Community" ? "selected" : "" %>>Community</option>
+        <option value="Leadership" <%= club==="Leadership" ? "selected" : "" %>>Leadership</option>
+    </select>
 
-<td>
-<input type="text" name="search" value="<%= search %>">
-</td>
+    <!-- STATUS FILTER -->
+    <select name="status">
+        <option value="All" <%= status==="All" ? "selected" : "" %>>All Status</option>
+        <option value="Upcoming" <%= status==="Upcoming" ? "selected" : "" %>>Upcoming</option>
+        <option value="Ongoing" <%= status==="Ongoing" ? "selected" : "" %>>Ongoing</option>
+        <option value="Past" <%= status==="Past" ? "selected" : "" %>>Past</option>
+    </select>
 
-<td>Filter Club Type:</td>
+    <!-- SORT -->
+    <select name="sort">
+        <option value="default" <%= (!sort || sort==="default") ? "selected" : "" %>>Sort by</option>
+        <option value="newest" <%= sort==="newest" ? "selected" : "" %>>Newest First</option>
+        <option value="oldest" <%= sort==="oldest" ? "selected" : "" %>>Oldest First</option>
+    </select>
 
-<td>
-
-<select name="club">
-
-<option value="All" <%= club==="All" ? "selected" : "" %>>All</option>
-
-<option value="Sports" <%= club==="Sports" ? "selected" : "" %>>Sports</option>
-
-<option value="Arts" <%= club==="Arts" ? "selected" : "" %>>Arts</option>
-
-<option value="Academic" <%= club==="Academic" ? "selected" : "" %>>Academic</option>
-
-</select>
-
-</td>
-
-<td>
-<button type="submit">Search</button>
-</td>
-
-</tr>
-
-</table>
+    <button type="submit">Filter</button>
 
 </form>
 
-<br>
+<% if (!events || events.length === 0) { %>
+    <div class="empty">No CCA events found</div>
+<% } %>
 
-<a href="/events/my-events">My Registered Events</a>
+<% events.forEach((cca) => { %>
+  <% if (cca && cca.eventId) { %>
+  <% const event = cca.eventId; %>
 
-<br><br>
+<div class="event-card">
 
-
-<!-- Event Cards -->
-
-<table cellpadding="5">
-
-<% events.forEach((event) => { %>
-
-<tr>
-
-    <!-- IMAGE DISPLAY -->
-    <td>
+    <div class="event-image">
         <% if (event.image && event.image.data) { %>
-            <img 
-                src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>" 
-                width="200"
-            >
+            <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>">
         <% } else { %>
-            <img src="/images/default.png" width="200">
+            <img src="/images/default.png">
         <% } %>
-    </td>
+    </div>
 
-    <%
-        const today = new Date().toISOString().split("T")[0];
+    <div class="event-info">
 
-        let status = "";
+        <h3><%= event.title || "Untitled Event" %></h3>
 
-        if (event.date > today) {
-            status = "Upcoming";
-        } else if (event.date === today) {
-            status = "Ongoing";
-        } else {
-            status = "Past";
-        }
-    %>
+        <%
+            const today = new Date();
+            let eventDate = null;
 
-    <td width="220">
-        <h3><%= event.title %></h3>
+            if (event.startDate) {
+                eventDate = new Date(event.startDate);
+            } else if (event.date) {
+                eventDate = new Date(event.date);
+            }
+
+            let eventStatus = "N/A";
+            let statusClass = "";
+
+            if (eventDate && !isNaN(eventDate)) {
+                if (eventDate > today) {
+                    eventStatus = "Upcoming";
+                    statusClass = "status-upcoming";
+                } else if (eventDate.toDateString() === today.toDateString()) {
+                    eventStatus = "Ongoing";
+                    statusClass = "status-ongoing";
+                } else {
+                    eventStatus = "Past";
+                    statusClass = "status-past";
+                }
+            }
+        %>
+
         <p>
-        <b>Date:</b> <%= event.date %><br>
-        <b>Location:</b> <%= event.location %><br>
-        <b>Club Type:</b> <%= event.clubType %><br>
-        <b>Status:</b> <%= status %>
+        <b>Date:</b>
+        <% if (event.startDate && event.endDate) { %>
+            <%= new Date(event.startDate).toDateString() %> 
+            - 
+            <%= new Date(event.endDate).toDateString() %>
+        <% } else if (eventDate) { %>
+            <%= eventDate.toDateString() %>
+        <% } else { %>
+            N/A
+        <% } %>
         </p>
-    </td>
 
-    <td>
-        <a href="/events/<%= event._id %>">View Details</a>
-    </td>
+        <p><b>Location:</b> <%= event.location || "N/A" %></p>
+        <p><b>Club Type:</b> <%= cca.clubType || "N/A" %></p>
+        
+        <p class="<%= statusClass %>"><b>Status:</b> <%= eventStatus %></p>
 
-</tr>
+    </div>
 
+    <div>
+
+        <% if (cca.registered) { %>
+            <span class="registered-badge">Registered</span>
+        <% } %>
+
+        <a class="view-btn" href="/cca-events/<%= cca.eventId._id %>">
+            View Details
+        </a>
+        
+    </div>
+
+</div>
+
+  <% } %>
 <% }) %>
 
-</table>
+</div>
 
 </body>
 </html>

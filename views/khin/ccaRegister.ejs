@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register Event</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.container {
+    width: 60%;
+    margin: 30px auto;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.event-image {
+    text-align: center;
+}
+
+.event-image img {
+    width: 300px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.readonly-field {
+    background-color: #f0f0f0;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+    <img src="/images/smu.webp" width="70">
+    <h2>Register for Event</h2>
+
+    <div style="margin-left:auto; text-align:right;">
+
+        <% if (user) { %>
+            <div>
+                Logged in as <b><%= user.username %></b> (<%= user.role %>)
+            </div>
+
+            <a href="/logout">Logout</a>
+        <% } %>
+
+    </div>
+
+</div>
+
+<div class="container">
+<div class="card">
+
+<!-- IMAGE -->
+<div class="event-image">
+<% if (event.image && event.image.data) { %>
+    <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>">
+<% } else { %>
+    <img src="/images/default.png">
+<% } %>
+</div>
+
+<h2 style="text-align:center;"><%= event.title %></h2>
+
+<br>
+
+<form action="/cca-events/<%= event._id %>/cca-register" method="POST">
+
+<!-- NAME (AUTO-FILLED) -->
+<div class="form-group">
+    <label><b>Name</b></label>
+    <input type="text" value="<%= user.username %>" readonly class="readonly-field">
+</div>
+
+<!-- STUDENT ID (DISPLAY ONLY) -->
+<div class="form-group">
+    <label><b>User ID</b></label>
+    <input type="text" value="<%= user.userId %>" readonly class="readonly-field">
+</div>
+
+<!-- EMAIL (AUTO-FILLED) -->
+<div class="form-group">
+    <label><b>Student Email</b></label>
+    <input type="email" value="<%= user.email %>" readonly class="readonly-field">
+</div>
+
+<!-- COMMENTS -->
+<div class="form-group">
+    <label><b>Comments</b></label>
+    <textarea name="comments" rows="4"></textarea>
+</div>
+
+<button type="submit" class="btn btn-primary">
+    Submit Registration
+</button>
+
+</form>
+
+<br>
+
+<a href="/cca-events/<%= event._id %>">Back to Event Details</a>
+
+</div>
+</div>
+
+</body>
+</html>

@@ -1,41 +1,65 @@
 const mongoose = require("mongoose");
 
 const ccaSchema = new mongoose.Schema({
-  title: { 
-    type: String, 
-    required: true 
+  
+  eventId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Event",
+    required: true
   },
-  organizer: { 
-    type: String, 
-    required: true 
-  }, 
-  description: { 
-    type: String, 
-    required: true 
+
+  title: {
+    type: String,
+    required: true
   },
-  category: { 
-    type: String, 
-    required: true 
+
+  organizer: {
+    type: String,
+    required: true
   },
-  clubType: { 
-    type: String, 
-    required: true 
+
+  category: {
+    type: String,
+    default: "CCA"
   },
-  date: { 
-    type: String, 
-    required: true 
+
+  description: {
+    type: String
   },
-  location: { 
-    type: String, 
-    required: true 
+
+  startDate: {
+    type: Date,
+    required: true
   },
-  attendees: { 
-    type: Number, 
-    default: 0 
+
+  endDate: {
+    type: Date,
+    required: true
   },
+
+  location: {
+    type: String
+  },
+
+  // BUFFER IMAGE
   image: {
     data: Buffer,
     contentType: String
+  },
+
+  clubType: {
+    type: String,
+    required: true
+  },
+
+  capacity: {
+    type: Number,
+    default: 0
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now
   }
 });
 

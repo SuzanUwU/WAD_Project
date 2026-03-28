@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CCA Event Details</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+/* HEADER */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+/* CONTAINER */
+.container {
+    width: 70%;
+    margin: 30px auto;
+}
+
+/* CARD */
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* IMAGE */
+.event-image {
+    text-align: center;
+}
+
+.event-image img {
+    width: 100%;
+    max-width: 350px;   
+    height: 220px;     
+    object-fit: cover; 
+    border-radius: 10px;
+}
+
+/* TITLE */
+.event-title {
+    text-align: center;
+    margin: 15px 0;
+}
+
+/* DETAILS */
+.details {
+    margin-top: 20px;
+}
+
+.detail-row {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+/* BUTTON */
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 13px;
+    border-radius: 5px;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #45a049;
+}
+
+.btn-secondary {
+    background-color: #007bff;
+    color: white;
+}
+
+/* MESSAGE */
+.message {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+/* REVIEWS */
+.review-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+
+    <div style="display:flex; align-items:center; gap:15px;">
+        <img src="/images/smu.webp" width="70">
+        <h2>Event Details</h2>
+    </div>
+
+    <div style="margin-left:auto; text-align:right;">
+
+        <% if (user) { %>
+            <div>
+                Logged in as <b><%= user.username %></b> (<%= user.role %>)
+            </div>
+
+            <a href="/logout">Logout</a>
+        <% } %>
+
+    </div>
+
+</div>
+
+<div class="container">
+
+<div class="card">
+
+<!-- IMAGE -->
+<div class="event-image">
+<% if (event && event.image && event.image.data) { %>
+    <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>">
+<% } else { %>
+    <img src="/images/default.png">
+<% } %>
+</div>
+
+<!-- TITLE -->
+<h2 class="event-title"><%= event.title %></h2>
+
+<!-- DETAILS -->
+<div class="details">
+
+    <div class="detail-row">
+    <b>Category:</b> <%= event.category || "N/A" %>
+    </div>
+
+    <div class="detail-row">
+    <b>Club Type:</b> <%= cca.clubType || "N/A" %>
+    </div>
+
+    <div class="detail-row">
+    <b>Date:</b>
+
+    <% if (event.startDate) { %>
+        <%= new Date(event.startDate).toDateString() %>
+
+        <% if (event.endDate) { %>
+        to <%= new Date(event.endDate).toDateString() %>
+        <% } %>
+
+    <% } else { %>
+        N/A
+    <% } %>
+    </div>
+
+    <div class="detail-row">
+    <b>Location:</b> <%= event.location || "N/A" %>
+    </div>
+
+    <div class="detail-row">
+    <b>Capacity:</b> <%= cca.capacity || "N/A" %>
+    </div>
+
+    <div class="detail-row">
+    <b>Description:</b> <%= event.description || "N/A" %>
+    </div>
+</div>
+
+<!-- REGISTRATION LOGIC -->
+<%
+  const today = new Date().toISOString().split("T")[0];
+  let endDate = null;
+
+  if (event.endDate) {
+    endDate = new Date(event.endDate).toISOString().split("T")[0];
+  }
+%>
+
+<div style="margin-top:20px;">
+
+<% if (registered) { %>
+
+  <p><b>You have already registered for this event.</b></p>
+
+  <a href="/cca-events/my-cca-events" class="btn btn-primary">
+    View My Registered Events
+  </a>
+
+<% } else if (endDate && endDate < today) { %>
+
+  <p><b>This event has ended. Registration is closed.</b></p>
+
+<% } else { %>
+
+  <a href="/cca-events/<%= event._id %>/cca-register" class="btn btn-primary">
+    Register for Event
+  </a>
+
+<% } %>
+
+</div>
+
+</div>
+
+<!-- REVIEWS -->
+<h3 style="margin-top:30px;">Reviews</h3>
+
+<% if (!reviews || reviews.length === 0) { %>
+  <p>No reviews yet</p>
+<% } %>
+
+<% reviews.forEach(r => { %>
+
+<div class="review-card">
+
+    <% if (editingReviewId && editingReviewId == r._id.toString()) { %>
+
+        <!-- EDIT MODE -->
+        <form action="/cca-events/reviews/<%= r._id %>/edit" method="POST">
+
+            <label><b>Rating:</b></label>
+            <select name="rating" required>
+                <option value="1" <%= r.rating == 1 ? "selected" : "" %>>1</option>
+                <option value="2" <%= r.rating == 2 ? "selected" : "" %>>2</option>
+                <option value="3" <%= r.rating == 3 ? "selected" : "" %>>3</option>
+                <option value="4" <%= r.rating == 4 ? "selected" : "" %>>4</option>
+                <option value="5" <%= r.rating == 5 ? "selected" : "" %>>5</option>
+            </select>
+
+            <br><br>
+
+            <textarea name="comment"><%= r.comment %></textarea>
+
+            <br><br>
+
+            <button type="submit" class="btn btn-primary btn-small">Update</button>
+            <a href="/cca-events/<%= event._id %>" class="btn btn-secondary btn-small">Cancel</a>
+
+        </form>
+
+    <% } else { %>
+
+        <!-- NORMAL VIEW -->
+        <div class="review-header">
+            <b><%= r.name || r.userId %></b>
+            <span>Rating: <%= r.rating %>/5</span>
+        </div>
+
+        <p><%= r.comment %></p>
+
+        <% if (user && user.userId === r.userId) { %>
+
+            <a href="/cca-events/<%= event._id %>?edit=<%= r._id %>" class="btn btn-secondary btn-small">
+                Edit
+            </a>
+
+            <form action="/cca-events/reviews/<%= r._id %>/delete" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-primary btn-small">Delete</button>
+            </form>
+
+        <% } %>
+
+    <% } %>
+
+</div>
+
+<% }) %>
+
+
+<!-- REVIEW FORM -->
+<div style="margin-top:20px;">
+
+<% if (registered && endDate && endDate < today) { %>
+
+    <% if (!hasReviewed && !editingReviewId) { %>
+
+        <form action="/cca-events/<%= event._id %>/cca-review" method="POST">
+
+            <label><b>Rating:</b></label>
+            <select name="rating" required>
+                <option value="">Select rating</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+
+            <br><br>
+
+            <label><b>Comment:</b></label>
+            <textarea name="comment" rows="4"></textarea>
+
+            <br><br>
+
+            <button type="submit" class="btn btn-secondary">
+                Submit Review
+            </button>
+
+        </form>
+
+    <% } else { %>
+
+        <p class="message"><b>You have already submitted a review.</b></p>
+
+    <% } %>
+
+<% } else if (!registered) { %>
+
+    <p class="message">Only registered users can leave a review</p>
+
+<% } else { %>
+
+    <p class="message">You can write a review after the event ends</p>
+
+<% } %>
+
+</div>
+
+</div>
+
+</body>
+</html>

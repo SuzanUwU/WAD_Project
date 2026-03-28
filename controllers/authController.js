@@ -110,7 +110,12 @@ const login = async (req, res) => {
         };
         
         console.log(`✅ Login: ${user.userId} (${user.role})`);
-        res.redirect('/all-events');
+        // res.redirect('/all-events');
+
+        // khin - i change this one abit to save the user session
+        req.session.save(() => {
+            res.redirect('/all-events');
+        });
         
     } catch (error) {
         console.error("Login ERROR:", error);
