@@ -20,7 +20,7 @@ const upload = multer({
 });
 
 // GET /hackathons — main listing page
-router.get('/hackathon', hackathonController.showHackathons)
+router.get('/hackathons', hackathonController.showHackathons)
  
 // GET /api/majors?school=xxx — dynamic major dropdown (called by frontend JS fetch)
 router.get('/api/majors', hackathonController.getMajorsBySchool);
