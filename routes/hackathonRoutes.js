@@ -25,6 +25,10 @@ router.get('/hackathons', hackathonController.showHackathons)
 // GET /api/majors?school=xxx — dynamic major dropdown (called by frontend JS fetch)
 router.get('/api/majors', hackathonController.getMajorsBySchool);
 
+// GET  /api/lookup-teammate — validate teammate email before form submission
+// Must be before /:id routes so Express does not match 'api' as an :id value
+router.get('/api/lookup-teammate', hackathonController.lookupTeammate);
+
 // GET  /hackathons/new — show blank create form
 // NOTE: /new must be declared BEFORE /:id routes, otherwise Express matches "new" as an :id parameter and calls the wrong handler
 router.get('/new', hackathonController.showCreateForm);
@@ -50,6 +54,6 @@ router.post('/:id/signup',    hackathonController.registerAttendee);
 
 // GET  /hackathons/:id/attendees — view attendee list
 router.get('/:id/attendees',  hackathonController.showAttendees);
+
  
 module.exports = router;
-
