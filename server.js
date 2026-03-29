@@ -64,7 +64,6 @@ async function connectDB() {
     // connecting to Database with our config.env file and DB is constant in config.env
     await mongoose.connect(process.env.DB);
     console.log("MongoDB connected successfully");
-
   } catch (error) {
     console.error("MongoDB connection failed:", error.message);
     process.exit(1);
@@ -78,9 +77,9 @@ function startServer() {
   // Start the server and listen on the specified hostname and port
   server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
-    console.log(`📱 Test: http://${hostname}:${port}/all-events`); // ← Better log
   });
 }
 
 // call connectDB first and when connection is ready we start the web server
 connectDB().then(startServer);
+
