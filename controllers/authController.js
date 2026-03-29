@@ -34,18 +34,46 @@ const renderLogin = (req, res) => {
 // FIXED SIGNUP
 const signup = async (req, res) => {
     try {
-        const { username, email, password, school } = req.body;
+        const { username, email, password, school, major} = req.body;
         console.log("Raw input:", req.body);
         
         // Trim inputs
         const cleanUsername = username?.trim();
         const cleanEmail = email?.trim().toLowerCase();
+        const cleanSchool = school?.trim();
+        const cleanMajor = major?.trim();
         
-        // VALIDATE SMU STUDENT EMAIL ONLY
+        // Validate SMU student email
         if (!isValidStudentEmail(cleanEmail)) {
-            return res.render('signup', { 
-                error: 'Only SMU student emails (@*.smu.edu.sg) can register here. Admins must be created by Super Admin.' 
+        const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', {
+                error: 'Only SMU student emails (@*.smu.edu.sg) can register here.',
+                schools,
             });
+        }
+
+         // Validate school selected
+        if (!cleanSchool) {
+            const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', { error: 'Please select your school.', schools });
+        }
+
+        // Validate that school exists in DB and major belongs to it
+        const schoolDoc = await School.findOne({ code: cleanSchool });
+        if (!schoolDoc) {
+            const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', { error: 'Selected school is invalid.', schools });
+        }
+
+        if (!cleanMajor) {
+            const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', { error: 'Please select your major.', schools });
+        }
+
+        const majorExists = schoolDoc.majors.some(m => m.code === cleanMajor);
+        if (!majorExists) {
+            const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', { error: 'Selected major is invalid for your school.', schools });
         }
         
         // Check existing user
@@ -68,7 +96,8 @@ const signup = async (req, res) => {
             username: cleanUsername,
             email: cleanEmail,
             password: hashedPassword,
-            school: school,
+            school: cleanSchool,
+            major: cleanMajor,
             role: 'student'  // Public signup = students only
         });
         
@@ -82,6 +111,7 @@ const signup = async (req, res) => {
         
     } catch (error) {
         console.error("Signup ERROR:", error);
+        const schools = await School.find().sort({ displayName: 1 }).catch(() => []);
         res.render('signup', { error: 'Server error during signup.' });
     }
 };
@@ -107,6 +137,17 @@ const login = async (req, res) => {
                 success: null 
             });
         }
+
+        // Resolve display names for school and major from the School collection
+        let schoolName = user.school;
+        let majorName  = user.major;
+
+        const schoolDoc = await School.findOne({ code: user.school });
+        if (schoolDoc) {
+            schoolName = schoolDoc.fullName;
+            const majorDoc = schoolDoc.majors.find(m => m.code === user.major);
+            if (majorDoc) majorName = majorDoc.name;
+        }
         
         // Session with role
         req.session.user = { 
@@ -114,10 +155,14 @@ const login = async (req, res) => {
             userId: user.userId,
             username: user.username,
             email: user.email,
-            role: user.role
+            role: user.role,
+            school: user.school, // e.g. "scis"
+            major: user.major, // e.g. "ba"
+            schoolName, // full name e.g. "School of Computing & Information Systems"
+            majorName   // full name e.g. "Business Analytics"
         };
         
-        console.log(`✅ Login: ${user.userId} (${user.role})`);
+        console.log(`✅ Login: ${user.userId} (${user.role} - ${schoolName} / ${majorName})`);
         res.redirect('/all-events');
         
     } catch (error) {

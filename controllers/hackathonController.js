@@ -18,13 +18,13 @@ async function getAllMajorsFlat() {
 function getSessionUser(req) {
   const u = req.session?.user;
   return {
-    userId:     u?.userId    || 'placeholder_uid_001',
-    username:   u?.username  || 'placeholder_user',
-    email:      u?.email     || 'placeholder@smu.edu.sg',
-    school:     u?.school    || 'scis',      // school code — stored in session once implemented
-    major:      u?.major     || 'ba',        // major code  — stored in session once implemented
-    schoolName: u?.schoolName || 'School of Computing & Information Systems',
-    majorName:  u?.majorName  || 'Business Analytics',
+    userId:     u?.userId    || '',
+    username:   u?.username  || '',
+    email:      u?.email     || '',
+    school:     u?.school    || '',     // school code e.g. 'scis'
+    major:      u?.major     || '',     // major code  e.g. 'ba'
+    schoolName: u?.schoolName || '',    // full name from login session
+    majorName:  u?.majorName  || '',    // full name from login session
   };
 }
 

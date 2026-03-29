@@ -43,11 +43,14 @@ server.use((req, res, next) => {
 
 // ROUTES
 server.use('/', authRoutes);  // Before eventRoutes
+// Public API route — must be before requireLogin middleware so unauthenticated
+// pages (e.g. signup) can fetch majors for the dynamic dropdown
+server.get('/api/majors', require('./controllers/hackathonController').getMajorsBySchool);
 // server.use('/events/hackathons', hackathonRoutes); // Ari
 // server.use('/events', ccaRoutes); // Khin
 // server.use('/events', eventRoutes);
 server.use('/all-events', requireLogin, alleventRoutes);
-server.use('/hack-events', requireLogin, hackathonRoutes); // Ari RMB TO ADD BACK requireLogin
+server.use('/hack-events', requireLogin, hackathonRoutes); // Ari
 server.use('/cca-events', requireLogin, ccaRoutes);
 server.use('/superadmin', requireSuperAdmin, superadminRoutes);
 server.get('/', (req, res) => { res.render('welcome', { user: req.session?.user || null}); } );
