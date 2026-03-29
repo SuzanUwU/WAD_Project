@@ -1,0 +1,242 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hackathons Dashboard</title>
+</head>
+<body>
+<%- include('../navbar') %>
+<h1>Hackathons</h1>
+<% if (query.success === 'created') { %>
+  <p style="color:green; border:1px solid green; padding:8px;">
+    ✓ Hackathon created successfully.
+  </p>
+<% } else if (query.success === 'updated') { %>
+  <p style="color:green; border:1px solid green; padding:8px;">
+    ✓ Hackathon updated successfully.
+  </p>
+<% } else if (query.success === 'deleted') { %>
+  <p style="color:green; border:1px solid green; padding:8px;">
+    ✓ Hackathon deleted successfully.
+  </p>
+<% } else if (query.error === 'notfound') { %>
+  <p style="color:red; border:1px solid red; padding:8px;">
+    ✗ Hackathon not found — it may have already been deleted.
+  </p>
+<% } else if (query.error === 'deletefailed') { %>
+  <p style="color:red; border:1px solid red; padding:8px;">
+    ✗ Delete failed due to a server error. Please try again.
+  </p>
+<% } %>
+
+<p><a href="/all-events">← Back to Events Dashboard</a></p>
+<p><a href="/hack-events/new">+ Create New Hackathon</a></p>
+
+<!--   FILTER SECTION      -->
+<section>
+  <form method="GET" action="/hack-events">
+    <!-- School dropdown -->
+    <label for="filter-school">School:</label>
+    <select id="filter-school" name="school">
+      <option value="">-- All Schools --</option>
+        <% schools.forEach(s => { %>
+          <option value="<%= s.code %>" <%= query.school === s.code ? 'selected' : '' %>>
+              <%= s.name %>
+          </option>
+        <% }) %>
+      <option value="open" <%= query.school === 'open' ? 'selected' : '' %>>Open to All</option>
+    </select>
+
+    &nbsp;
+    <!-- Majors dropdown: empty until school is selected -->
+    <label for="filter-major">Major:</label>
+    <select id="filter-major" name="major" disabled>
+      <option value="">-- Select a school first --</option>
+    </select>
+
+    &nbsp;
+
+    <label for="filter-status">Status:</label>
+    <select id="filter-status" name="status">
+      <option value="">-- Any Status --</option>
+      <option value="upcoming"  <%= query.status === 'upcoming'  ? 'selected' : '' %>>Upcoming</option>
+      <option value="open"      <%= query.status === 'open'      ? 'selected' : '' %>>Registration Open</option>
+      <option value="closed"    <%= query.status === 'closed'    ? 'selected' : '' %>>Registration Closed</option>
+      <option value="completed" <%= query.status === 'completed' ? 'selected' : '' %>>Completed</option>
+    </select>
+
+    &nbsp;
+
+    <button type="submit">Apply Filters</button>
+    <a href="/hack-events"><button type="button">Clear</button></a>
+  </form>
+</section>
+
+<hr/>
+
+<!-- HACKATHON LISTINGS -->
+<section>
+  <h2>Listings</h2>
+
+  <% if (hackathons.length === 0) { %>
+    <p><em>No hackathons found matching your filters. <a href="/hack-events">Clear filters</a></em></p>
+  <% } else { %>
+
+    <table border="1" cellpadding="6" cellspacing="0">
+      <colgroup>
+        <col style="width:10%"/> <!-- Name -->
+        <col style="width:18%"/> <!-- Description -->
+        <col style="width:8%"/>  <!-- Banner -->
+        <col style="width:10%"/> <!-- Eligible Schools -->
+        <col style="width:14%"/> <!-- Eligible Majors -->
+        <col style="width:10%"/> <!-- Dates -->
+        <col style="width:8%"/>  <!-- Reg Deadline -->
+        <col style="width:6%"/>  <!-- Team Size -->
+        <col style="width:7%"/>  <!-- Status -->
+        <col style="width:9%"/>  <!-- Actions -->
+      </colgroup>      
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Banner</th>
+          <th>Eligible Schools</th>
+          <th>Eligible Majors</th>
+          <th>Dates</th>
+          <th>Registration Deadline</th>
+          <th>Team Size</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% hackathons.forEach(h => { %>
+          <tr>
+            <td><strong><%= h.name %></strong><br/><small><%= h.title %></small></td>
+
+            <td><%= h.description %></td>
+
+            <!-- Banner image: show image if available, placeholder text if not -->
+            <td>
+              <% if (h.image && h.image.data) { %>
+                <img src="data:<%= h.image.contentType %>;base64,<%= h.image.data.toString('base64') %>"
+                     alt="<%= h.name %> banner" width="100"/>
+              <% } else { %>
+                <em>No image</em>
+              <% } %>
+            </td>
+
+            <!-- Display school codes — join array into readable string -->
+            <td>
+              <% if (h.eligibleSchools.includes('open')) { %>
+                Open to All
+              <% } else { %>
+                <%= h.eligibleSchools.join(', ').toUpperCase() %>
+              <% } %>
+            </td>
+
+            <!-- Display major codes — join array into readable string -->
+            <td>
+              <% if (h.eligibleMajors.includes('open')) { %>
+                Open to All
+              <% } else { %>
+                <ul style="margin:0; padding-left:16px;">
+                  <% h.eligibleMajors.forEach(code => {
+                    const major = majorsData.find(m => m.code === code);
+                  %>
+                    <li><%= major ? major.name : code %></li>
+                  <% }) %>
+                </ul>
+              <% } %>
+            </td>
+
+            <!-- Format dates to readable DD/MM/YYYY -->
+            <td>
+              <%= h.startDate.toLocaleDateString('en-GB') %> – <%= h.endDate.toLocaleDateString('en-GB') %>
+            </td>
+
+            <td><%= h.registrationDeadline.toLocaleDateString('en-GB') %></td>
+
+            <td><%= h.teamSizeMin %> – <%= h.teamSizeMax %></td>
+
+            <%
+              const statusLabels = {
+                upcoming:  'Upcoming',
+                open:      'Registration Open',
+                closed:    'Registration Closed',
+                completed: 'Completed',
+                cancelled: 'Cancelled',
+              };
+            %>
+            <td>
+              <%= statusLabels[h.status] || h.status %>
+              <% if (h.status === 'open') { %>
+                <br/>
+                <a href="/hack-events/<%= h._id %>/signup">
+                  <button type="button">Sign Up</button>
+                </a>
+              <% } %>
+            </td>
+
+            <td>
+              <a href="/hack-events/<%= h._id %>/edit">[Edit]</a>
+              &nbsp;
+              <a href="/hack-events/<%= h._id %>/attendees">[View Attendees]</a>
+              &nbsp;
+              <form method="POST" action="/hack-events/<%= h._id %>/delete"
+                    style="display:inline"
+                    onsubmit="return confirm('Delete <%= h.name %>? This cannot be undone.')">
+                <button type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <p>Showing <%= hackathons.length %> result<%= hackathons.length === 1 ? '' : 's' %></p>
+
+  <% } %>
+</section>
+
+<!-- DYNAMIC MAJOR DROPDOWN SCRIPT -->
+<script>
+  const currentMajor = '<%= query.major %>'; // passed from controller, used to restore selection
+
+  document.getElementById('filter-school').addEventListener('change', async function () {
+    const schoolCode = this.value;
+    const majorSelect = document.getElementById('filter-major');
+
+    // Reset dropdown
+    majorSelect.innerHTML = '<option value="">-- All Majors --</option>';
+    majorSelect.disabled = true;
+
+    if (!schoolCode || schoolCode === 'open') return;
+
+    try {
+      const res = await fetch(`/hack-events/api/majors?school=${schoolCode}`);
+      const majors = await res.json();
+
+      majors.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.code;
+        opt.textContent = m.name;
+        if (m.code === currentMajor) opt.selected = true; // restore prior selection
+        majorSelect.appendChild(opt);
+      });
+
+      majorSelect.disabled = false;
+    } catch (err) {
+      console.error('Failed to load majors:', err);
+    }
+  });
+
+  // Restore majors dropdown if page loads with a school already selected
+  window.addEventListener('DOMContentLoaded', () => {
+    const schoolSelect = document.getElementById('filter-school');
+    if (schoolSelect.value) schoolSelect.dispatchEvent(new Event('change'));
+  });
+</script>
+
+</body>
+</html>

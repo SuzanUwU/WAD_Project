@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Remove Organizer</title>
+  <style>
+    .success { color: green; background: #d4edda; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    .error { color: #721c24; background: #f8d7da; padding: 10px; margin: 10px 0; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Remove Organizer</h1>
+  
+  <% if (typeof req !== 'undefined' && req.flash) { %>
+    <%- req.flash('success')[0] || '' %>
+    <%- req.flash('error')[0] || '' %>
+  <% } %>
+  
+  <form method="POST" action="/events/removeorg"> 
+
+    <p>
+      <label>Organizer ID:</label><br>
+      <select name="organizerId" required style="width: 300px; padding: 8px;">
+        <option value="">Select Organizer to Remove</option>
+        <% organizers.forEach(org => { %>
+          <option value="<%= org.organizerId %>"><%= org.organizerId %> (<%= org.organizerName %>)</option>
+        <% }) %>
+      </select>
+    </p>
+    
+    <p>
+      <label>Reason for Removal:</label><br>
+      <textarea name="reason" rows="3" cols="50" 
+                placeholder="Club shut down, no longer active, etc..." 
+                style="padding: 8px; width: 400px;" required></textarea>
+    </p>
+    
+    <p>
+      <input type="submit" value="🗑️ Remove Organizer" 
+             style="background: #f44336; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-size: 16px;">
+      <a href="/events" style="margin-left: 20px; color: #666; text-decoration: none;">Cancel</a>
+    </p>
+  </form>
+  
+  <h3>Active Organizers:</h3>
+  <% if (organizers.length > 0) { %>
+    <ul>
+      <% organizers.forEach(org => { %>
+        <li><%= org.organizerName %> (ID: <%= org.organizerId %>)</li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p>No organizers found.</p>
+  <% } %>
+</body>
+</html>

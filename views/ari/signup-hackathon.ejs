@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up — <%= hackathon.name %></title>
+</head>
+<body>
+
+<h1>Sign Up — <%= hackathon.name %></h1>
+<p><small><%= hackathon.title %></small></p>
+<p>
+  <strong>Dates:</strong>
+  <%= hackathon.startDate.toLocaleDateString('en-GB') %> –
+  <%= hackathon.endDate.toLocaleDateString('en-GB') %>
+  &nbsp;|&nbsp;
+  <strong>Team Size:</strong> <%= hackathon.teamSizeMin %>–<%= hackathon.teamSizeMax %> members
+</p>
+<p><a href="/hack-events">← Back to Listings</a></p>
+
+<!-- SUCCESS -->
+<% if (success) { %>
+  <p><strong><%= success %></strong></p>
+  <p><a href="/hack-events">Back to Listings</a></p>
+<% } else { %>
+
+<!-- ERRORS -->
+<% if (errors && errors.length > 0) { %>
+  <div>
+    <strong>Please fix the following:</strong>
+    <ul>
+      <% errors.forEach(e => { %><li><%= e %></li><% }) %>
+    </ul>
+  </div>
+<% } %>
+
+<form method="POST" action="/hack-events/<%= hackathon._id %>/signup">
+
+  <!-- YOUR DETAILS — auto-filled from session (read-only) -->
+  <fieldset>
+    <legend>Your Details (from your account)</legend>
+
+    <p>
+      <strong>Username:</strong> <%= currentUser.username %><br/>
+      <strong>Email:</strong> <%= currentUser.email %><br/>
+      <strong>School:</strong> <%= currentUser.schoolName %><br/>
+      <strong>Major:</strong> <%= currentUser.majorName %>
+    </p>
+
+    <!-- Hidden inputs pass session values to the server on submit -->
+    <input type="hidden" name="userId"   value="<%= currentUser.userId %>"/>
+    <input type="hidden" name="username" value="<%= currentUser.username %>"/>
+    <input type="hidden" name="email"    value="<%= currentUser.email %>"/>
+    <input type="hidden" name="school"   value="<%= currentUser.school %>"/>
+    <input type="hidden" name="major"    value="<%= currentUser.major %>"/>
+
+    <!-- Eligibility note -->
+    <p><small>
+      <strong>Eligible schools:</strong>
+      <%= hackathon.eligibleSchools.includes('open') ? 'Open to All' : hackathon.eligibleSchools.join(', ').toUpperCase() %>
+      &nbsp;|&nbsp;
+      <strong>Eligible majors:</strong>
+      <%= hackathon.eligibleMajors.includes('open') ? 'Open to All' : hackathon.eligibleMajors.join(', ') %>
+    </small></p>
+  </fieldset>
+
+  <!-- TEAM SIZE -->
+  <fieldset>
+    <legend>Team Size</legend>
+    <p>
+      <label for="teamSize">
+        How many people in your team (including yourself)? *
+      </label><br/>
+      <%
+        // teamSizeMin is the minimum including the leader
+        // Generate options from min to max
+      %>
+      <select id="teamSize" name="teamSize" required>
+        <% for (let i = hackathon.teamSizeMin; i <= hackathon.teamSizeMax; i++) { %>
+          <option value="<%= i %>"
+            <%= (formData && parseInt(formData.teamSize) === i) ? 'selected' : '' %>>
+            <%= i %> <%= i === 1 ? 'person (just me)' : 'people' %>
+          </option>
+        <% } %>
+      </select>
+    </p>
+  </fieldset>
+
+  <!-- TEAMMATE EMAILS -->
+  <!-- Shown/hidden by JS based on team size selection -->
+  <fieldset id="teammates-fieldset" hidden>
+    <legend>Teammate Emails</legend>
+    <small>
+      Enter the SMU email of each teammate. They must be registered students on this platform.
+      Only their userId and email will be recorded.
+    </small>
+
+    <div id="teammate-inputs">
+      <%
+        // Pre-render the maximum number of teammate slots (teamSizeMax - 1)
+        // JS shows/hides the relevant ones based on team size selected
+        const maxTeammates = hackathon.teamSizeMax - 1;
+      %>
+      <% for (let i = 0; i < maxTeammates; i++) { %>
+        <div class="teammate-row" id="teammate-row-<%= i %>" hidden>
+          <p>
+            <label for="teammateEmail<%= i %>">
+              Teammate <%= i + 1 %> Email: *
+            </label><br/>
+            <input type="email"
+                   id="teammateEmail<%= i %>"
+                   name="teammateEmails[]"
+                   size="40"
+                   placeholder="student@smu.edu.sg"
+                   value="<%= (formData && formData.teammateEmails && formData.teammateEmails[i]) || '' %>"/>
+            <span id="teammate-feedback-<%= i %>"></span>
+          </p>
+        </div>
+      <% } %>
+    </div>
+  </fieldset>
+
+  <p>
+    <button type="submit">Submit Registration</button>
+    &nbsp;
+    <a href="/hack-events"><button type="button">Cancel</button></a>
+  </p>
+
+</form>
+
+<script>
+  const teamSizeSelect     = document.getElementById('teamSize');
+  const teammatesFieldset  = document.getElementById('teammates-fieldset');
+  const maxTeammates       = '<%= hackathon.teamSizeMax - 1 %>';
+
+  function updateTeammateInputs() {
+    const selected   = parseInt(teamSizeSelect.value);
+    const numTeammates = selected - 1; // subtract the leader
+
+    if (numTeammates > 0) {
+      teammatesFieldset.hidden = false;
+    } else {
+      teammatesFieldset.hidden = true;
+    }
+
+    // Show exactly (selected - 1) teammate rows, hide the rest
+    for (let i = 0; i < maxTeammates; i++) {
+      const row   = document.getElementById('teammate-row-' + i);
+      const input = row.querySelector('input[type="email"]');
+      if (i < numTeammates) {
+        row.hidden    = false;
+        input.required = true;
+      } else {
+        row.hidden    = true;
+        input.required = false;
+        input.value   = ''; // clear hidden inputs so they aren't submitted
+      }
+    }
+  }
+
+  teamSizeSelect.addEventListener('change', updateTeammateInputs);
+
+  // Run on page load to restore state after a validation error
+  window.addEventListener('DOMContentLoaded', updateTeammateInputs);
+</script>
+
+<% } %>
+
+</body>
+</html>
