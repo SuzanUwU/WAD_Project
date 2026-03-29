@@ -30,18 +30,18 @@
 <% } %>
 
 <p><a href="/all-events">← Back to Events Dashboard</a></p>
-<p><a href="/hack-events/new">+ Create New Hackathon</a></p>
+<p><a href="/hack-events/hackathons/new">+ Create New Hackathon</a></p>
 
 <!--   FILTER SECTION      -->
 <section>
-  <form method="GET" action="/hack-events">
+  <form method="GET" action="/hack-events/hackathons">
     <!-- School dropdown -->
     <label for="filter-school">School:</label>
     <select id="filter-school" name="school">
       <option value="">-- All Schools --</option>
         <% schools.forEach(s => { %>
           <option value="<%= s.code %>" <%= query.school === s.code ? 'selected' : '' %>>
-              <%= s.name %>
+              <%= s.displayName %>
           </option>
         <% }) %>
       <option value="open" <%= query.school === 'open' ? 'selected' : '' %>>Open to All</option>
@@ -68,7 +68,7 @@
     &nbsp;
 
     <button type="submit">Apply Filters</button>
-    <a href="/hack-events"><button type="button">Clear</button></a>
+    <a href="/hack-events/hackathons"><button type="button">Clear</button></a>
   </form>
 </section>
 
@@ -79,7 +79,7 @@
   <h2>Listings</h2>
 
   <% if (hackathons.length === 0) { %>
-    <p><em>No hackathons found matching your filters. <a href="/hack-events">Clear filters</a></em></p>
+    <p><em>No hackathons found matching your filters. <a href="/hack-events/hackathons">Clear filters</a></em></p>
   <% } else { %>
 
     <table border="1" cellpadding="6" cellspacing="0">

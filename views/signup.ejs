@@ -41,7 +41,7 @@
         <select name="school" required>
           <option value="">Select your school</option>
           <% schools.forEach(function(school) { %>
-            <option value="<%= school._id %>"><%= school.name %></option>
+            <option value="<%= school._id %>"><%= school.displayName %></option>
           <% }) %>
         </select>
       </td></tr>

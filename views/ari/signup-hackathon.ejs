@@ -16,12 +16,12 @@
   &nbsp;|&nbsp;
   <strong>Team Size:</strong> <%= hackathon.teamSizeMin %>–<%= hackathon.teamSizeMax %> members
 </p>
-<p><a href="/hack-events">← Back to Listings</a></p>
+<p><a href="/hack-events/hackathons">← Back to Listings</a></p>
 
 <!-- SUCCESS -->
 <% if (success) { %>
   <p><strong><%= success %></strong></p>
-  <p><a href="/hack-events">Back to Listings</a></p>
+  <p><a href="/hack-events/hackathons">Back to Listings</a></p>
 <% } else { %>
 
 <!-- ERRORS -->
@@ -123,7 +123,7 @@
   <p>
     <button type="submit">Submit Registration</button>
     &nbsp;
-    <a href="/hack-events"><button type="button">Cancel</button></a>
+    <a href="/hack-events/hackathons"><button type="button">Cancel</button></a>
   </p>
 
 </form>

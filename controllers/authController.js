@@ -19,7 +19,7 @@ async function generateStudentId() {
 // GET PAGES (unchanged)
 const renderSignup = async (req, res) => {
     try {
-        const schools = await School.find().sort({ name: 1 });
+        const schools = await School.find().sort({ displayName: 1 });
         res.render("signup", { error: null, schools }); // pass schools to EJS
     } catch (err) {
         console.error("Error loading schools:", err);
