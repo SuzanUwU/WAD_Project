@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sign Up - SMU Events</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; }
+    .error { color: #d32f2f; background: #ffebee; padding: 12px; border-radius: 4px; margin: 10px 0; }
+    .success { color: #2e7d32; background: #e8f5e8; padding: 12px; border-radius: 4px; margin: 10px 0; }
+    input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+    button { width: 100%; padding: 14px; background: #4CAF50; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; }
+    button:hover { background: #45a049; }
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 8px 0; }
+    a { color: #2196F3; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>🎓 SMU Student Sign Up</h1>
+  
+  <% if (error) { %>
+    <div class="error"><%= error %></div>
+  <% } %>
+  
+  <form method="POST" action="/signup">
+    <table>
+      <tr><td>Username:</td></tr>
+      <tr><td><input type="text" name="username" placeholder="Your display name" required></td></tr>
+      
+      <!-- OPTIONAL profile picture -->
+      <tr><td>Profile picture (optional):</td></tr>
+        <tr><td>
+            <input type="file" name="profile" accept="image/*">
+        </td></tr>
+
+      <tr><td>Email:</td></tr>
+      <tr><td><input type="email" name="email" placeholder="name.year@school.smu.edu.sg" required></td></tr>
+
+      <tr><td>School:</td></tr>
+      <tr><td>
+        <select id="signup-school" name="school" required>
+          <option value="">--- Select your school ---</option>
+          <% schools.forEach(function(school) { %>
+            <option value="<%= school.code %>"><%= school.displayName %> — <%= school.fullName %></option>
+          <% }) %>
+        </select>
+      </td></tr>
+
+      <tr><td>Major:</td></tr>
+      <tr><td>
+        <select id="signup-major" name="major" required disabled>
+          <option value="">-- Select a school first --</option>
+        </select>
+      </td></tr>
+
+      <tr><td>Password:</td></tr>
+      <tr><td><input type="password" name="password" placeholder="Choose a password" required minlength="6"></td></tr>
+      
+      <tr>
+        <td colspan="2">
+          <button type="submit">Sign Up</button>
+        </td>
+      </tr>
+    </table>
+  </form>
+  
+  <p>Already have an account? <a href="/login">Login</a></p>
+
+  <script>
+    const schoolSelect = document.getElementById('signup-school');
+    const majorSelect  = document.getElementById('signup-major');
+
+    schoolSelect.addEventListener('change', async function () {
+      const schoolCode = this.value;
+
+      majorSelect.innerHTML = '<option value="">-- Select your major --</option>';
+      majorSelect.disabled  = true;
+
+      if (!schoolCode) return;
+
+      try {
+        // Reuse the same API endpoint as the hackathon filter
+        const res    = await fetch(`/api/majors?school=${schoolCode}`);
+        const majors = await res.json();
+
+        majors.forEach(m => {
+          const opt       = document.createElement('option');
+          opt.value       = m.code;
+          opt.textContent = m.name;
+          majorSelect.appendChild(opt);
+        });
+
+        majorSelect.disabled = false;
+      } catch (err) {
+        console.error('Failed to load majors:', err);
+      }
+    });
+    // Restore majors dropdown if page loads with a school already selected
+    window.addEventListener('DOMContentLoaded', () => {
+      const schoolSelect = document.getElementById('signup-school');
+      if (schoolSelect.value) schoolSelect.dispatchEvent(new Event('change'));
+    });
+  </script>
+</body>
+</html>

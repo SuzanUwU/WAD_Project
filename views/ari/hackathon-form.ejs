@@ -1,0 +1,273 @@
+<!-- ERROR MESSAGES -->
+<% if (errors && errors.length > 0) { %>
+  <div>
+    <strong>Please fix the following errors:</strong>
+    <ul>
+      <% errors.forEach(e => { %>
+        <li><%= e %></li>
+      <% }) %>
+    </ul>
+  </div>
+<% } %>
+
+<form method="POST" action="<%= formAction %>" enctype="multipart/form-data">
+
+  <!-- BASIC INFO -->
+  <fieldset>
+    <legend>Basic Information</legend>
+
+    <p>
+      <label for="title">Event Title: *</label><br/>
+      <input type="text" id="title" name="title"
+             value="<%= hackathon.title || '' %>" required size="60"/>
+      <br/><small>Must be unique across all hackathons.</small>
+    </p>
+
+    <p>
+      <label for="name">Organiser / Hackathon Name: *</label><br/>
+      <input type="text" id="name" name="name"
+             value="<%= hackathon.name || '' %>" required size="60"/>
+    </p>
+
+    <p>
+      <label for="description">Description: *</label><br/>
+      <textarea id="description" name="description" rows="4" cols="70"
+                required><%= hackathon.description || '' %></textarea>
+    </p>
+  </fieldset>
+
+  <!-- BANNER IMAGE -->
+  <fieldset>
+    <legend>Banner Image</legend>
+
+    <% if (isEdit && hackathon.image && hackathon.image.data) { %>
+      <p>
+        <strong>Current Banner:</strong><br/>
+        <img src="data:<%= hackathon.image.contentType %>;base64,<%= hackathon.image.data.toString('base64') %>"
+             alt="Current banner" width="300"/><br/>
+        <small>Upload a new image below to replace it.</small>
+      </p>
+    <% } %>
+
+    <p>
+      <label for="bannerImage">
+        <%= isEdit ? 'Replace Banner Image:' : 'Upload Banner Image:' %>
+      </label><br/>
+      <input type="file" id="bannerImage" name="bannerImage"
+             accept="image/jpeg, image/png, image/webp, image/gif"/><br/><br/>
+      <small>Accepted: JPG, PNG, WEBP, GIF. Max size: 2MB.
+        <%= isEdit ? 'Leave blank to keep the current banner.' : '' %>
+      </small>
+    </p>
+  </fieldset>
+
+  <!-- ELIGIBILITY -->
+  <fieldset>
+    <legend>Eligibility</legend>
+
+    <p><strong>Eligible Schools: *</strong><br/>
+    <small>Checking "Open to All" overrides individual school selections.</small></p>
+
+    <div id="school-checkboxes">
+      <label>
+        <input type="checkbox" name="eligibleSchools" value="open" id="school-open"
+          <%= (hackathon.eligibleSchools || []).includes('open') ? 'checked' : '' %>>
+        Open to All Schools
+      </label><br/>
+
+      <% schools.forEach(s => { %>
+        <label>
+          <input type="checkbox" name="eligibleSchools" value="<%= s.code %>"
+            class="school-checkbox" data-school="<%= s.code %>"
+            <%= (hackathon.eligibleSchools || []).includes(s.code) ? 'checked' : '' %>>
+          <%= s.displayName %>
+        </label><br/>
+      <% }) %>
+    </div>
+
+    <br/>
+
+    <div id="majors-section">
+      <p><strong>Eligible Majors: *</strong><br/>
+      <small>Select the majors eligible for each chosen school.</small></p>
+
+      <!-- "Open to All Majors" — only shown when "Open to All Schools" is checked -->
+      <div id="majors-open"
+           <%= (hackathon.eligibleSchools || []).includes('open') ? '' : 'hidden' %>>
+        <strong>Open to All Schools:</strong><br/>
+        <label>
+          <input type="checkbox" name="eligibleMajors" value="open"
+            <%= (hackathon.eligibleMajors || []).includes('open') ? 'checked' : '' %>>
+          Open to All Majors
+        </label><br/><br/>
+      </div>
+
+      <!-- Per-school major groups -->
+      <% schools.forEach(s => { %>
+        <%
+          // Match majors to school using ObjectId toString() comparison
+          // Major.school is an ObjectId from MongoDB; s._id is also an ObjectId
+          const schoolMajors = preloadedMajors.filter(m => m.schoolCode === s.code);
+        %>
+        <% if (schoolMajors.length > 0) { %>
+          <div id="majors-<%= s.code %>"
+               <%= (hackathon.eligibleSchools || []).includes(s.code) ? '' : 'hidden' %>>
+            <strong><%= s.fullName %>:</strong><br/>
+            <% schoolMajors.forEach(m => { %>
+              <label>
+                <input type="checkbox" name="eligibleMajors" value="<%= m.code %>"
+                  <%= (hackathon.eligibleMajors || []).includes(m.code) ? 'checked' : '' %>>
+                <%= m.name %>
+              </label><br/>
+            <% }) %>
+            <br/>
+          </div>
+        <% } %>
+      <% }) %>
+    </div>
+  </fieldset>
+
+  <!-- TEAM SIZE -->
+  <fieldset>
+    <legend>Team Size</legend>
+    <p>
+      <label for="teamSizeMin">Minimum: *</label>
+      <input type="number" id="teamSizeMin" name="teamSizeMin"
+             value="<%= hackathon.teamSizeMin || 2 %>" min="1" max="20" required size="4"/>
+      &nbsp;&nbsp;
+      <label for="teamSizeMax">Maximum: *</label>
+      <input type="number" id="teamSizeMax" name="teamSizeMax"
+             value="<%= hackathon.teamSizeMax || 4 %>" min="1" max="20" required size="4"/>
+    </p>
+  </fieldset>
+
+  <!-- DATES -->
+  <fieldset>
+    <legend>Dates</legend>
+
+    <p>
+      <label for="startDate">Start Date: *</label><br/>
+      <input type="date" id="startDate" name="startDate"
+             value="<%= hackathon.startDate ? new Date(hackathon.startDate).toISOString().slice(0,10) : '' %>"
+             required/>
+    </p>
+
+    <p>
+      <label for="endDate">End Date: *</label><br/>
+      <input type="date" id="endDate" name="endDate"
+             value="<%= hackathon.endDate ? new Date(hackathon.endDate).toISOString().slice(0,10) : '' %>"
+             required/>
+    </p>
+
+    <p>
+      <label for="registrationDeadline">Registration Deadline: *</label><br/>
+      <input type="date" id="registrationDeadline" name="registrationDeadline"
+             value="<%= hackathon.registrationDeadline ? new Date(hackathon.registrationDeadline).toISOString().slice(0,10) : '' %>"
+             required/>
+      <br/><small>Must be before the start date.</small>
+    </p>
+  </fieldset>
+
+  <!-- STATUS -->
+  <fieldset>
+    <legend>Status</legend>
+    <p>
+      <label for="status">Status: *</label><br/>
+      <select id="status" name="status" required>
+        <option value="upcoming"  <%= (hackathon.status || 'upcoming') === 'upcoming'  ? 'selected' : '' %>>Upcoming</option>
+        <option value="open"      <%= hackathon.status === 'open'      ? 'selected' : '' %>>Registration Open</option>
+        <option value="closed"    <%= hackathon.status === 'closed'    ? 'selected' : '' %>>Registration Closed</option>
+        <option value="completed" <%= hackathon.status === 'completed' ? 'selected' : '' %>>Completed</option>
+        <option value="cancelled" <%= hackathon.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+      </select>
+    </p>
+  </fieldset>
+
+  <p>
+    <button type="submit"><%= isEdit ? 'Save Changes' : 'Create Hackathon' %></button>
+    &nbsp;
+    <a href="/hack-events/hackathons"><button type="button">Cancel</button></a>
+  </p>
+
+</form>
+
+<!-- ELIGIBILITY SCRIPT -->
+<script>
+  const openSchoolCheckbox = document.getElementById('school-open');
+  const schoolCheckboxes   = document.querySelectorAll('.school-checkbox');
+
+  function setMajorsVisible(schoolCode, visible) {
+    const div = document.getElementById('majors-' + schoolCode);
+    if (!div) return;
+    div.hidden = !visible;
+    if (!visible) {
+      div.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    }
+  }
+
+  openSchoolCheckbox.addEventListener('change', function () {
+    const isOpen = this.checked;
+    document.getElementById('majors-open').hidden = !isOpen;
+    schoolCheckboxes.forEach(cb => {
+      if (isOpen) {
+        cb.checked = false;
+        setMajorsVisible(cb.dataset.school, false);
+      }
+    });
+    const openMajorCb = document.querySelector('input[name="eligibleMajors"][value="open"]');
+    if (openMajorCb) openMajorCb.checked = isOpen;
+  });
+
+  schoolCheckboxes.forEach(cb => {
+    cb.addEventListener('change', function () {
+      if (this.checked) {
+        openSchoolCheckbox.checked = false;
+        document.getElementById('majors-open').hidden = true;
+        const openMajorCb = document.querySelector('input[name="eligibleMajors"][value="open"]');
+        if (openMajorCb) openMajorCb.checked = false;
+      }
+      setMajorsVisible(this.dataset.school, this.checked);
+    });
+  });
+
+  // Client-side validation
+  document.querySelector('form').addEventListener('submit', function (e) {
+    const checkedSchools = document.querySelectorAll('input[name="eligibleSchools"]:checked');
+    const checkedMajors  = document.querySelectorAll('input[name="eligibleMajors"]:checked');
+    const start    = new Date(document.getElementById('startDate').value);
+    const end      = new Date(document.getElementById('endDate').value);
+    const deadline = new Date(document.getElementById('registrationDeadline').value);
+    const min      = parseInt(document.getElementById('teamSizeMin').value);
+    const max      = parseInt(document.getElementById('teamSizeMax').value);
+    const errors   = [];
+
+    if (checkedSchools.length === 0)
+      errors.push('At least one school must be selected.');
+    if (checkedMajors.length === 0)
+      errors.push('At least one major must be selected.');
+    if (end <= start)
+      errors.push('End date must be after start date.');
+    if (deadline >= start)
+      errors.push('Registration deadline must be before the start date.');
+    if (min > max)
+      errors.push('Minimum team size cannot be greater than maximum.');
+
+    // Image validation — only if a file was selected
+    const fileInput = document.getElementById('bannerImage');
+    if (fileInput && fileInput.files.length > 0) {
+      const file            = fileInput.files[0];
+      const allowedTypes    = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      const maxSizeBytes    = 2 * 1024 * 1024; // 2MB
+
+      if (!allowedTypes.includes(file.type))
+        errors.push('Banner image must be JPG, PNG, WEBP, or GIF.');
+      if (file.size > maxSizeBytes)
+        errors.push('Banner image must be 2MB or smaller.');
+    }
+
+    if (errors.length > 0) {
+      e.preventDefault();
+      alert('Please fix the following:\n\n' + errors.join('\n'));
+    }
+  });
+</script>

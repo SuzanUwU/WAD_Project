@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>My Subscriptions</title></head>
+<body>
+  <h1>My Subscriptions (<%= subscriptions.totalSubscriptions %>)</h1>
+  
+  <% if (subscriptions.subscribedOrganizers.length > 0) { %>
+    <table border="1" cellpadding="8">
+      <tr><th>Organizer</th><th>Subscribed</th><th>Action</th></tr>
+      <% subscriptions.subscribedOrganizers.forEach(org => { %>
+        <tr>
+          <td><%= org.organizerName %></td>
+          <td><%= new Date(org.subscribedAt).toLocaleDateString() %></td>
+          <td>
+            <button onclick="unsubscribe('<%= org.organizerId %>')" 
+                    style="background: #f44336; color: white; padding: 8px 16px;">
+              Unsubscribe
+            </button>
+          </td>
+        </tr>
+      <% }) %>
+    </table>
+  <% } else { %>
+    <p>No subscriptions yet. <a href="/events">Browse organizers</a></p>
+  <% } %>
+  
+  <br><a href="/events">← Back to Events</a>
+  
+  <script>
+  async function unsubscribe(organizerId) {
+    const response = await fetch(`/events/unsubscribe/${organizerId}`, { method: 'DELETE' });
+    if (response.ok) {
+      location.reload(); // Refresh to show organizer back in main table
+    }
+  }
+  </script>
+</body>
+</html>
