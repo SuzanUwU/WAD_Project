@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Job Creation</title>
+</head>
+<body>
+    <h3>Create new Job</h3>
+    <form action="/create" method="POST">
+        <table border="1">
+            <tr>
+                <th>Company</th><td><input type="text" name="company" required></td>
+            </tr>
+          <tr><th>Company Icon URL</th>
+            <td><input type="text" name="companyicon" required></td>
+          </tr>
+          <tr>
+                <th>JobTitle </th><td><input type="text" name="jobtitle" required></td>
+            </tr>
+            <tr>
+                <th>Job Description</th><td><input type="text" name="jobdescription" required></td>
+            </tr>
+            <tr>
+                <th>Salary</th><td><input type="number" name="salary" required></td>
+            </tr>
+            <tr>
+                <th>StartDate</th><td><input type="date" name="startDate" required></td>
+            </tr>
+            <tr>
+                <th>EndDate</th><td><input type="date" name="EndDate" required></td>
+            </tr>
+        <tr><th>Posting End Date</th><td><input type="date" name="postingEndDate" required></td>
+</tr>
+            <tr>
+                <td colspan="2"><button type="submit">Create Job</button></td>
+            </tr>
+        </table>
+     
+        
+    </form>
+  <% if (output === "failed") { %>
+
+  <p>Failed to Add Job</p>
+
+<% } else if (typeof output === "string") { %>
+
+  <p><%= output %></p>
+
+<% } else if (output && output._id) { %>
+
+  <p>Job has been added successfully</p>
+
+<% } %>
+    
+</body>
+</html>
