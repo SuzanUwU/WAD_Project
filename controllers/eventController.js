@@ -2,7 +2,7 @@
 const fs = require('fs/promises');
 
 // Get Service model
-const Event = require('../models/all-events-model');
+const Event = require('../models/eventModel');
 
 exports.listEvents = async (req, res, next) => {
   try {
@@ -10,7 +10,7 @@ exports.listEvents = async (req, res, next) => {
     console.log('🔍 SESSION USER:', req.session.user);  // Should show user object
     console.log('🔍 res.locals.user:', res.locals.user); // Should show user object
 
-    const events = await Event.find().sort({ date: 1 });
+    const events = await Event.retrieveAll().sort({ startDate: 1 });
 
     res.render('events-list', {
       title: 'All Events',

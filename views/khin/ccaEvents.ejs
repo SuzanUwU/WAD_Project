@@ -166,6 +166,7 @@ body {
 </div>
 
 <div class="container">
+    <a href="/all-events" class="top-link">← Back to Main Events</a>
 
     <form action="/cca-events/my-cca-events" method="GET" style="margin-bottom:15px;">
         <button type="submit" class="btn btn-primary">
@@ -232,8 +233,8 @@ body {
             const today = new Date();
             let eventDate = null;
 
-            if (event.startDate) {
-                eventDate = new Date(event.startDate);
+            if (cca.startDate) {
+                eventDate = new Date(cca.startDate);
             } else if (event.date) {
                 eventDate = new Date(event.date);
             }
@@ -257,12 +258,15 @@ body {
 
         <p>
         <b>Date:</b>
-        <% if (event.startDate && event.endDate) { %>
-            <%= new Date(event.startDate).toDateString() %> 
+
+        <% if (cca.startDate && cca.endDate) { %>
+            <%= new Date(cca.startDate).toLocaleDateString('en-GB') %> 
             - 
-            <%= new Date(event.endDate).toDateString() %>
+            <%= new Date(cca.endDate).toLocaleDateString('en-GB') %>
+
         <% } else if (eventDate) { %>
-            <%= eventDate.toDateString() %>
+            <%= eventDate.toLocaleDateString('en-GB') %>
+
         <% } else { %>
             N/A
         <% } %>

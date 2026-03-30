@@ -1,16 +1,13 @@
-const mongoose = require('mongoose');
+// models/all-events-model.js
 
+const mongoose = require('mongoose');
 const eventSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  organizer: String,
+  organizer: String,        // ← NEW
   category: String,
-
-  startDate: Date,
-  endDate: Date,
-
+  date: Date,
   location: String,
   description: String,
-
   image: {
     data: Buffer,
     contentType: String
@@ -19,4 +16,5 @@ const eventSchema = new mongoose.Schema({
 
 const Event = mongoose.model('Event', eventSchema, 'events');
 
-module.exports = Event;
+// CORRECT EXPORT ↓
+module.exports = Event;  // Exports the MODEL

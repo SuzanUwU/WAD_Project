@@ -5,7 +5,7 @@ const router = express.Router(); // sub application
 
 const eventController = require('../controllers/eventController');
 
-const Event = require('../models/all-events-model');
+const Event = require('../models/eventModel');
 const SavedEvents = require('../models/SavedEvents');
 const Organizer = require('../models/Organizer');
 
@@ -15,7 +15,7 @@ const upload = require('multer')({ storage: multer.memoryStorage() });
 // router to get/read data about all events
 router.get('/', async (req, res) => {
   try {
-    const events = await Event.find().sort({ date: -1 }); // gets all events
+    const events = await Event.retrieveAll().sort({ startDate: -1 }); // gets all events
     res.render('suzan/all-events', { events });
   } catch (err) {
     res.render('suzan/all-events', { events: [] });
@@ -126,7 +126,7 @@ router.get('/saved/:userId', async (req, res) => {
 // Delete this and let the sub categories edit and update to the all-events 
 router.get('/editevent', async (req, res) => {
   try {
-    const events = await Event.find();  // get ALL fields
+    const events = await Event.retrieveAll();  // get ALL fields
     console.log('📋 Events with ALL fields:');
     events.forEach(e => console.log('→', e._id, e.title, e.organizer, e.category));
     res.render('suzan/edit-event', { events });

@@ -12,8 +12,12 @@
     } %>
 
     <h1><%= event ? "Edit Career Event" : "New Career Event" %></h1>
-    <% if (error) { %>
-    <p style="color:red;"><%= error %></p>
+    <% if (error?.length > 0) { %>
+    <ul style="color:red;">
+        <% error.forEach(e=>{%>
+        <li><%= e %></li>
+        <%}) %>
+    </ul>
     <% } %>
     <form method="POST" action="<%= action %>">
         <% if (event) { %>
@@ -66,8 +70,12 @@
             <td><input type="datetime-local" name="endDate" value="<%= toDatetimeLocal(event?.endDate) %>" required/></td>
         </tr>
         <tr>
-            <td><label>Deadline</label></td>
+            <td><label>Application deadline</label></td>
             <td><input type="datetime-local" name="deadline" value="<%= toDatetimeLocal(event?.deadline) %>"/></td>
+        </tr>
+        <tr>
+            <td><label>Capacity</label></td>
+            <td><input type="number" name="capacity" value="<%= event?.capacity || '' %>"/></td>
         </tr>
         <tr>
             <td><label>Apply Link</label></td>

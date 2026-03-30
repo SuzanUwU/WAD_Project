@@ -90,7 +90,7 @@
               <% pinned.forEach(event => { %>
                 <td>
                   <small>[<%= rsvps.find(r => r.event.toString() === event.eventId.toString()).status %>]</small><br/>
-                  <a href="/career/detail?id=<%= event.eventId %>"><%= event.title %></a><br/>
+                  <a href="/career-events/detail?id=<%= event.eventId %>"><%= event.title %></a><br/>
                   <%= event.organizer %><br/>
                   <%= new Date(event.startDate).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'short', year: 'numeric' }) %>
                 </td> 
@@ -111,7 +111,7 @@
               <% workshops.forEach(event => { %>
                 <td>
                   <small>[Workshop]</small><br/>
-                  <a href="/career/detail?id=<%= event.eventId %>"><%= event.title %></a><br/>
+                  <a href="/career-events/detail?id=<%= event.eventId %>"><%= event.title %></a><br/>
                   <%= event.organizer %><br/>
                   <%= new Date(event.startDate).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'short', year: 'numeric' }) %><br/>
                   <%= event.location || '—' %>
@@ -133,7 +133,7 @@
               <% jobs.forEach(event => { %>
                 <td>
                   <small>[<%= event.careerType || '—' %>]</small><br/>
-                  <a href="/career/detail?id=<%= event.eventId %>"><%= event.title %></a><br/>
+                  <a href="/career-events/detail?id=<%= event.eventId %>"><%= event.title %></a><br/>
                   <%= event.organizer %><br/>
                   <% if (event.salary) { %>$<%= event.salary %>/month<br/><% } %>
                   <%= event.sector || '—' %><br/>
@@ -151,14 +151,13 @@
         <hr/>
 
         <!-- ADMIN PANEL -->
-        <!-- admin or not condition passed here -->
-        <% if (true) { %>
+        <% if (isCareerAdmin) { %>
 
           <h2>Admin — Manage Career Events</h2>
 
           <!-- CREATE FORM -->
            <!-- turn into modal when css is implemented -->
-          <form method="get" action="/career/form?id=">
+          <form method="get" action="/career-events/form?id=">
             <input type="submit" value="Create new career event"> 
           </form>
           <br/>
@@ -186,12 +185,12 @@
                   <td><%= new Date(event.startDate).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'short', year: 'numeric' }) %></td>
                   <td>
                     
-                    <form method="GET" action="/career/form" style="display:inline">
+                    <form method="GET" action="/career-events/form" style="display:inline">
                       <input type="hidden" name="id" value="<%= event._id %>"/>
                       <input type="submit" value="Edit"/>
                     </form>
 
-                    <form method="POST" action="/career-delete" style="display:inline">
+                    <form method="POST" action="/career-events/career-delete" style="display:inline">
                       <input type="hidden" name="careerID" value="<%= event._id %>"/>
                       <button type="submit">Delete</button>
                     </form>

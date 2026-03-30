@@ -12,16 +12,16 @@ rsvpSchema.index({ event: 1, user: 1 }, { unique: true });
 
 const RSVP = mongoose.model('RSVP', rsvpSchema, 'rsvps');
 
-exports.join = function(eventId, userId) {
-  return RSVP.create({ event: eventId, user: userId, status: 'confirmed' });
+exports.join = function(eventId, userId, state) {
+  return RSVP.create({ event: eventId, user: userId, status: state });
 }
 
-exports.bookmark = function(eventId, userId, note) {
-  return RSVP.create({ event: eventId, user: userId, status: 'bookmark', note });
-}
-
-exports.cancel = function(id) {
+exports.cancel = async function(id) {
   return RSVP.deleteOne({ _id:id });
+}
+
+exports.promote = async function(rsvpId) {
+  return await RSVP.updateOne({ _id: rsvpId },{ status: 'confirmed'});
 }
 
 exports.getUserRSVP = function(userId) {
@@ -31,23 +31,34 @@ exports.getUserRSVP = function(userId) {
 exports.getWaitlistForUser = function(userId) {
   return RSVP.find({ user: userId, status: 'waitlist' });
 }
-
+exports.getWaitlistPosition = async function(eventId, userId) {
+  const waitlist = await RSVP.find({ event: eventId, status: 'waitlist' }).sort({ joinedAt: 1 });
+  console.log(waitlist);
+  const position = waitlist.findIndex(rsvp => rsvp.user == userId);
+  return position >= 0 ? position + 1 : null; //account for index0
+}
 exports.getConfirmedForUser = function(userId) {
   return RSVP.find({ user: userId, status: 'confirmed' });
 }
-
-exports.getAttendeesForEvent = function(eventId) {
-  return RSVP.find({ event: eventId, status: 'confirmed' });
+exports.getWaitlist = async function(eventId) {
+  return await RSVP.find({ event: eventId, status: 'waitlist' }).sort({ joinedAt: 1 });
+};
+exports.getDocCount = async function(eventId,state) {
+  const attendees = await RSVP.find({ event: eventId, status: state });
+  return attendees.length? attendees.length : 0;
 }
 
-exports.isAlreadyRSVPd = function(eventId, userId) {
-  return RSVP.findOne({ event: eventId, user: userId, status: 'confirmed' });
+exports.isAlreadyRsvp = function(eventId, userId) {
+  return RSVP.findOne({ event: eventId, user: userId });
 }
-
 
 exports.findById = function(id) {
   return RSVP.findById(id);
 }
 exports.updateNote = function(id, note) {
   return RSVP.updateOne({_id:id}, { note });//first is WHERE second is to be updated
+}
+//mass delete rsvps when event is deleted
+exports.deleteByEventId = function(eventId) {
+  return RSVP.deleteMany({ event: eventId });
 }

@@ -11,9 +11,10 @@ const careerSchema = new mongoose.Schema({
   location:   { type: String },
   image:      { type: String },
   deadline:   { type: Date },
-  createdAt:  { type: Date, default: Date.now },
+  createdAt:  { type: Date, default: Date.now },//delete
   salary:     { type: Number },
   applyLink:  { type: String },
+  capacity:   { type: Number, default: Infinity },
   careerType: { type: String, enum: ['full-time', 'internship', 'workshop'] },
   sector:     { type: String, enum: ['Information Technology', 'Banking', 'Marketing', 'Accounting', 'Human Resources', 'Consulting', 'Legal', 'Operations', 'Other'] }
 });

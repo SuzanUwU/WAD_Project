@@ -3,17 +3,6 @@
 <head>
   <title>All Events</title>
   <style>
-    /* Bare‑bones fixed nav */
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: #f8f8f8;
-      padding: 5px 10px;
-      border-bottom: 1px solid #ccc;
-      z-index: 1000;
-    }
     body {
       margin: 0;
       padding-top: 40px; /* room for the navbar */
@@ -21,32 +10,12 @@
   </style>
 </head>
 <body>
-  <!-- FIXED NAV BAR WITH USER CHECK -->
-  <nav class="navbar">
-    <a href="#latest-events">Latest Events</a>
-    &nbsp; | &nbsp;
-    <a href="#all-events">All Events</a>
-    &nbsp; | &nbsp;&nbsp; &nbsp;
-    
-    <!-- ✅ CORRECT - Use 'user' from res.render() -->
-    <% if (user) { %>
-      <span style="color: #4CAF50; font-weight: bold;">
-        👋 <%= user.username %> (<%= user.userId %>)
-      </span> | 
-      <a href="/logout" style="color: #f44336;">Logout</a>
-    <% } else { %>
-      <a href="/login">🔐 Login</a>
-    <% } %>
-    &nbsp;|&nbsp; &nbsp; &nbsp;
-    
-    <% if (user && user.role === 'superadmin') { %>
-      | <a href="/superadmin/admins-settings">👑 Admin Settings</a>
-    <% } %>
-
-
-  </nav>
-
-
+  <%- include('../navbar') %>
+  <% function truncate(str, n) {
+    if (!str) return '';
+    const words = str.trim().split(/\s+/);
+    return words.length > n ? words.slice(0, n).join(' ') + '...' : str;
+  } %>
   <!-- LATEST EVENTS SECTION -->
   <section id="latest-events">
   <h1>Latest Events</h1>
@@ -86,7 +55,7 @@
       <!-- ROW 4: Descriptions -->
       <tr>
         <% latestEvents.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; word-wrap: break-word;"><%= event.description || 'No description available' %></td>
+          <td colspan="2" style="width: 220px; word-wrap: break-word;"><%= truncate(event.description, 20) || 'No description available' %></td>
         <% }) %>
       </tr>
 
@@ -167,7 +136,7 @@
             <td style="word-wrap: break-word; width: 450px; vertical-align: center;">
               <div><strong>Event Name:</strong> <%= event.title %></div>
               <div><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></div>
-              <div><strong>Description:</strong> <%= event.description || 'No description available' %></div>
+              <div><strong>Description:</strong> <%= truncate(event.description, 20) || 'No description available' %></div>
             </td>
 
             <!-- See More (link to detail page where they can view full info and register) -->
@@ -288,10 +257,10 @@
     // HARDCODE USER ID FOR NOW (replace with real user later)
     const userId = "user001";  // ← YOUR USER ID
     
-    console.log('🔥 SAVE CLICKED!');
-    console.log('📅 Event ID:', eventId);
-    console.log('👤 User ID:', userId);
-    console.log('📝 Event Title:', eventTitle);
+    console.log('SAVE CLICKED!');
+    console.log('Event ID:', eventId);
+    console.log('User ID:', userId);
+    console.log('Event Title:', eventTitle);
     
     alert(`DEBUG: Event ${eventId} saved by ${userId}`);  // Visual feedback
   }

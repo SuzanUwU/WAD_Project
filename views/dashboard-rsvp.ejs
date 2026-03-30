@@ -12,12 +12,12 @@
 
   <table border="0" cellpadding="4">
     <% if (event.startDate) { %>
-      <tr><td><strong>Date</strong></td><td><%= new Date(event.startDate).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'long', year: 'numeric' }) %></td></tr>
+      <tr><td><strong>Date</strong></td><td><%= new Date(event.startDate).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })  %></td></tr>
     <% } %>
     <% if (event.location) { %>
       <tr><td><strong>Location</strong></td><td><%= event.location %></td></tr>
     <% } %>
-    <tr><td><strong>Status</strong></td><td><%= rsvp.status %></td></tr>
+    <tr><td><strong>Status</strong></td><td><%= rsvp.status=='waitlist'? `Waitlist | You are #${position} in the waitlist`:'Confirmed' %></td></tr>
     <tr><td><strong>Joined</strong></td><td><%= new Date(rsvp.joinedAt).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'short', year: 'numeric' }) %></td></tr>
   </table>
 
@@ -25,7 +25,7 @@
 
   <!-- UPDATE NOTE -->
   <h3>My Note</h3>
-  <form method="POST" action="/rsvp-update">
+  <form method="POST" action="/dashboard/rsvp-update">
     <textarea name="note" rows="4" cols="50"><%= rsvp.note || '' %></textarea>
     <input type="hidden" name="rsvpId" value="<%=rsvp._id%>">
     <br/>
@@ -37,7 +37,7 @@
   <!-- DELETE -->
   <h3>Cancel RSVP</h3>
   <p>This will remove this event from your calendar.</p>
-  <form method="POST" action="/rsvp-delete">
+  <form method="POST" action="/dashboard/rsvp-delete">
     <input type="hidden" name="rsvpId" value="<%=rsvp._id%>">
     <button type="submit" onclick="return confirm('Are you sure you want to cancel this RSVP?')">
       Cancel RSVP

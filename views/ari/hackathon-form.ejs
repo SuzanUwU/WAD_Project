@@ -80,7 +80,7 @@
           <input type="checkbox" name="eligibleSchools" value="<%= s.code %>"
             class="school-checkbox" data-school="<%= s.code %>"
             <%= (hackathon.eligibleSchools || []).includes(s.code) ? 'checked' : '' %>>
-          <%= s.name %>
+          <%= s.displayName %>
         </label><br/>
       <% }) %>
     </div>
@@ -107,12 +107,12 @@
         <%
           // Match majors to school using ObjectId toString() comparison
           // Major.school is an ObjectId from MongoDB; s._id is also an ObjectId
-          const schoolMajors = preloadedMajors.filter(m => m.school && m.school.toString() === s._id.toString());
+          const schoolMajors = preloadedMajors.filter(m => m.schoolCode === s.code);
         %>
         <% if (schoolMajors.length > 0) { %>
           <div id="majors-<%= s.code %>"
                <%= (hackathon.eligibleSchools || []).includes(s.code) ? '' : 'hidden' %>>
-            <strong><%= s.name %>:</strong><br/>
+            <strong><%= s.fullName %>:</strong><br/>
             <% schoolMajors.forEach(m => { %>
               <label>
                 <input type="checkbox" name="eligibleMajors" value="<%= m.code %>"
@@ -186,7 +186,7 @@
   <p>
     <button type="submit"><%= isEdit ? 'Save Changes' : 'Create Hackathon' %></button>
     &nbsp;
-    <a href="/hack-events"><button type="button">Cancel</button></a>
+    <a href="/hack-events/hackathons"><button type="button">Cancel</button></a>
   </p>
 
 </form>

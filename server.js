@@ -2,12 +2,6 @@ const express = require("express");
 const dotenv = require('dotenv');
 dotenv.config({ path: './config.env' });
 
-// // sendgrid import
-// const sgMail = require("@sendgrid/mail");
-
-// // ================= SENDGRID SETUP =================
-// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 const mongoose = require('mongoose');
 const path = require('path');
 const session = require('express-session');
@@ -18,6 +12,8 @@ const authRoutes = require('./routes/authRoutes');
 const ccaRoutes = require('./routes/ccaRoutes');
 const hackathonRoutes = require('./routes/hackathonRoutes');
 const superadminRoutes = require('./routes/superadminRoutes');
+const profileRoutes = require('./routes/profileRoutes')
+const careerRoutes = require('./routes/careerRoutes')
 
 // middleware
 const superadminController = require('./controllers/superadminController');
@@ -25,19 +21,18 @@ const { requireSuperAdmin, requireLogin } = require('./middleware/auth');
 
 const server = express();
 
-
 // ================= MIDDLEWARE =================
+server.use(express.static(path.join(__dirname, 'public')));
 server.use(express.urlencoded({ extended: true }));
 server.use(express.json());
-server.use(express.static(path.join(__dirname, 'public')));
 
-// SESSION MUST COME BEFORE ROUTES
+// SESSION
 server.use(session({
   secret: process.env.SESSION_SECRET || 'keyboard-cat-secret-12345',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    maxAge: 1000 * 60 * 60 * 24,
     secure: false
   }
 }));
@@ -48,27 +43,26 @@ server.use((req, res, next) => {
   next();
 });
 
-
 // ================= VIEW ENGINE =================
 server.set("view engine", "ejs");
 server.set('views', path.join(__dirname, 'views'));
 
-
 // ================= ROUTES =================
 server.use('/', authRoutes);
 
-server.use('/all-events', requireLogin, alleventRoutes);
+// hackathon API (IMPORTANT: before login)
+server.get('/api/majors', require('./controllers/hackathonController').getMajorsBySchool);
+
+// protected routes
+server.use('/all-events', alleventRoutes);//landing page
 server.use('/cca-events', requireLogin, ccaRoutes);
 server.use('/hack-events', requireLogin, hackathonRoutes);
+server.use('/dashboard',requireLogin,profileRoutes);
+server.use('/career-events', requireLogin, careerRoutes);
 
+// superadmin
 server.use('/superadmin', requireSuperAdmin, superadminRoutes);
-
-// superadmin action
-server.post(
-  '/superadmin/create-admin',
-  requireSuperAdmin,
-  superadminController.createAdmin
-);
+server.post('/superadmin/create-admin', requireSuperAdmin, superadminController.createAdmin);
 
 // homepage
 server.get('/', (req, res) => {
@@ -86,7 +80,6 @@ async function connectDB() {
   }
 }
 
-
 // ================= START SERVER =================
 function startServer() {
   const hostname = "localhost";
@@ -94,7 +87,6 @@ function startServer() {
 
   server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
-    console.log(`📱 Test: http://${hostname}:${port}/all-events`);
   });
 }
 

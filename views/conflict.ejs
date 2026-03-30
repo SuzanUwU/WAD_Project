@@ -43,8 +43,9 @@
 
   <h4>What would you like to do?</h4>
 
-  <form method="post" action="/rsvp-replace">
+  <form method="post" action="/dashboard/rsvp-replace">
     <input type="hidden" name="oldRsvpId"  value="<%= conflictRsvpId %>">
+    <input type="hidden" name="oldEventId" value="<%= conflictingEvent._id %>">
     <input type="hidden" name="newEventId" value="<%= newEvent._id %>">
     <button type="submit">
       Drop "<%= conflictingEvent.title %>" and join "<%= newEvent.title %>"

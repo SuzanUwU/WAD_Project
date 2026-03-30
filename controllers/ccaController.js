@@ -1,322 +1,214 @@
-const CCA = require("../models/CCA");
-const Registration = require("../models/CCARegistration");
+const CCA    = require("../models/CCA");
 const Review = require("../models/CCAReview");
-
+const RSVP   = require("../models/rsvpModel");
 
 // ================= CCA EVENTS LIST =================
 exports.getCCAEvents = async (req, res) => {
   try {
     const search = req.query.search || "";
-    const club = req.query.club || "All";
+    const club   = req.query.club   || "All";
     const status = req.query.status || "All";
-    const sort = req.query.sort || "default";
+    const sort   = req.query.sort   || "default";
 
-    let query = {};
+    const query = {};
     if (club !== "All") query.clubType = club;
 
-    const ccas = await CCA.find(query).populate("eventId");
-
+    const ccas   = await CCA.find(query).populate("eventId");
     const userId = req.session.user?.userId;
-    const today = new Date();
+    const today  = new Date();
+    today.setHours(0, 0, 0, 0);
 
     let registeredEventIds = [];
-
     if (userId) {
-      const registrations = await Registration.find({ userId });
-      registeredEventIds = registrations.map(r => r.eventId.toString());
+      const rsvps = await RSVP.getUserRSVP(userId);
+      registeredEventIds = rsvps.map(r => r.event.toString()); // Event _id strings
     }
 
-    const filtered = ccas
-      .map((cca) => {
-        const event = cca.eventId;
-        if (!event) return null;
+    const filtered = ccas.map(cca => {
+      const event = cca.eventId;
+      if (!event) return null;
 
-        const title = event.title || "";
-        if (!title.toLowerCase().includes(search.toLowerCase())) return null;
+      if (!event.title.toLowerCase().includes(search.toLowerCase())) return null;
 
-        let eventDate = event.startDate ? new Date(event.startDate) : null;
+      const start = cca.startDate ? new Date(cca.startDate) : new Date(event.startDate);
+      const end   = cca.endDate   ? new Date(cca.endDate)   : new Date(event.endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
 
-        let eventStatus = "N/A";
-        if (eventDate) {
-          if (eventDate > today) eventStatus = "Upcoming";
-          else if (eventDate.toDateString() === today.toDateString()) eventStatus = "Ongoing";
-          else eventStatus = "Past";
-        }
+      let eventStatus = "N/A";
+      if (!isNaN(start)) {
+        if (today < start)                       eventStatus = "Upcoming";
+        else if (today >= start && today <= end) eventStatus = "Ongoing";
+        else                                     eventStatus = "Past";
+      }
 
-        if (status !== "All" && eventStatus !== status) return null;
+      if (status !== "All" && eventStatus !== status) return null;
 
-        const registered = registeredEventIds.includes(cca._id.toString());
+      const registered = registeredEventIds.includes(event._id.toString()); // ← Event _id
 
-        return { ...cca.toObject(), registered, eventDate };
-      })
-      .filter(e => e !== null);
+      return { ...cca.toObject(), registered, eventDate: start, eventStatus };
+    }).filter(Boolean);
 
-    const sortedEvents = filtered.sort((a, b) => {
-      const dateA = a.eventDate || new Date(0);
-      const dateB = b.eventDate || new Date(0);
-
-      if (sort === "newest") return dateB - dateA;
-      if (sort === "oldest") return dateA - dateB;
+    filtered.sort((a, b) => {
+      const dA = a.eventDate || new Date(0);
+      const dB = b.eventDate || new Date(0);
+      if (sort === "newest") return dB - dA;
+      if (sort === "oldest") return dA - dB;
       return 0;
     });
 
-    res.render("khin/ccaEvents", {
-      events: sortedEvents,
-      search,
-      club,
-      status,
-      sort,
-      user: req.session.user
-    });
-
+    res.render("khin/ccaEvents", { events: filtered, search, club, status, sort, user: req.session.user });
   } catch (err) {
-    console.error(err);
-    res.send("Error loading CCA events");
+    res.status(500).send(err.message);
   }
 };
-
-
 
 // ================= SHOW REGISTER FORM =================
 exports.showRegisterForm = async (req, res) => {
   try {
-    // 🔥 FIX: find using eventId (NOT _id)
     const cca = await CCA.findOne({ eventId: req.params.id }).populate("eventId");
-
-    if (!cca || !cca.eventId) {
-      return res.send("Event not found");
-    }
+    if (!cca?.eventId) return res.status(404).send("Event not found");
 
     const userId = req.session.user?.userId;
-
-    const registration = await Registration.findOne({
-      eventId: cca._id,
-      userId
-    });
+    const rsvp   = userId ? await RSVP.isAlreadyRsvp(req.params.id, userId) : null; // ← Event _id
 
     res.render("khin/ccaRegister", {
-      event: cca.eventId,
+      event:      cca.eventId,
       cca,
-      registered: !!registration,
-      user: req.session.user
+      registered: !!rsvp,
+      user:       req.session.user
     });
-
   } catch (err) {
-    console.error(err);
-    res.send("Error loading registration form");
+    res.status(500).send(err.message);
   }
 };
-
-
 
 // ================= REGISTER EVENT =================
+// Delegates to joinRsvp — just redirect to the shared RSVP join route
 exports.registerEvent = async (req, res) => {
   try {
-    // 🔥 FIX HERE
     const cca = await CCA.findOne({ eventId: req.params.id });
-
-    if (!cca) return res.send("Event not found");
-
-    const userId = req.session.user?.userId;
-
-    const existing = await Registration.findOne({
-      eventId: cca._id,
-      userId
-    });
-
-    if (existing) return res.redirect(`/cca-events/${req.params.id}`);
-
-    await Registration.create({
-      eventId: cca._id,
-      userId
-    });
-
-    res.redirect(`/cca-events/${req.params.id}`);
-
+    if (!cca) return res.status(404).send("Event not found");
+    // req.params.id is already the Event _id — forward it to joinRsvp
+    req.body.eventId = req.params.id;
+    return require('./profileController').joinRsvp(req, res);
   } catch (err) {
-    console.error(err);
-    res.send("Error registering event");
+    res.status(500).send(err.message);
   }
 };
-
-
 
 // ================= MY EVENTS =================
 exports.getMyEvents = async (req, res) => {
   try {
     const userId = req.session.user?.userId;
-
-    const registrations = await Registration.find({ userId });
-    const eventIds = registrations.map(r => r.eventId);
-
-    const events = await CCA.find({ _id: { $in: eventIds } });
-
-    res.render("khin/myCcaEvents", {
-      events,
-      user: req.session.user
-    });
-
+    const rsvps  = await RSVP.getUserRSVP(userId);
+    const eventIds = rsvps.map(r => r.event);
+    const ccas   = await CCA.find({ eventId: { $in: eventIds } }).populate("eventId");
+    res.render("khin/myCcaEvents", { events: ccas, user: req.session.user });
   } catch (err) {
-    console.error(err);
-    res.send("Error loading my events");
+    res.status(500).send(err.message);
   }
 };
-
-
 
 // ================= EVENT DETAIL =================
 exports.getEventDetail = async (req, res) => {
   try {
-    // 🔥 FIX HERE
-    const cca = await CCA.findOne({ eventId: req.params.id }).populate("eventId");
+    const cca = await CCA.findOne({ eventId: req.params.id });
+    if (!cca) return res.status(404).send("Event not found");
+
+    const event      = cca.eventId;
+    const userId     = req.session.user?.userId;
     const editingReviewId = req.query.edit || null;
 
-    if (!cca) return res.send("Event not found");
-
-    const event = cca.eventId;
-    const userId = req.session.user?.userId;
-
-    let registered = false;
-    if (userId) {
-      const reg = await Registration.findOne({
-        eventId: cca._id,
-        userId
-      });
-      registered = !!reg;
-    }
-
-    let hasReviewed = false;
-    if (userId) {
-      const existingReview = await Review.findOne({
-        eventId: cca._id,
-        userId
-      });
-      hasReviewed = !!existingReview;
-    }
+    const rsvp           = userId ? await RSVP.isAlreadyRsvp(req.params.id, userId) : null;
+    const confirmedCount = await RSVP.getDocCount(req.params.id, 'confirmed');
+    const waitlistCount  = await RSVP.getDocCount(req.params.id, 'waitlist');
 
     const reviews = await Review.find({ eventId: cca._id }).sort({ createdAt: -1 });
-
+    const hasReviewed = userId
+      ? !!(await Review.findOne({ eventId: cca._id, userId }))
+      : false;
+    console.log(cca);
     res.render("khin/ccaEventDetails", {
       event,
       cca,
-      registered,
+      registered:        rsvp?.status || null,
+      confirmedCount,
+      waitlistCount,
       reviews,
       hasReviewed,
-      user: req.session.user,
-      editingReviewId
+      user:         req.session.user,
+      editingReviewId,
     });
-
-  } catch (err) {
-    console.error(err);
-    res.send("Error loading event detail");
+  } catch (error) {
+    res.status(500).send(error.message);
   }
 };
-
-
 
 // ================= SUBMIT REVIEW =================
 exports.submitReview = async (req, res) => {
   try {
-    const user = req.session.user;
-
-    if (!user) return res.redirect("/login");
+    if (!req.session.user) return res.redirect("/login");
 
     const cca = await CCA.findOne({ eventId: req.params.id });
-
-    if (!cca) return res.send("Event not found");
-
-    const { rating, comment } = req.body;
+    if (!cca) return res.status(404).send("Event not found");
 
     await Review.create({
-      userId: user.userId,
-      name: user.username,
+      userId:  req.session.user.userId,
+      name:    req.session.user.username,
       eventId: cca._id,
-      rating,
-      comment
+      rating:  req.body.rating,
+      comment: req.body.comment,
     });
 
     res.redirect(`/cca-events/${req.params.id}`);
-
   } catch (err) {
-    console.error(err);
-
-    if (err.code === 11000) {
-      return res.send("You already reviewed this event");
-    }
-
-    res.send("Error submitting review");
+    if (err.code === 11000) return res.send("You already reviewed this event");
+    res.status(500).send(err.message);
   }
 };
-
 
 // ================= SHOW EDIT REVIEW FORM =================
 exports.showEditReviewForm = async (req, res) => {
   try {
     const review = await Review.findById(req.params.reviewId);
-
-    if (!review) return res.send("Review not found");
-
-    // 🔥 check owner
-    if (review.userId !== req.session.user.userId) {
-      return res.send("Unauthorized");
-    }
-
+    if (!review) return res.status(404).send("Review not found");
+    if (review.userId !== req.session.user.userId) return res.status(403).send("Unauthorized");
     res.render("khin/editReview", { review, user: req.session.user });
-
   } catch (err) {
-    console.error(err);
-    res.send("Error loading edit form");
+    res.status(500).send(err.message);
   }
 };
-
-
 
 // ================= UPDATE REVIEW =================
 exports.updateReview = async (req, res) => {
   try {
     const review = await Review.findById(req.params.reviewId);
+    if (!review) return res.status(404).send("Review not found");
+    if (review.userId !== req.session.user.userId) return res.status(403).send("Unauthorized");
 
-    if (!review) return res.send("Review not found");
-
-    if (review.userId !== req.session.user.userId) {
-      return res.send("Unauthorized");
-    }
-
-    review.rating = req.body.rating;
+    review.rating  = req.body.rating;
     review.comment = req.body.comment;
-
     await review.save();
 
     const cca = await CCA.findById(review.eventId);
-
     res.redirect(`/cca-events/${cca.eventId}`);
-
   } catch (err) {
-    console.error(err);
-    res.send("Error updating review");
+    res.status(500).send(err.message);
   }
 };
-
 
 // ================= DELETE REVIEW =================
 exports.deleteReview = async (req, res) => {
   try {
     const review = await Review.findById(req.params.reviewId);
-
-    if (!review) return res.send("Review not found");
-
-    if (review.userId !== req.session.user.userId) {
-      return res.send("Unauthorized");
-    }
+    if (!review) return res.status(404).send("Review not found");
+    if (review.userId !== req.session.user.userId) return res.status(403).send("Unauthorized");
 
     const cca = await CCA.findById(review.eventId);
-
     await Review.findByIdAndDelete(req.params.reviewId);
-
     res.redirect(`/cca-events/${cca.eventId}`);
-
   } catch (err) {
-    console.error(err);
-    res.send("Error deleting review");
+    res.status(500).send(err.message);
   }
 };

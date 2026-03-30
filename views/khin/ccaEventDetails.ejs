@@ -118,6 +118,7 @@ body {
 </head>
 
 <body>
+    <% const spotsRemaining = event.capacity-confirmedCount%>
 
 <!-- HEADER -->
 <div class="header">
@@ -155,13 +156,13 @@ body {
 </div>
 
 <!-- TITLE -->
-<h2 class="event-title"><%= event.title %></h2>
+<h2 class="event-title"><%= cca.title %></h2>
 
 <!-- DETAILS -->
 <div class="details">
 
     <div class="detail-row">
-    <b>Category:</b> <%= event.category || "N/A" %>
+    <b>Category:</b> <%= cca.category || "N/A" %>
     </div>
 
     <div class="detail-row">
@@ -171,20 +172,21 @@ body {
     <div class="detail-row">
     <b>Date:</b>
 
-    <% if (event.startDate) { %>
-        <%= new Date(event.startDate).toDateString() %>
+    <% if (cca.startDate) { %>
+        <%= new Date(cca.startDate).toLocaleDateString('en-GB') %>
 
-        <% if (event.endDate) { %>
-        to <%= new Date(event.endDate).toDateString() %>
+        <% if (cca.endDate) { %>
+            to <%= new Date(cca.endDate).toLocaleDateString('en-GB') %>
         <% } %>
 
     <% } else { %>
         N/A
     <% } %>
+    
     </div>
 
     <div class="detail-row">
-    <b>Location:</b> <%= event.location || "N/A" %>
+    <b>Location:</b> <%= cca.location || "N/A" %>
     </div>
 
     <div class="detail-row">
@@ -192,7 +194,7 @@ body {
     </div>
 
     <div class="detail-row">
-    <b>Description:</b> <%= event.description || "N/A" %>
+    <b>Description:</b> <%= cca.description || "N/A" %>
     </div>
 </div>
 
@@ -207,6 +209,13 @@ body {
 %>
 
 <div style="margin-top:20px;">
+    
+    <% if (spotsRemaining > 0 ) { %>
+        <p><%= event.capacity-confirmedCount %> spots remaining</p>
+    <% } else { %>
+        <p>Event full, <%= waitlistCount %> in queue</p>
+    <% } %>
+     
 
 <% if (registered) { %>
 
@@ -221,10 +230,15 @@ body {
   <p><b>This event has ended. Registration is closed.</b></p>
 
 <% } else { %>
-
-  <a href="/cca-events/<%= event._id %>/cca-register" class="btn btn-primary">
-    Register for Event
-  </a>
+    
+    <form method="POST" action="/dashboard/rsvp-join">
+        <input type="hidden" name="eventId" value="<%= cca.eventId %>"/>
+        <% if (registered) {%>
+            <button type="submit" disabled><%=registered=='waitlist'? 'Waitlisted' : 'Registered' %></button>
+        <%}else{%>
+            <button type="submit"><%=spotsRemaining>0?'Register':'Join Waitlist'%></button>
+        <%}%>
+    </form>
 
 <% } %>
 

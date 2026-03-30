@@ -1,5 +1,5 @@
 const CCA = require("../models/CCA");
-const Event = require("../models/all-events-model");
+const Event = require("../models/eventModel");
 const Registration = require("../models/CCARegistration");
 const User = require("../models/user-model");
 const Review = require("../models/CCAReview");
@@ -239,7 +239,7 @@ exports.updateEvent = async (req, res) => {
     // =================================================
 
     // update Event collection
-    await Event.findByIdAndUpdate(cca.eventId._id, updateEventData);
+    await Event.updateById(cca.eventId._id, updateEventData);
 
     // update CCA collection
     await CCA.findByIdAndUpdate(req.params.id, {
@@ -325,7 +325,7 @@ exports.deleteEvent = async (req, res) => {
       }
     }
 
-    await Event.findByIdAndDelete(cca.eventId);
+    await Event.updateById(cca.eventId);
     await CCA.findByIdAndDelete(req.params.id);
 
     res.redirect("/cca-events/ccaAdmin");

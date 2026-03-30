@@ -1,5 +1,6 @@
 const User = require('../models/user-model');
 const bcrypt = require('bcryptjs');
+const School = require('../models/school-model');
 
 // Email validation for SMU students only (public signup)
 const studentEmailRegex = /^[^.]+\.\d{4}@([a-z0-9-]+\.)*smu\.edu\.sg$/i;
@@ -16,8 +17,14 @@ async function generateStudentId() {
 }
 
 // GET PAGES (unchanged)
-const renderSignup = (req, res) => {
-    res.render('signup', { error: null });
+const renderSignup = async (req, res) => {
+    try {
+        const schools = await School.find().sort({ displayName: 1 });
+        res.render("signup", { error: null, schools }); // pass schools to EJS
+    } catch (err) {
+        console.error("Error loading schools:", err);
+        res.status(500).send("Error loading schools");
+    }
 };
 
 const renderLogin = (req, res) => {
@@ -27,18 +34,46 @@ const renderLogin = (req, res) => {
 // FIXED SIGNUP
 const signup = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, school, major} = req.body;
         console.log("Raw input:", req.body);
         
         // Trim inputs
         const cleanUsername = username?.trim();
         const cleanEmail = email?.trim().toLowerCase();
+        const cleanSchool = school?.trim();
+        const cleanMajor = major?.trim();
         
-        // VALIDATE SMU STUDENT EMAIL ONLY
+        // Validate SMU student email
         if (!isValidStudentEmail(cleanEmail)) {
-            return res.render('signup', { 
-                error: 'Only SMU student emails (@*.smu.edu.sg) can register here. Admins must be created by Super Admin.' 
+        const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', {
+                error: 'Only SMU student emails (@*.smu.edu.sg) can register here.',
+                schools,
             });
+        }
+
+         // Validate school selected
+        if (!cleanSchool) {
+            const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', { error: 'Please select your school.', schools });
+        }
+
+        // Validate that school exists in DB and major belongs to it
+        const schoolDoc = await School.findOne({ code: cleanSchool });
+        if (!schoolDoc) {
+            const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', { error: 'Selected school is invalid.', schools });
+        }
+
+        if (!cleanMajor) {
+            const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', { error: 'Please select your major.', schools });
+        }
+
+        const majorExists = schoolDoc.majors.some(m => m.code === cleanMajor);
+        if (!majorExists) {
+            const schools = await School.find().sort({ displayName: 1 });
+            return res.render('signup', { error: 'Selected major is invalid for your school.', schools });
         }
         
         // Check existing user
@@ -61,6 +96,8 @@ const signup = async (req, res) => {
             username: cleanUsername,
             email: cleanEmail,
             password: hashedPassword,
+            school: cleanSchool,
+            major: cleanMajor,
             role: 'student'  // Public signup = students only
         });
         
@@ -74,6 +111,7 @@ const signup = async (req, res) => {
         
     } catch (error) {
         console.error("Signup ERROR:", error);
+        const schools = await School.find().sort({ displayName: 1 }).catch(() => []);
         res.render('signup', { error: 'Server error during signup.' });
     }
 };
@@ -99,6 +137,17 @@ const login = async (req, res) => {
                 success: null 
             });
         }
+
+        // Resolve display names for school and major from the School collection
+        let schoolName = user.school;
+        let majorName  = user.major;
+
+        const schoolDoc = await School.findOne({ code: user.school });
+        if (schoolDoc) {
+            schoolName = schoolDoc.fullName;
+            const majorDoc = schoolDoc.majors.find(m => m.code === user.major);
+            if (majorDoc) majorName = majorDoc.name;
+        }
         
         // Session with role
         req.session.user = { 
@@ -106,16 +155,15 @@ const login = async (req, res) => {
             userId: user.userId,
             username: user.username,
             email: user.email,
-            role: user.role
+            role: user.role,
+            school: user.school, // e.g. "scis"
+            major: user.major, // e.g. "ba"
+            schoolName, // full name e.g. "School of Computing & Information Systems"
+            majorName   // full name e.g. "Business Analytics"
         };
         
-        console.log(`✅ Login: ${user.userId} (${user.role})`);
-        // res.redirect('/all-events');
-
-        // khin - i change this one abit to save the user session
-        req.session.save(() => {
-            res.redirect('/all-events');
-        });
+        console.log(`✅ Login: ${user.userId} (${user.role} - ${schoolName} / ${majorName})`);
+        res.redirect('/all-events');
         
     } catch (error) {
         console.error("Login ERROR:", error);

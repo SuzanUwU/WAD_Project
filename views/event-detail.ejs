@@ -11,7 +11,7 @@
   <a href="/career-events">← Back to listings</a>
 
   <hr/>
-
+  <% const spotsRemaining = event.capacity-confirmedCount%>
   <table width="100%"cellpadding="8">
     <tr style="vertical-align: top">
 
@@ -73,19 +73,19 @@
 
         <h3>Interested?</h3>
         
-        <% if (event.applyLink) { %>
-
+        <% if (event.applyLink && (event.careerType == 'internship' || event.careerType == 'full-time')) { %>
+          <!-- jobs and internships are not considered campus events, we do not show them on the campus event board calendar or handle under waitlist, time scheduling system -->
           <p>Apply directly on the company's website.</p>
-          <a href="<%= event.applyLink %>" target="_blank">Apply Now →</a>
+          <a href="<%= event.applyLink %>" >Apply Now</a>
 
         <% } else { %>
           <p>This is a free workshop. Register to save your spot.</p>
-          <form method="POST" action="/rsvp-join">
+          <form method="POST" action="/dashboard/rsvp-join">
             <input type="hidden" name="eventId" value="<%= event.eventId %>"/>
-            <% if (registered) {%>
-              <button type="submit" disabled>Joined</button>
+            <% if (state) {%>
+              <button type="submit" disabled><%=state=='waitlist'? 'Waitlisted' : 'Registered' %></button>
             <%}else{%>
-              <button type="submit">Join</button>
+              <button type="submit"><%=spotsRemaining>0?'Register':'Join Waitlist'%></button>
             <%}%>
           </form>
 
@@ -99,9 +99,13 @@
         </form>
 
         <hr/>
-
-        <p>Questions? Contact your <a href="mailto:placement@smu.edu.sg">academic advisor</a></p>
-
+      <% if (event.careerType=='workshop'){%>
+        <% if (spotsRemaining > 0 ) { %>
+          <p><%= event.capacity-confirmedCount %> spots remaining</p>
+        <% } else { %>
+          <p>Event full, <%= waitlistCount %> in queue</p>
+        <% } %>
+      <%}%>   
       </td>
 
     </tr>

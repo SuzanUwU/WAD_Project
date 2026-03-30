@@ -17,6 +17,15 @@ const userSchema = new mongoose.Schema({
     enum: ['cca-admin', 'hack-admin', 'ptjob-admin', 'career-admin'],
     required: function() { return this.role === 'admin'; }
   },
+  profile: {
+    data: Buffer,
+    contentType: String
+  },
+  // school:   { type: mongoose.Schema.Types.ObjectId, ref: "School" },
+  // Stored as school code string (e.g. "scis") so it can be compared directly
+  // against eligibleSchools arrays on Hackathon without a DB join
+  school: { type: String, default: '' },
+  major:  { type: String, default: '' }, // major code e.g. "ba"
   createdAt: { type: Date, default: Date.now }
 });
 
