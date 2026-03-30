@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Success!</title>
+  <style>
+      /* Keeping it centered and clean, matching your style */
+      body { text-align: center; font-family: sans-serif; margin-top: 100px; }
+      .container { border: 1px solid #ddd; padding: 40px; border-radius: 8px; display: inline-block; }
+      #countdown { font-weight: bold; font-size: 1.5em; color: rgb(108, 147, 231); }
+  </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: rgb(103, 164, 103);">Success!</h1>
+        <p><strong><%=success%></strong></p>
+        
+        <p>Redirecting to the login page in <span id="countdown">3</span> seconds...</p>
+        
+        <p style="font-size: 0.9em; color: #666;">
+            If you are not redirected automatically, <a href="<%= targetUrl %>">click here</a>.
+        </p>
+    </div>
+
+    <script>
+        // JavaScript to handle the countdown and redirect
+        let timeLeft = 3;
+        const countdownElement = document.getElementById('countdown');
+        // The EJS tags inject the target URL from the controller directly into the JS!
+        const targetUrl = "<%= targetUrl %>"; 
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            countdownElement.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                window.location.href = targetUrl; // Redirect the user
+            }
+        }, 1000); // Run this every 1000 milliseconds (1 second)
+    </script>
+</body>
+</html>

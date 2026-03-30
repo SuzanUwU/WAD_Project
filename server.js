@@ -2,16 +2,14 @@
 const express = require("express");
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const path = require('path'); // ← ADD for views path
-const multer = require('multer');
+const path = require('path');
 const session = require('express-session');
 
 // routes
-// const eventRoutes = require('./routes/eventRoutes');
 const alleventRoutes = require('./routes/alleventRoutes');
 const authRoutes = require('./routes/authRoutes');
-const ccaRoutes = require('./routes/ccaRoutes'); // Khin
-const hackathonRoutes = require('./routes/hackathonRoutes'); // Ari
+const ccaRoutes = require('./routes/ccaRoutes');
+const hackathonRoutes = require('./routes/hackathonRoutes')
 superadminRoutes = require('./routes/superadminRoutes')
 
 // middleware
@@ -53,12 +51,16 @@ server.use('/all-events', requireLogin, alleventRoutes);
 server.use('/hack-events', requireLogin, hackathonRoutes); // Ari
 server.use('/cca-events', requireLogin, ccaRoutes);
 server.use('/superadmin', requireSuperAdmin, superadminRoutes);
-server.get('/', (req, res) => { res.render('welcome', { user: req.session?.user || null}); } );
 
+server.get('/', (req, res) => { res.render('suzan/welcome', { user: req.session?.user || null}); } );
+
+// server.get('/superadmin/create-admin', requireSuperAdmin, (req, res) => {
+//   res.render('suzan/create-admin', { user: req.session.user });
+// });
 server.post('/superadmin/create-admin', requireSuperAdmin, superadminController.createAdmin);
 
 server.set("view engine", "ejs"); // Set EJS as the view engine for rendering dynamic HTML pages
-server.set('views', path.join(__dirname, 'views')); // ← ADD: explicit views path
+server.set('views', path.join(__dirname, 'views'));
 
 // CONNECT TO MONGODB
 dotenv.config({ path: './config.env' });

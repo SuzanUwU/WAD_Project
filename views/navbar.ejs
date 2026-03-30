@@ -181,7 +181,7 @@
               <span class="user-name"><%= user.username %></span>
             </div>
             <div class="dropdown-menu">
-              <a href="/profile" class="dropdown-item">Profile (<%= user.userId %>)</a>
+              <a href="/user-settings" class="dropdown-item">Profile (<%= user.userId %>)</a>
               <a href="/logout" class="dropdown-item">Logout</a>
               <% if (user.role === 'superadmin') { %>
                 <a href="/superadmin/admins-settings" class="dropdown-item">👑 Admin Settings</a>
