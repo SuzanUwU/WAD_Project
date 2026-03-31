@@ -42,11 +42,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// create new event
-router.get('/events/create', (req, res) => {
-  res.render('suzan/create-event'); // link to each sub category forms instead
-});
-
 // create a new event with image 
 // might have to delete and reroute
 router.post('/', upload.single('eventImage'), async (req, res) => {
