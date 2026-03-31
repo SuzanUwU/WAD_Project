@@ -1,17 +1,14 @@
 const mongoose = require('mongoose');
 
 const savedEventSchema = new mongoose.Schema({
-  eventName: { type: String, required: true },
-  eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
-  savedAt: { type: Date, default: Date.now }
-});
+    userId: { type: String, required: true, unique: true },
+    username: { type: String, required: true },
+    
+    // Updated: Now it stores an array of objects!
+    events: [{
+        eventId: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
+        title: String
+    }]
+}, { timestamps: true });
 
-const savedEventsSchema = new mongoose.Schema({
-  userId: { type: String, required: true, unique: true },
-  username: { type: String, required: true },
-  savedEvents: [savedEventSchema],
-  totalSaved: { type: Number, default: 0 },
-  lastUpdated: { type: Date, default: Date.now }
-});
-
-module.exports = mongoose.model('SavedEvents', savedEventsSchema, 'savedEvents');
+module.exports = mongoose.model('SavedEvent', savedEventSchema);

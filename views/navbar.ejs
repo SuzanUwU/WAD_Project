@@ -149,6 +149,9 @@
 
     <!-- Links CENTER -->
     <div class="nav-center">
+      <a href="#saved-events" class="nav-link">
+        <i class="fas fa-clock"></i>My Saved Events
+      </a>
       <a href="#latest-events" class="nav-link">
         <i class="fas fa-clock"></i>Latest Events
       </a>
@@ -181,7 +184,7 @@
               <span class="user-name"><%= user.username %></span>
             </div>
             <div class="dropdown-menu">
-              <a href="/user-settings" class="dropdown-item">Profile (<%= user.userId %>)</a>
+              <a href="/usersettings" class="dropdown-item">Profile (<%= user.userId %>)</a>
               <a href="/logout" class="dropdown-item">Logout</a>
               <% if (user.role === 'superadmin') { %>
                 <a href="/superadmin/admins-settings" class="dropdown-item">👑 Admin Settings</a>

@@ -23,6 +23,23 @@
 <body>
   <%- include('../navbar') %>
 
+  <section id="saved-events">
+  <!-- Saved Events -->
+  <% if (locals.user && locals.mySavedEvents && mySavedEvents.length > 0) { %>
+        <div style="background-color: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #cce5ff;">
+            <h2 style="color: rgb(108, 147, 231); margin-top: 0;"> <a href="/all-events/saved-events">⭐ My Saved Events</a></h2>
+            
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <% mySavedEvents.forEach(function(savedItem) { %>
+                    <div style="background: white; padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; font-weight: bold;">
+                        ✅ <%= savedItem.title %>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    <% } %>
+    </section>
+
   <!-- LATEST EVENTS SECTION -->
   <section id="latest-events">
   <h1>Latest Events</h1>
@@ -94,8 +111,29 @@
       <!-- ROW 8: Buttons -->
       <tr>
         <% latestEvents.forEach(function(event) { %>
-          <td style="width: 150px; text-align: center;"><button style="background-color: rgb(159, 222, 159); width: 80%; height: 25px" onclick="register('<%= event._id %>')">Register</button></td>
-          <td style="width: 150px; text-align: center;"><button style="background-color: rgb(226, 226, 153); width: 80%; height: 25px;" onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">Save </button></td>
+          <td style="width: 150px; text-align: center;">
+            <button style="background-color: rgb(159, 222, 159); width: 80%; height: 25px" onclick="register('<%= event._id %>')">Register</button>
+          </td>
+          
+          <td style="width: 150px; text-align: center;">
+            <% 
+              let isSaved = false;
+              if (locals.mySavedEvents && mySavedEvents.length > 0) {
+                isSaved = mySavedEvents.some(savedItem => savedItem.eventId.toString() === event._id.toString());
+              }
+            %>
+            
+            <% if (isSaved) { %>
+              <button style="background-color: rgb(144, 238, 144); width: 80%; height: 25px; border: 1px solid #ccc;" disabled>
+                Saved ✓
+              </button>
+            <% } else { %>
+              <button style="background-color: rgb(226, 226, 153); width: 80%; height: 25px; border: 1px solid #ccc;" 
+                      onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">
+                Save
+              </button>
+            <% } %>
+          </td>
         <% }) %>
       </tr>
     </table>
@@ -156,10 +194,23 @@
 
             <!-- Save button -->
             <td style="text-align: center; width: 100px;">
-              <button style="background-color: rgb(229, 229, 137); padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc;"
-                      onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">
-                Save
-              </button>
+              <% 
+                let isSavedAll = false;
+                if (locals.mySavedEvents && mySavedEvents.length > 0) {
+                  isSavedAll = mySavedEvents.some(savedItem => savedItem.eventId.toString() === event._id.toString());
+                }
+              %>
+
+              <% if (isSavedAll) { %>
+                <button style="background-color: rgb(144, 238, 144); padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc;" disabled>
+                  Saved ✓
+                </button>
+              <% } else { %>
+                <button style="background-color: rgb(229, 229, 137); padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc;"
+                        onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">
+                  Save
+                </button>
+              <% } %>
             </td>
           </tr>
         <% }) %>
@@ -191,86 +242,57 @@
   <% } %>
 
 
-
-
-
-
-
-
-
-
   <script>
-  // Script to Register for Event
-  function register(eventId) { alert('Register: ' + eventId); }
+    // Script to Save an Event to the User's List
+    async function saveEvent(eventId, eventTitle, button) {
+        try {
+            // 1. Give the user immediate visual feedback that it's loading
+            const originalText = button.textContent;
+            button.textContent = 'Saving...';
+            button.disabled = true;
 
-  // Script to Save an Event for later - Saved List
-  async function saveEvent(eventId, eventTitle, button) {
-    try {
-      const response = await fetch(`/events/save/${eventId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }});
-      const result = await response.json();
-      if (result.success) {
-        button.style.backgroundColor = 'rgb(144, 238, 144)';
-        button.textContent = 'Saved ✓';
-        button.disabled = true;
-      
-      } else { alert(result.error || 'Save failed');}
-    } catch (err) {alert('Save failed: ' + err.message);}
-  }
+            // 2. Send the POST request to your backend route
+            const response = await fetch('/all-events/save-event', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                // We send the eventId and the title in the body
+                body: JSON.stringify({ 
+                    eventId: eventId,
+                    eventTitle: eventTitle 
+                })
+            });
 
-  // delete saved event
-  async function removeSavedEvent(index, eventId) {
-    try {
-      const response = await fetch(`/events/unsave/${eventId}`, {method: 'DELETE'});
-      const result = await response.json();
-      if (result.success) {
-        // Reset Save button (find by eventId)
-        const saveButton = document.querySelector(`button[onclick*="saveEvent('${eventId}'"]`);
-        if (saveButton) {
-          saveButton.style.backgroundColor = 'rgb(226, 226, 153)';
-          saveButton.textContent = 'Save';
-          saveButton.disabled = false;
+            // 3. Handle the response
+            if (response.ok) {
+                // Success! Change the button color to green
+                button.style.backgroundColor = 'rgb(144, 238, 144)';
+                button.textContent = 'Saved ✓';
+                
+                // Optional: Reload the page after 1 second so the top "My Saved Events" list updates!
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                // If the server threw an error (like "already saved")
+                const result = await response.text(); 
+                alert('Could not save: ' + result);
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        } catch (err) {
+            console.error("Save Error:", err);
+            alert('Failed to connect to the server.');
+            button.textContent = 'Save';
+            button.disabled = false;
         }
-        loadSavedEvents();
-      }
-    } catch (err) {alert('Remove failed');}
-  }
-
-  // events/saved/user001 on inspect to see the saved data
-
-  // For subscribing to an organizer
-  async function subscribeOrganizer(organizerId, organizerName) {
-    try {
-      const response = await fetch(`/events/subscribe/${organizerId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ organizerName })
-      });
-      
-      const result = await response.json();
-      if (result.success) {
-        // Hide row
-        document.getElementById(`org-${organizerId}`).style.display = 'none';
-        alert(`${organizerName} subscribed!`);
-      } else {
-        alert(result.error);
-      }
-    } catch (err) {
-      alert('Subscription failed');
     }
-  }
 
-  // STEP 1: DEBUG - Console.log event ID + user ID
-  async function saveEvent(eventId, eventTitle, button) {
-    // HARDCODE USER ID FOR NOW (replace with real user later)
-    const userId = "user001";  // ← YOUR USER ID
-    
-    console.log('🔥 SAVE CLICKED!');
-    console.log('📅 Event ID:', eventId);
-    console.log('👤 User ID:', userId);
-    console.log('📝 Event Title:', eventTitle);
-    
-    alert(`DEBUG: Event ${eventId} saved by ${userId}`);  // Visual feedback
-  }
+    // Placeholder for Register button
+    function register(eventId) { 
+        alert('Registration feature coming soon for Event: ' + eventId); 
+    }
   </script>
 
 </body>

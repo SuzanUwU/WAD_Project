@@ -7,6 +7,7 @@ const eventController = require('../controllers/eventController');
 
 const Event = require('../models/all-events-model');
 const SavedEvents = require('../models/SavedEvents');
+const savedEventController = require('../controllers/savedeventsController');
 const Organizer = require('../models/Organizer');
 
 // configure multer
@@ -15,10 +16,29 @@ const upload = require('multer')({ storage: multer.memoryStorage() });
 // router to get/read data about all events
 router.get('/', async (req, res) => {
   try {
-    const events = await Event.find().sort({ date: -1 }); // gets all events
-    res.render('suzan/all-events', { events });
+    // 1. Fetch all standard events
+    const events = await Event.find().sort({ date: -1 }); 
+    
+    // 2. Set up an empty array just in case they aren't logged in
+    let mySavedEvents = [];
+
+    // 3. If they ARE logged in, fetch their specific saved list
+    if (req.session && req.session.user) {
+      const savedDoc = await SavedEvents.findOne({ userId: req.session.user.userId });
+      if (savedDoc) {
+        mySavedEvents = savedDoc.events; // Grab the array of saved events
+      }
+    }
+
+    // 4. Pass BOTH the events and mySavedEvents to the EJS page
+    res.render('suzan/all-events', { 
+        events: events, 
+        mySavedEvents: mySavedEvents 
+    });
+    
   } catch (err) {
-    res.render('suzan/all-events', { events: [] });
+    console.error("Error loading events page:", err);
+    res.render('suzan/all-events', { events: [], mySavedEvents: [] });
   }
 });
 
@@ -50,47 +70,68 @@ router.post('/', upload.single('eventImage'), async (req, res) => {
   }
 });
 
-// Save event (PATCH)
-router.post('/save/:eventId', async (req, res) => {
-  const { eventId } = req.params;
-  const event = await Event.findById(eventId);
-  
-  const savedDoc = await SavedEvents.findOne({ userId: 'user001' });
-  if (!savedDoc) {
-    // Create new user saved events
-    const newSavedDoc = new SavedEvents({
-      userId: 'user001',
-      username: 'User001',
-      savedEvents: [{
-        eventName: event.title,
-        eventId: event._id,
-        savedAt: new Date()
-      }]
-    });
-    await newSavedDoc.save();
-  } else {
-    // Check duplicate
-    const exists = savedDoc.savedEvents.some(se => 
+
+
+router.get('/saved-events', savedEventController.viewSavedEvents);
+
+// Save event (POST)
+router.post('/save-event', async (req, res) => {
+  try {
+    const { eventId } = req.body;
+    const event = await Event.findById(eventId);
+    
+    // Safety check just in case the event doesn't exist
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    const userId = req.session.user.userId;     // 'S001'
+    const username = req.session.user.username; 
+    
+    let savedDoc = await SavedEvents.findOne({ userId: userId });
+
+    // SCENARIO 1: User has never saved an event before
+    if (!savedDoc) {
+      const newSavedDoc = new SavedEvents({
+        userId: userId,
+        username: username,
+        events: [{                  // ✅ strictly using 'events' array
+          title: event.title,       // ✅ strictly using 'title'
+          eventId: event._id
+        }]
+      });
+      
+      await newSavedDoc.save();
+      return res.json({ success: true }); // Use 'return' to stop the function here!
+    } 
+    
+    // SCENARIO 2: User already has a saved list
+    // Check for duplicates first
+    const exists = savedDoc.events.some(se => 
       se.eventId.toString() === eventId
     );
+    
     if (exists) {
       return res.json({ error: 'Already saved' });
     }
     
-    // Add new event
-    savedDoc.savedEvents.push({
-      eventName: event.title,
-      eventId: event._id,
-      savedAt: new Date()
+    // It's not a duplicate, so push the new event to the array
+    savedDoc.events.push({        
+      title: event.title,         
+      eventId: event._id
     });
-    savedDoc.totalSaved = savedDoc.savedEvents.length;
-    savedDoc.lastUpdated = new Date();
+    
     await savedDoc.save();
+    return res.json({ success: true });
+
+  } catch (error) {
+    console.error("Save Event Error:", error);
+    res.status(500).json({ error: 'Server error while saving.' });
   }
-  res.json({ success: true });
 });
 
-// Remove saved event (PATCH)
+// Remove saved event
+router.delete('/unsave-event/:eventId', savedEventController.unsaveEvent);
 router.delete('/unsave/:eventId', async (req, res) => {
   const result = await SavedEvents.updateOne(
     { userId: 'user001' },

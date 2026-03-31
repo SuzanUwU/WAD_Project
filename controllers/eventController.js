@@ -3,24 +3,35 @@ const fs = require('fs/promises');
 
 // Get Service model
 const Event = require('../models/all-events-model');
+const Subscribed = require('../models/SavedEvents');
 
-exports.listEvents = async (req, res, next) => {
-  try {
-    // You can sort by date or createdAt if you have that field
-    console.log('🔍 SESSION USER:', req.session.user);  // Should show user object
-    console.log('🔍 res.locals.user:', res.locals.user); // Should show user object
+const renderAllEvents = async (req, res) => {
+    try {
+        // 1. Fetch ALL the standard events for the main dashboard
+        const allEvents = await Event.find(); 
+        
+        // 2. Set up an empty array for subscriptions just in case
+        let mySubscriptions = [];
 
-    const events = await Event.find().sort({ date: 1 });
+        // 3. IF the user is logged in, fetch their specific subscription list!
+        if (req.session && req.session.user) {
+            const userSubDoc = await Subscribed.findOne({ userId: req.session.user.userId });
+            if (userSubDoc) {
+                mySubscriptions = userSubDoc.events;
+            }
+        }
 
-    res.render('events-list', {
-      title: 'All Events',
-      events, // pass array to view
-      user: req.session?.user || null
-    });
-  } catch (err) {
-    next(err); // or res.status(500).send('Error fetching events');
-  }
+        // 4. Send BOTH arrays to the EJS page
+        res.render('all-events', { 
+            events: allEvents, 
+            mySubscriptions: mySubscriptions, // <--- We pass this new array!
+            user: req.session ? req.session.user : null 
+        });
+
+    } catch (error) {
+        console.error("Error loading events page:", error);
+        res.status(500).send("Server Error");
+    }
 };
 
-
-
+module.exports = { renderAllEvents };
