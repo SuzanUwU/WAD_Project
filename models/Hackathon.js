@@ -1,9 +1,11 @@
 const mongoose = require('mongoose');
 const hackathonSchema = new mongoose.Schema({
+  eventId:  { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true}, // linked Event doc
   title: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   description: { type: String, required: true }, 
   category: { type: String, required: true }, // "Hackathons"
+  location: { type: String, required: true },
   eligibleSchools: {type: Array, required: true}, // array of selected school codes e.g.[scis, soe, sob]
   eligibleMajors: {type: Array, required: true}, // array of selected majors from each school
   teamSizeMin: {type: Number, required: true},

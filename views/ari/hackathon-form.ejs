@@ -34,6 +34,12 @@
       <textarea id="description" name="description" rows="4" cols="70"
                 required><%= hackathon.description || '' %></textarea>
     </p>
+    <p>
+      <label for="location">Location / Venue: *</label><br/>
+      <input type="text" id="location" name="location"
+             value="<%= hackathon.location || '' %>" required size="60"
+             placeholder="e.g. SMU SCIS Seminar Room 2-1, or Online (Zoom)"/>
+    </p>
   </fieldset>
 
   <!-- BANNER IMAGE -->
