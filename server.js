@@ -1,6 +1,7 @@
-// server.js
 const express = require("express");
 const dotenv = require('dotenv');
+dotenv.config({ path: './config.env' });
+
 const mongoose = require('mongoose');
 const path = require('path');
 const session = require('express-session');
@@ -9,64 +10,68 @@ const session = require('express-session');
 const alleventRoutes = require('./routes/alleventRoutes');
 const authRoutes = require('./routes/authRoutes');
 const ccaRoutes = require('./routes/ccaRoutes');
-const hackathonRoutes = require('./routes/hackathonRoutes')
-superadminRoutes = require('./routes/superadminRoutes')
+const hackathonRoutes = require('./routes/hackathonRoutes');
+const superadminRoutes = require('./routes/superadminRoutes');
+const profileRoutes = require('./routes/profileRoutes')
+const careerRoutes = require('./routes/careerRoutes')
 
 // middleware
 const superadminController = require('./controllers/superadminController');
-const { requireSuperAdmin } = require('./middleware/auth');  // Update middleware
-const { requireLogin } = require('./middleware/auth');
+const { requireSuperAdmin, requireLogin } = require('./middleware/auth');
 
 const server = express();
 
-server.use(express.static(path.join(__dirname, 'public'))); 
-server.use(express.urlencoded({ extended: true })); // for form posting
-server.use(express.json()); // express.json() is a middleware
+// ================= MIDDLEWARE =================
+server.use(express.static(path.join(__dirname, 'public')));
+server.use(express.urlencoded({ extended: true }));
+server.use(express.json());
 
-// SESSION MUST BE BEFORE ROUTES
+// SESSION
 server.use(session({
-    secret: process.env.SESSION_SECRET || 'keyboard-cat-secret-12345',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-        maxAge: 1000 * 60 * 60 * 24,  // 24 hours
-        secure: false  // true for HTTPS
-    }
+  secret: process.env.SESSION_SECRET || 'keyboard-cat-secret-12345',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24,
+    secure: false
+  }
 }));
 
+// make user available in ALL EJS
 server.use((req, res, next) => {
   res.locals.user = req.session?.user || null;
   next();
 });
 
-// ROUTES
-server.use('/', authRoutes);  // Before eventRoutes
-// Public API route — must be before requireLogin middleware so unauthenticated
-// pages (e.g. signup) can fetch majors for the dynamic dropdown
-server.get('/api/majors', require('./controllers/hackathonController').getMajorsBySchool);
-// server.use('/events/hackathons', hackathonRoutes); // Ari
-// server.use('/events', ccaRoutes); // Khin
-// server.use('/events', eventRoutes);
-server.use('/all-events', requireLogin, alleventRoutes);
-server.use('/hack-events', requireLogin, hackathonRoutes); // Ari
-server.use('/cca-events', requireLogin, ccaRoutes);
-server.use('/superadmin', requireSuperAdmin, superadminRoutes);
-
-server.get('/', (req, res) => { res.render('suzan/welcome', { user: req.session?.user || null}); } );
-
-// server.get('/superadmin/create-admin', requireSuperAdmin, (req, res) => {
-//   res.render('suzan/create-admin', { user: req.session.user });
-// });
-server.post('/superadmin/create-admin', requireSuperAdmin, superadminController.createAdmin);
-
-server.set("view engine", "ejs"); // Set EJS as the view engine for rendering dynamic HTML pages
+// ================= VIEW ENGINE =================
+server.set("view engine", "ejs");
 server.set('views', path.join(__dirname, 'views'));
 
-// CONNECT TO MONGODB
-dotenv.config({ path: './config.env' });
+// ================= ROUTES =================
+server.use('/', authRoutes);
+
+// hackathon API (IMPORTANT: before login)
+server.get('/api/majors', require('./controllers/hackathonController').getMajorsBySchool);
+
+// protected routes
+server.use('/all-events', alleventRoutes);//landing page
+server.use('/hack-events', requireLogin, hackathonRoutes);
+server.use('/cca-events', requireLogin, ccaRoutes);
+server.use('/dashboard',requireLogin,profileRoutes);
+server.use('/career-events', requireLogin, careerRoutes);
+
+// superadmin
+server.use('/superadmin', requireSuperAdmin, superadminRoutes);
+server.post('/superadmin/create-admin', requireSuperAdmin, superadminController.createAdmin);
+
+// homepage
+server.get('/', (req, res) => {
+  res.render('welcome', { user: req.session?.user || null });
+});
+
+// ================= DATABASE =================
 async function connectDB() {
   try {
-    // connecting to Database with our config.env file and DB is constant in config.env
     await mongoose.connect(process.env.DB);
     console.log("MongoDB connected successfully");
   } catch (error) {
@@ -75,16 +80,14 @@ async function connectDB() {
   }
 }
 
+// ================= START SERVER =================
 function startServer() {
   const hostname = "localhost";
   const port = 8000;
 
-  // Start the server and listen on the specified hostname and port
   server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
   });
 }
 
-// call connectDB first and when connection is ready we start the web server
 connectDB().then(startServer);
-

@@ -1,12 +1,74 @@
 const CCA = require("../models/CCA");
-const RSVP = require("../models/RSVP");
+const Event = require("../models/eventModel");
+const Review = require("../models/CCAReview");
+const User = require("../models/user-model");
 
+const RSVP = require("../models/rsvpModel");
+const mongoose = require("mongoose");
 
-// View all events
+const RSVPModel = mongoose.model("RSVP");
+
+// ================= VIEW ALL =================
 exports.getAllEvents = async (req, res) => {
   try {
-    const events = await CCA.find();
-    res.render("khin/adminEvents", { events });
+    const search = req.query.search || "";
+    const club = req.query.club || "All";
+    const status = req.query.status || "All";
+    const sort = req.query.sort || "default";
+
+    let query = {};
+    if (club !== "All") {
+      query.clubType = club;
+    }
+
+    const ccas = await CCA.find(query).populate("eventId");
+    const today = new Date();
+
+    const filtered = ccas
+      .map((cca) => {
+        const event = cca.eventId;
+        if (!event) return null;
+
+        const title = event.title || "";
+        if (!title.toLowerCase().includes(search.toLowerCase())) return null;
+
+        let eventDate = event.startDate ? new Date(event.startDate) : null;
+
+        let eventStatus = "N/A";
+        if (eventDate && !isNaN(eventDate)) {
+          if (eventDate > today) eventStatus = "Upcoming";
+          else if (eventDate.toDateString() === today.toDateString()) eventStatus = "Ongoing";
+          else eventStatus = "Past";
+        }
+
+        if (status !== "All" && eventStatus !== status) return null;
+
+        return {
+          ...cca.toObject(),
+          eventDate
+        };
+      })
+      .filter(e => e !== null);
+
+    const sortedEvents = filtered.sort((a, b) => {
+      const dateA = a.eventDate || new Date(0);
+      const dateB = b.eventDate || new Date(0);
+
+      if (sort === "newest") return dateB - dateA;
+      if (sort === "oldest") return dateA - dateB;
+
+      return 0;
+    });
+
+    res.render("khin/adminCcaList", {
+      events: sortedEvents,
+      search,
+      club,
+      status,
+      sort,
+      user: req.session.user
+    });
+
   } catch (err) {
     console.error(err);
     res.send("Error loading events");
@@ -14,35 +76,52 @@ exports.getAllEvents = async (req, res) => {
 };
 
 
-// Show create form
+// ================= CREATE FORM =================
 exports.showCreateForm = (req, res) => {
-  res.render("khin/createEvent");
+  res.render("khin/ccaCreate", {
+    user: req.session.user
+  });
 };
 
 
-// Create event (IMPORTANT: BUFFER IMAGE)
+// ================= CREATE EVENT =================
 exports.createEvent = async (req, res) => {
   try {
-    const newEvent = new CCA({
+
+    // Event WITHOUT image
+    const newEvent = await Event.create({
       title: req.body.title,
       organizer: req.body.organizer,
+      category: "CCA",
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
+      location: req.body.location,
+      description: req.body.description
+    });
+
+    // CCA WITH image
+    await CCA.create({
+      eventId: newEvent._id,
+      title: req.body.title,
+      organizer: req.body.organizer,
+      category: "CCA",
       description: req.body.description,
-      category: req.body.category,
-      clubType: req.body.clubType,
-      date: req.body.date,
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
       location: req.body.location,
 
       image: req.file
-      ? {
-          data: req.file.buffer,
-          contentType: req.file.mimetype
-        }
-      : undefined
+        ? {
+            data: req.file.buffer,
+            contentType: req.file.mimetype
+          }
+        : undefined,
+
+      clubType: req.body.clubType,
+      capacity: req.body.capacity || 0
     });
 
-    await newEvent.save();
-
-    res.redirect("/events/ccaAdmin");
+    res.redirect("/cca-events/ccaAdmin");
 
   } catch (err) {
     console.error(err);
@@ -51,11 +130,17 @@ exports.createEvent = async (req, res) => {
 };
 
 
-// Show edit form
+// ================= EDIT FORM =================
 exports.showEditForm = async (req, res) => {
   try {
-    const event = await CCA.findById(req.params.id);
-    res.render("khin/editEvent", { event });
+    const cca = await CCA.findById(req.params.id).populate("eventId");
+
+    res.render("khin/ccaEdit", {
+      cca,
+      event: cca.eventId,
+      user: req.session.user
+    });
+
   } catch (err) {
     console.error(err);
     res.send("Error loading event");
@@ -63,29 +148,84 @@ exports.showEditForm = async (req, res) => {
 };
 
 
-// Update event
+// ================= UPDATE =================
 exports.updateEvent = async (req, res) => {
   try {
-    const updateData = {
-      title: req.body.title,
-      organizer: req.body.organizer,
-      description: req.body.description,
-      category: req.body.category,
-      clubType: req.body.clubType,
-      date: req.body.date,
-      location: req.body.location
-    };
+    const cca = await CCA.findById(req.params.id).populate("eventId");
 
-    if (req.file) {
-      updateData.image = {
-        data: req.file.buffer,
-        contentType: req.file.mimetype
-      };
+    if (!cca) return res.send("CCA event not found");
+
+    const oldEvent = cca.eventId;
+
+    // ================= DETECT IMPORTANT CHANGES =================
+    let changes = [];
+
+    if (oldEvent.location !== req.body.location) {
+      changes.push("location");
     }
 
-    await CCA.findByIdAndUpdate(req.params.id, updateData);
+    if (
+      new Date(oldEvent.startDate).toISOString() !==
+      new Date(req.body.startDate).toISOString()
+    ) {
+      changes.push("start date");
+    }
 
-    res.redirect("/events/ccaAdmin");
+    if (
+      new Date(oldEvent.endDate).toISOString() !==
+      new Date(req.body.endDate).toISOString()
+    ) {
+      changes.push("end date");
+    }
+
+    // ================= PREPARE UPDATE =================
+    const updateEventData = {
+      title: req.body.title,
+      organizer: req.body.organizer,
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
+      location: req.body.location,
+      description: req.body.description
+    };
+
+    // ================= UPDATE EVENT SCHEMA =================
+    await Event.updateById(cca.eventId._id, updateEventData);
+
+    // ================= UPDATE CCA SCHEMA =================
+    await CCA.findByIdAndUpdate(req.params.id, {
+      ...updateEventData,
+      clubType: req.body.clubType,
+      capacity: req.body.capacity || 0,
+
+      ...(req.file && {
+        image: {
+          data: req.file.buffer,
+          contentType: req.file.mimetype
+        }
+      })
+    });
+
+    // ================= 🔔 SMART NOTIFICATIONS =================
+    if (changes.length > 0) {
+      const RSVPModel = require("mongoose").model("RSVP");
+      const CCANotification = require("../models/CCANotification");
+
+      const rsvps = await RSVPModel.find({ event: cca.eventId._id });
+
+      const message = `📢 Event "${req.body.title}" updated: ${changes.join(", ")}`;
+
+      for (let r of rsvps) {
+        await CCANotification.create({
+          userId: r.user,
+          eventId: cca.eventId._id,
+          message
+        });
+      }
+    }
+
+    // =========================================================
+
+    res.redirect("/cca-events/ccaAdmin");
 
   } catch (err) {
     console.error(err);
@@ -94,11 +234,16 @@ exports.updateEvent = async (req, res) => {
 };
 
 
-// Delete event
+// ================= DELETE =================
 exports.deleteEvent = async (req, res) => {
   try {
+    const cca = await CCA.findById(req.params.id).populate("eventId");
+
+    await Event.deleteById(cca.eventId._id);
     await CCA.findByIdAndDelete(req.params.id);
-    res.redirect("/events/ccaAdmin");
+
+    res.redirect("/cca-events/ccaAdmin");
+
   } catch (err) {
     console.error(err);
     res.send("Error deleting event");
@@ -106,16 +251,39 @@ exports.deleteEvent = async (req, res) => {
 };
 
 
-// Get attendees
+// ================= ATTENDEES =================
 exports.getAttendees = async (req, res) => {
   try {
-    const event = await CCA.findById(req.params.id);
+    const eventId = req.params.id;
 
-    const attendees = await RSVP.find({ eventId: req.params.id });
+    const cca = await CCA.findById(eventId);
+    const event = await Event.findById(cca.eventId);
 
-    res.render("khin/attendees", {
+    const confirmed = await RSVPModel.find({
+      event: event._id,
+      status: "confirmed"
+    });
+
+    const waitlist = await RSVP.getWaitlist(event._id);
+
+    const userIds = [
+      ...confirmed.map(r => r.user),
+      ...waitlist.map(r => r.user)
+    ];
+
+    const users = await User.find({ userId: { $in: userIds } });
+
+    const userMap = {};
+    users.forEach(u => {
+      userMap[u.userId] = u;
+    });
+
+    res.render("khin/ccaAttendees", {
       event,
-      attendees
+      confirmed,
+      waitlist,
+      userMap,
+      capacity: cca.capacity
     });
 
   } catch (err) {
@@ -123,3 +291,26 @@ exports.getAttendees = async (req, res) => {
     res.send("Error loading attendees");
   }
 };
+
+// ================= VIEW REVIEWS =================
+exports.getReviewsByEvent = async (req, res) => {
+  try {
+    const cca = await CCA.findById(req.params.id).populate("eventId");
+
+    if (!cca) return res.send("Event not found");
+
+    const reviews = await Review.find({ eventId: cca._id })
+      .sort({ createdAt: -1 });
+
+    res.render("khin/adminCcaReviews", {
+      event: cca.eventId,
+      reviews,
+      user: req.session.user
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error loading reviews");
+  }
+};
+

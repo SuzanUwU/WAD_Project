@@ -1,5 +1,5 @@
 const SavedEvent = require('../models/SavedEvents');
-const Event = require('../models/all-events-model');
+const Event = require('../models/eventModel');
 
 // --- Helper to check if user is logged in ---
 const checkSession = (req, res) => {

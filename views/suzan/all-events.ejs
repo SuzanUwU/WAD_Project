@@ -40,6 +40,11 @@
     <% } %>
     </section>
 
+  <% function truncate(str, n) {
+    if (!str) return '';
+    const words = str.trim().split(/\s+/);
+    return words.length > n ? words.slice(0, n).join(' ') + '...' : str;
+  } %>
   <!-- LATEST EVENTS SECTION -->
   <section id="latest-events">
   <h1>Latest Events</h1>
@@ -79,7 +84,7 @@
       <!-- ROW 4: Descriptions -->
       <tr>
         <% latestEvents.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; word-wrap: break-word;"><%= event.description || 'No description available' %></td>
+          <td colspan="2" style="width: 220px; word-wrap: break-word;"><%= truncate(event.description, 20) || 'No description available' %></td>
         <% }) %>
       </tr>
 
@@ -181,7 +186,7 @@
             <td style="word-wrap: break-word; width: 450px; vertical-align: center;">
               <div><strong>Event Name:</strong> <%= event.title %></div>
               <div><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></div>
-              <div><strong>Description:</strong> <%= event.description || 'No description available' %></div>
+              <div><strong>Description:</strong> <%= truncate(event.description, 20) || 'No description available' %></div>
             </td>
 
             <!-- See More (link to detail page where they can view full info and register) -->

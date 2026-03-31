@@ -1,9 +1,12 @@
+// need to check the Events vs AllEvents renaming thing here when it comes to the model
+
+
 // controllers/eventController.js
 const fs = require('fs/promises');
 
 // Get Service model
-const Event = require('../models/all-events-model');
 const Subscribed = require('../models/SavedEvents');
+const Event = require('../models/eventModel');
 
 const renderAllEvents = async (req, res) => {
     try {
@@ -20,6 +23,8 @@ const renderAllEvents = async (req, res) => {
                 mySubscriptions = userSubDoc.events;
             }
         }
+        // do we use this one? help idk
+    // const events = await Event.retrieveAll().sort({ startDate: 1 });
 
         // 4. Send BOTH arrays to the EJS page
         res.render('all-events', { 

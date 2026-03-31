@@ -4,48 +4,58 @@ const router = express.Router();
 const ccaController = require("../controllers/ccaController");
 const ccaAdminController = require("../controllers/ccaAdminController");
 
+const { requireLogin, requireAdmin } = require("../middleware/auth");
+
 const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 
 // ================= USER ROUTES =================
-router.get("/cca", ccaController.getCCAEvents); // to display all events for each category
-    // cca-events
-    // hack-events
-    // ptjob-events
-    // career-events
 
-router.get("/my-events", ccaController.getMyEvents); 
-// change to my-cca-events
 
-router.get("/:id/register", ccaController.showRegisterForm); // "/:id/cca-register"
-// "/:id/hack-register, career-register, ptjob-register"
-router.post("/:id/register", ccaController.registerEvent);
+router.get("/notifications", requireLogin, ccaController.getNotifications);
 
-router.post("/:id/rsvp", ccaController.rsvpEvent); // delete for Khin
-router.post("/:id/cancel-rsvp", ccaController.cancelRsvp); // delete
+// Static FIRST
+router.get("/cca", ccaController.getCCAEvents);
+router.get("/my-cca-events", requireLogin, ccaController.getMyEvents);
+
+
+// ================= REVIEW ROUTES =================
+// MUST be before any /:id routes
+
+router.get("/reviews/:reviewId/edit", requireLogin, ccaController.showEditReviewForm);
+router.post("/reviews/:reviewId/edit", requireLogin, ccaController.updateReview);
+router.post("/reviews/:reviewId/delete", requireLogin, ccaController.deleteReview);
 
 
 // ================= ADMIN ROUTES =================
-router.get("/ccaAdmin", ccaAdminController.getAllEvents); 
+// MUST be BEFORE /:id
 
-router.get("/ccaAdmin/create", ccaAdminController.showCreateForm);
-router.post("/ccaAdmin/create", upload.single("image"), ccaAdminController.createEvent);
+router.get("/ccaAdmin", requireAdmin, ccaAdminController.getAllEvents);
 
-router.get("/ccaAdmin/:id/edit", ccaAdminController.showEditForm);
-router.post("/ccaAdmin/:id/edit", upload.single("image"), ccaAdminController.updateEvent);
+router.get("/ccaAdmin/create", requireAdmin, ccaAdminController.showCreateForm);
+router.post("/ccaAdmin/create", requireAdmin, upload.single("image"), ccaAdminController.createEvent);
 
-router.post("/ccaAdmin/delete/:id", ccaAdminController.deleteEvent);
+router.get("/ccaAdmin/:id/edit", requireAdmin, ccaAdminController.showEditForm);
+router.post("/ccaAdmin/:id/edit", requireAdmin, upload.single("image"), ccaAdminController.updateEvent);
 
-router.get("/ccaAdmin/:id/attendees", ccaAdminController.getAttendees);
+router.post("/ccaAdmin/delete/:id", requireAdmin, ccaAdminController.deleteEvent);
+
+router.get("/ccaAdmin/:id/attendees", requireAdmin, ccaAdminController.getAttendees);
+
+router.get("/ccaAdmin/:id/reviews", requireAdmin, ccaAdminController.getReviewsByEvent);
+
+// ================= USER ACTION ROUTES =================
+// These use /:id so must be AFTER review routes
+
+router.get("/:id/cca-register", ccaController.showRegisterForm);
+router.post("/:id/cca-register", requireLogin, ccaController.registerEvent);
+
+router.post("/:id/cca-review", requireLogin, ccaController.submitReview);
 
 
-// ================= EVENT DETAIL =================
+// ================= GENERIC LAST =================
 router.get("/:id", ccaController.getEventDetail);
-
-router.get("/:id/review", ccaController.showReviewForm); // cca-review
-router.post("/:id/review", ccaController.submitReview);
-
 
 module.exports = router;
