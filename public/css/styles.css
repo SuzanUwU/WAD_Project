@@ -1,0 +1,583 @@
+:root {
+  --text: #1a150a;
+  --background: #fcfaf8;
+  --primary: #102b72;
+  --secondary: #a9b6c7;
+  --accent: #54a8f8;
+  --green-btn: #19c480;
+  --login-btn: #bfce99;
+  --other-btn: #5aa6bf;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  color: var(--text);
+  background: var(--background);
+  line-height: 1.5;
+}
+
+/* Navbar styles (using the old design system) */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: var(--primary);
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  z-index: 1000;
+  padding: 0.75rem 1rem;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: white;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.nav-left,
+.nav-center,
+.nav-right {
+  display: flex;
+  align-items: center;
+}
+
+.nav-center {
+  gap: 1.2rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-right {
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  text-decoration: none;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* User section */
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Dropdowns */
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-trigger {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.dropdown-trigger:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0;
+  margin-top: 0.25rem;
+  z-index: 1100;
+}
+
+.user-dropdown .dropdown-menu {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.dropdown-container:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+  color: var(--primary);
+}
+
+/* Body padding so navbar doesn’t hide content */
+body {
+  padding-top: 70px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .nav-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .nav-center {
+    order: 3;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .nav-right {
+    order: 2;
+  }
+
+  .dropdown-menu {
+    position: static;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    background: #f0f0f0;
+    margin-top: 0;
+  }
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-login,
+.btn-save {
+  background: var(--login-btn);
+  color: #000;
+}
+
+.btn-login:hover,
+.btn-save:hover {
+  background: #a0b27a;
+}
+
+.btn-other {
+  background: var(--other-btn);
+  color: var(--text);
+}
+
+.btn-other:hover {
+  background: #73afc3;
+}
+
+/* Form layout */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(84, 168, 248, 0.2);
+}
+
+/* Cards for events / lists */
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+  margin-bottom: 8px;
+  color: var(--primary);
+}
+
+/* welcome.ejs custom styles */
+.welcome-page {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+.welcome-subtitle {
+  margin-bottom: 0;
+  font-size: 18px;
+  color: var(--primary);
+}
+
+.welcome-title {
+  margin: 8px 0 16px;
+  font-size: 32px;
+  color: var(--text);
+}
+
+.welcome-text {
+  margin-bottom: 24px;
+  color: #555;
+}
+
+.welcome-user-info {
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.welcome-actions {
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Login page layout */
+.login-page {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Reusable alerts (error / success) */
+.alert {
+  padding: 12px;
+  border-radius: 6px;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.error {
+  color: #d32f2f;
+  background: #ffebee;
+  border: 1px solid #ef5350;
+}
+
+.success {
+  color: #2e7d32;
+  background: #e8f5e8;
+  border: 1px solid #4caf50;
+}
+
+/* Helpful info box */
+.info {
+  background: #e3f2fd;
+  padding: 12px;
+  border-radius: 6px;
+  margin: 20px 0;
+  font-size: 14px;
+  color: #0d47a1;
+}
+
+/* Helper text under form */
+.login-help {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.login-help a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.login-help a:hover {
+  text-decoration: underline;
+}
+
+/* Ensure buttons used in text links fit nicely */
+.login-help .btn {
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+/* Reusable centered page layout */
+.main {
+  padding: 32px 16px;
+}
+
+.login-page,
+.signup-page {
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Saved Events banner */
+.saved-events-banner {
+  background: #f0f8ff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #cce5ff;
+}
+
+.saved-events-title {
+  color: #6c93e7;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+}
+
+.saved-events-grid {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.saved-event-chip {
+  background: white;
+  padding: 10px 20px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+/* Student notice */
+.student-notice {
+  background: #fff3cd;
+  padding: 15px;
+  border-radius: 6px;
+  margin: 20px 0;
+  font-size: 14px;
+}
+
+/* Table styling (same font size as navbar) */
+.event-table,
+.event-table th,
+.event-table td {
+  border-collapse: collapse;
+  border: 1px solid #ccc;
+  padding: 10px 14px; /* space between border and text */
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.event-table th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+/* Label vs value columns (Date / Time / Location) */
+.event-table .event-label {
+  width: 100px;
+  white-space: nowrap;
+}
+
+.event-table .event-value {
+  width: 140px;
+}
+
+/* Actions cells (Register / Save buttons) */
+.event-table .event-actions,
+.event-actions-links {
+  width: 120px;
+  text-align: center;
+}
+
+/* Images in table cells */
+.event-table-image {
+  width: 90%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+  margin: 0 auto;
+}
+
+.event-table-image-placeholder {
+  width: 90%;
+  height: 180px;
+  margin: 0 auto;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  background: #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #666;
+}
+
+/* Applies to both Latest and All Events tables */
+.event-table {
+  width: 100%;
+  table-layout: fixed;
+  margin: 0 auto;
+}
+
+/* Collapsible: table-wrapper (max-width) */
+.table-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Buttons in tables use shared styles */
+.event-table .btn {
+  display: block;
+  width: 100%;
+  padding: 6px 0;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.event-cell .event-number {
+  width: 50px;
+}
+
+/* Delete / danger button */
+.btn-danger {
+  background: #ad261d;      /* clear red for delete */
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #b42626;
+}
+
+/* Saved Events page layout */
+.saved-events-page {
+  max-width: 1000px;
+  margin: 60px auto;
+  padding: 16px;
+}
+
+/* Saved Events grid */
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* Event card */
+.event-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
+}
+
+/* Event image */
+.event-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background-color: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+}
+
+/* Event info */
+.event-info {
+  padding: 15px;
+}
+
+/* Event title and details */
+.event-title {
+  margin: 0 0 10px 0;
+  color: var(--primary);
+  font-size: 1.2em;
+}
+
+.event-detail {
+  margin: 5px 0;
+  font-size: 0.9em;
+  color: #555;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  color: #666;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.event-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;                /* space between buttons */
+  margin-top: 16px;
+}

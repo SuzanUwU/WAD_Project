@@ -1,304 +1,259 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Events</title>
-  <style>
-    /* Bare‑bones fixed nav */
-    .navbar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      background: #f8f8f8;
-      padding: 5px 10px;
-      border-bottom: 1px solid #ccc;
-      z-index: 1000;
-    }
-    body {
-      margin: 0;
-      padding-top: 40px; /* room for the navbar */
-    }
-  </style>
+  <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <%- include('../navbar') %>
 
-  <section id="saved-events">
-  <!-- Saved Events -->
-  <% if (locals.user && locals.mySavedEvents && mySavedEvents.length > 0) { %>
-        <div style="background-color: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #cce5ff;">
-            <h2 style="color: rgb(108, 147, 231); margin-top: 0;"> <a href="/all-events/saved-events">⭐ My Saved Events</a></h2>
-            
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <% mySavedEvents.forEach(function(savedItem) { %>
-                    <div style="background: white; padding: 10px 20px; border-radius: 6px; border: 1px solid #ddd; font-weight: bold;">
-                        ✅ <%= savedItem.title %>
-                    </div>
-                <% }); %>
-            </div>
-        </div>
-    <% } %>
-    </section>
-
-  <% function truncate(str, n) {
-    if (!str) return '';
-    const words = str.trim().split(/\s+/);
-    return words.length > n ? words.slice(0, n).join(' ') + '...' : str;
-  } %>
-  <!-- LATEST EVENTS SECTION -->
-  <section id="latest-events">
-  <h1>Latest Events</h1>
-  <% const latestEvents = events.slice(0, 6); %>
-  <% if (latestEvents.length > 0) { %>
-    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; margin-bottom: 40px; table-layout: fixed;">
-      <!-- ROW 1: Images -->
-      <tr>
-        <% latestEvents.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; vertical-align: top; height: 300px;">
-            <% if (event.image && event.image.data) { %>
-              <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>" 
-                   alt="<%= event.title %>" width=100% height="300" style="display: block;">
-            <% } else { %>
-              <div style="width: 100%; height: 300px; background: #eee; text-align: center; line-height: 140px;">
-                No Image
+  <main class="main all-events-page">
+    <!-- SAVED EVENTS (My Saved Events) -->
+    <section id="saved-events">
+      <% if (locals.user && locals.mySavedEvents && mySavedEvents.length > 0) { %>
+        <div class="saved-events-banner">
+          <h2 class="saved-events-title">⭐ My Saved Events</h2>
+          <div class="saved-events-grid">
+            <% mySavedEvents.forEach(function(savedItem) { %>
+              <div class="saved-event-chip">
+                ✅ <%= savedItem.title %>
               </div>
-            <% } %>
-          </td>
-        <% }) %>
-      </tr>
-      
-      <!-- ROW 2: Titles -->
-      <tr>
-        <% latestEvents.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; word-wrap: break-word;"><strong><%= event.title %></strong></td>
-        <% }) %>
-      </tr>
-      
-      <!-- ROW 3: Organizers -->
-      <tr>
-        <% latestEvents.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; word-wrap: break-word;"><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></td>
-        <% }) %>
-      </tr>
-      
-      <!-- ROW 4: Descriptions -->
-      <tr>
-        <% latestEvents.forEach(function(event) { %>
-          <td colspan="2" style="width: 220px; word-wrap: break-word;"><%= truncate(event.description, 20) || 'No description available' %></td>
-        <% }) %>
-      </tr>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+    </section>
 
-      
-      <!-- ROW 5: Date -->
-      <tr>
-        <% latestEvents.forEach(function(event) { %>
-          <td style="width: 90px; word-wrap: break-word;">Date:</td>
-          <td style="width: 130px; word-wrap: break-word;"><%= event.date ? new Date(event.date).toLocaleDateString('en-GB') : 'TBD' %></td>
-        <% }) %>
-      </tr>
-      
-      <!-- ROW 6: Time -->
-      <tr>
-        <% latestEvents.forEach(function(event) { %>
-          <td style="width: 90px; word-wrap: break-word;">Time:</td>
-          <td style="width: 130px; word-wrap: break-word;"><%= event.date ? new Date(event.date).toLocaleTimeString('en-SG', {hour: '2-digit', minute: '2-digit'}) + ' - 18:00' : 'TBD' %></td>
-        <% }) %>
-      </tr>
-      
-      <!-- ROW 7: Location -->
-      <tr>
-        <% latestEvents.forEach(function(event) { %>
-          <td style="width: 60px; word-wrap: break-word;">Location:</td>
-          <td style="width: 160px; word-wrap: break-word;"><%= event.location || 'TBD' %></td>
-        <% }) %>
-      </tr>
-      
-      <!-- ROW 8: Buttons -->
-      <tr>
-        <% latestEvents.forEach(function(event) { %>
-          <td style="width: 150px; text-align: center;">
-            <button style="background-color: rgb(159, 222, 159); width: 80%; height: 25px" onclick="register('<%= event._id %>')">Register</button>
-          </td>
-          
-          <td style="width: 150px; text-align: center;">
-            <% 
-              let isSaved = false;
-              if (locals.mySavedEvents && mySavedEvents.length > 0) {
-                isSaved = mySavedEvents.some(savedItem => savedItem.eventId.toString() === event._id.toString());
-              }
-            %>
-            
-            <% if (isSaved) { %>
-              <button style="background-color: rgb(144, 238, 144); width: 80%; height: 25px; border: 1px solid #ccc;" disabled>
-                Saved ✓
-              </button>
-            <% } else { %>
-              <button style="background-color: rgb(226, 226, 153); width: 80%; height: 25px; border: 1px solid #ccc;" 
-                      onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">
-                Save
-              </button>
-            <% } %>
-          </td>
-        <% }) %>
-      </tr>
-    </table>
-  <% } %>
-  </section>
+    <% function truncate(str, n) {
+      if (!str) return '';
+      const words = str.trim().split(/\s+/);
+      return words.length > n ? words.slice(0, n).join(' ') + '...' : str;
+    } %>
 
-  <!-- ALL EVENTS SECTION (row-based table) -->
-   <section id="all-events">
-  <h1>All Events</h1>
-  <% const allEvents = events.slice(0); %>
-
-  <% if (allEvents.length > 0) { %> 
-    <div style="width: 60%; margin: 0 auto;">
-    <table border="1" cellpadding="6" cellspacing="0" 
-          style="border-collapse: collapse; width: 100%;">
-      <thead>
-        <tr>
-          <th>Event No.</th>
-          <th>Event Poster</th>
-          <th>Event Information</th>
-          <th>See More</th>
-          <th>Save</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% allEvents.forEach(function(event, index) { %>
+    <!-- LATEST EVENTS SECTION (table) -->
+    <section id="latest-events">
+      <h1>Latest Events</h1>
+      <% const latestEvents = events.slice(0, 6); %>
+      <% if (latestEvents.length > 0) { %>
+        <table class="event-table latest-events-table" cellspacing="0">
+          <!-- ROW 1: Images -->
           <tr>
-            <!-- Event No. -->
-            <td style="width: 40px; text-align: center;"><%= index + 1 %></td>
-
-            <!-- Event Poster -->
-            <td style="width: 140px;">
-              <% if (event.image && event.image.data) { %>
-                <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
+            <% latestEvents.forEach(function(event) { %>
+              <td colspan="2" class="event-cell event-image-cell">
+                <% if (event.image && event.image.data) { %>
+                  <img
+                    src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
                     alt="<%= event.title %>"
-                    style="width: 100%; height: 80%; display: block;">
-              <% } else { %>
-                <div style="width: 100%; height: 160px; background: #eee; text-align: center; line-height: 160px;">
-                  No Image
-                </div>
-              <% } %>
-            </td>
-
-            <!-- Event Info (multi‑line field group) -->
-            <td style="word-wrap: break-word; width: 450px; vertical-align: center;">
-              <div><strong>Event Name:</strong> <%= event.title %></div>
-              <div><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></div>
-              <div><strong>Description:</strong> <%= truncate(event.description, 20) || 'No description available' %></div>
-            </td>
-
-            <!-- See More (link to detail page where they can view full info and register) -->
-            <td style="text-align: center; width: 100px;">
-              <a href="/events/<%= event._id %>" 
-                style="display: inline-block; padding: 6px 12px; background-color: #285789; color: #fff; text-decoration: none; border-radius: 4px;">
-                See More
-              </a>
-            </td>
-
-            <!-- Save button -->
-            <td style="text-align: center; width: 100px;">
-              <% 
-                let isSavedAll = false;
-                if (locals.mySavedEvents && mySavedEvents.length > 0) {
-                  isSavedAll = mySavedEvents.some(savedItem => savedItem.eventId.toString() === event._id.toString());
-                }
-              %>
-
-              <% if (isSavedAll) { %>
-                <button style="background-color: rgb(144, 238, 144); padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc;" disabled>
-                  Saved ✓
-                </button>
-              <% } else { %>
-                <button style="background-color: rgb(229, 229, 137); padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc;"
-                        onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">
-                  Save
-                </button>
-              <% } %>
-            </td>
+                    class="event-table-image"
+                  >
+                <% } else { %>
+                  <div class="event-table-image-placeholder">No Image</div>
+                <% } %>
+              </td>
+            <% }) %>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
-  <% } %>
-  </section>
-  <br>
 
-  <% if (user && (user.role === 'admin' || user.role === 'superadmin')) { %>
-    <section id="edit-event">
-      <h3>Creationg Edit Events</h3>
-      <a href="/events/create">Create New Event</a><br><br>
-      <a href="/events/editevent">Edit Event Information</a>
+          <!-- ROW 2: Titles -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td colspan="2" class="event-cell"><strong><%= event.title %></strong></td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 3: Organizers -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td colspan="2" class="event-cell"><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 4: Descriptions -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td colspan="2" class="event-cell"><%= truncate(event.description, 20) || 'No description available' %></td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 5: Date -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td class="event-cell event-label">Date:</td>
+              <td class="event-cell event-value">
+                <%= event.date ? new Date(event.date).toLocaleDateString('en-GB') : 'TBD' %>
+              </td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 6: Time -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td class="event-cell event-label">Time:</td>
+              <td class="event-cell event-value">
+                <%= event.date ? new Date(event.date).toLocaleTimeString('en-SG', {hour: '2-digit', minute: '2-digit'}) + ' - 18:00' : 'TBD' %>
+              </td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 7: Location -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td class="event-cell event-label">Location:</td>
+              <td class="event-cell event-value"><%= event.location || 'TBD' %></td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 8: Buttons -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td class="event-cell">
+                <button type="button" class="btn btn-other" onclick="register('<%= event._id %>')">Register</button>
+              </td>
+              <td class="event-cell">
+                <% 
+                  let isSaved = false;
+                  if (locals.mySavedEvents && mySavedEvents.length > 0) {
+                    isSaved = mySavedEvents.some(savedItem => savedItem.eventId.toString() === event._id.toString());
+                  }
+                %>
+                <% if (isSaved) { %>
+                  <button type="button" class="btn btn-login" disabled>Saved ✓</button>
+                <% } else { %>
+                  <button type="button" class="btn btn-login" onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">Save</button>
+                <% } %>
+              </td>
+            <% }) %>
+          </tr>
+        </table>
+      <% } %>
     </section>
-    <br><br>
 
-    <section id="edit-org">
-      <h3>Editing the Organizer Stuff</h3>
-      <a href="/events/addorg">Add a New Organizer</a><br><br>
-      <a href="/events/removeorg">Remove Organizer</a><br><br>
-      <a href="/events/updateorg">Update Organizer Information</a>
+    <!-- ALL EVENTS SECTION (row-based table) -->
+    <section id="all-events">
+      <h1>All Events</h1>
+      <% const allEvents = events.slice(0); %>
+      <% if (allEvents.length > 0) { %>
+        <div class="table-wrapper">
+          <table class="event-table" cellspacing="0">
+            <thead>
+              <tr>
+                <th class="event-header">Event No.</th>
+                <th class="event-header">Event Poster</th>
+                <th class="event-header">Event Information</th>
+                <th class="event-header">See More</th>
+                <th class="event-header">Save</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% allEvents.forEach(function(event, index) { %>
+                <tr>
+                  <!-- Event No. -->
+                  <td class="event-cell event-number"><%= index + 1 %></td>
+
+                  <!-- Event Poster -->
+                  <td class="event-cell event-poster-cell">
+                    <% if (event.image && event.image.data) { %>
+                      <img
+                        src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
+                        alt="<%= event.title %>"
+                        class="event-table-image"
+                      >
+                    <% } else { %>
+                      <div class="event-table-image-placeholder">No Image</div>
+                    <% } %>
+                  </td>
+
+                  <!-- Event Info -->
+                  <td class="event-cell event-info">
+                    <div><strong>Event Name:</strong> <%= event.title %></div>
+                    <div><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></div>
+                    <div><strong>Description:</strong> <%= truncate(event.description, 20) || 'No description available' %></div>
+                  </td>
+
+                  <!-- See More -->
+                  <td class="event-cell">
+                    <a href="/events/<%= event._id %>" class="btn btn-other">See More</a>
+                  </td>
+
+                  <!-- Save -->
+                  <td class="event-cell">
+                    <% 
+                      let isSavedAll = false;
+                      if (locals.mySavedEvents && mySavedEvents.length > 0) {
+                        isSavedAll = mySavedEvents.some(savedItem => savedItem.eventId.toString() === event._id.toString());
+                      }
+                    %>
+                    <% if (isSavedAll) { %>
+                      <button type="button" class="btn btn-login" disabled>Saved ✓</button>
+                    <% } else { %>
+                      <button type="button" class="btn btn-login" onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">Save</button>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
     </section>
-  <% } else if (user && user.role === 'student') { %>
-    <div class="student-notice" style="background: #fff3cd; padding: 15px; border-radius: 6px; margin: 20px 0;">
-      <strong>👋 Student View</strong><br>
-      Contact admin for event/organizer management access.
-    </div>
-  <% } %>
 
+    <!-- EDIT EVENTS / ORGANIZERS (for admins only) -->
+    <% if (user && (user.role === 'admin' || user.role === 'superadmin')) { %>
+      <section id="edit-event">
+        <h3>Creating / Edit Events</h3>
+        <a href="/events/create" class="btn btn-other">Create New Event</a><br><br>
+        <a href="/events/editevent" class="btn btn-other">Edit Event Information</a>
+      </section>
+
+      <section id="edit-org">
+        <h3>Editing the Organizer Stuff</h3>
+        <a href="/events/addorg" class="btn btn-other">Add a New Organizer</a><br><br>
+        <a href="/events/removeorg" class="btn btn-other">Remove Organizer</a><br><br>
+        <a href="/events/updateorg" class="btn btn-other">Update Organizer Information</a>
+      </section>
+    <% } else if (user && user.role === 'student') { %>
+      <div class="student-notice">
+        <strong>👋 Student View</strong><br>
+        Contact admin for event/organizer management access.
+      </div>
+    <% } %>
+  </main>
 
   <script>
-    // Script to Save an Event to the User's List
     async function saveEvent(eventId, eventTitle, button) {
-        try {
-            // 1. Give the user immediate visual feedback that it's loading
-            const originalText = button.textContent;
-            button.textContent = 'Saving...';
-            button.disabled = true;
+      try {
+        const originalText = button.textContent;
+        button.textContent = 'Saving...';
+        button.disabled = true;
 
-            // 2. Send the POST request to your backend route
-            const response = await fetch('/all-events/save-event', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json' 
-                },
-                // We send the eventId and the title in the body
-                body: JSON.stringify({ 
-                    eventId: eventId,
-                    eventTitle: eventTitle 
-                })
-            });
+        const response = await fetch('/all-events/save-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventId: eventId, eventTitle: eventTitle })
+        });
 
-            // 3. Handle the response
-            if (response.ok) {
-                // Success! Change the button color to green
-                button.style.backgroundColor = 'rgb(144, 238, 144)';
-                button.textContent = 'Saved ✓';
-                
-                // Optional: Reload the page after 1 second so the top "My Saved Events" list updates!
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            } else {
-                // If the server threw an error (like "already saved")
-                const result = await response.text(); 
-                alert('Could not save: ' + result);
-                button.textContent = originalText;
-                button.disabled = false;
-            }
-        } catch (err) {
-            console.error("Save Error:", err);
-            alert('Failed to connect to the server.');
-            button.textContent = 'Save';
-            button.disabled = false;
+        if (response.ok) {
+          button.style.backgroundColor = '#a0b27a';
+          button.textContent = 'Saved ✓';
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          const result = await response.text();
+          alert('Could not save: ' + result);
+          button.textContent = originalText;
+          button.disabled = false;
         }
+      } catch (err) {
+        console.error("Save Error:", err);
+        alert('Failed to connect to the server.');
+        button.textContent = 'Save';
+        button.disabled = false;
+      }
     }
 
-    // Placeholder for Register button
-    function register(eventId) { 
-        alert('Registration feature coming soon for Event: ' + eventId); 
+    function register(eventId) {
+      alert('Registration feature coming soon for Event: ' + eventId);
     }
   </script>
-
 </body>
 </html>
