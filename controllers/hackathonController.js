@@ -276,9 +276,11 @@ exports.registerAttendee = async (req, res) => {
   const hackathonId = req.params.id;
   const { userId, username, email, school, major, teamSize } = req.body;
 
-  const rawEmails      = req.body['teammateEmails[]'] || [];
-  const teammateEmails = (Array.isArray(rawEmails) ? rawEmails : [rawEmails])
-                          .filter(e => e && e.trim() !== '');
+// Normalise to array — Express gives a string for one value, array for multiple
+  const toArray = v => !v ? [] : Array.isArray(v) ? v : [v];
+  const teammateEmails = toArray(req.body.teammateEmail).filter(e => e.trim() !== '');
+  const teammateIds    = toArray(req.body.teammateUserId).filter(u => u.trim() !== '');
+  
   const parsedTeamSize = parseInt(teamSize) || 1;
   const errors         = [];
 
@@ -315,11 +317,13 @@ exports.registerAttendee = async (req, res) => {
   if (parsedTeamSize < hackathon.teamSizeMin || parsedTeamSize > hackathon.teamSizeMax)
     errors.push(`Team size must be between ${hackathon.teamSizeMin} and ${hackathon.teamSizeMax}.`);
 
-  // Gate 6: Teammate lookup
+  // Gate 6: Teammate lookup, verify teammates server-side even though client already checked.
   const resolvedTeammates = [];
   if (errors.length === 0) {
-    for (const tEmail of teammateEmails) {
-      const norm = tEmail.trim().toLowerCase();
+    for (let t = 0; t < teammateEmails.length; t++) {
+      const norm = teammateEmails[t].trim().toLowerCase();
+      const sentUid = (teammateIds[t] || '').trim();
+
       if (norm === email.trim().toLowerCase()) {
         errors.push(`You cannot add yourself (${norm}) as a teammate.`);
         continue;
@@ -327,9 +331,14 @@ exports.registerAttendee = async (req, res) => {
       const userDoc = await User.findOne({ email: norm, role: 'student' });
       if (!userDoc) {
         errors.push(`No student account found for: ${norm}`);
-      } else {
-        resolvedTeammates.push({ userId: userDoc.userId, email: norm, username: userDoc.username || '' });
+        continue
+
       }
+      if (sentUid && userDoc.userId !== sentUid) {
+        errors.push(`User ID mismatch for ${norm}. Please re-search this teammate.`);
+        continue;
+      }
+        resolvedTeammates.push({ userId: userDoc.userId, email: norm, username: userDoc.username || '' });
     }
   }
 
@@ -384,5 +393,61 @@ exports.showAttendees = async (req, res) => {
   } catch (err) {
     console.error('Error loading attendees:', err.message);
     res.status(500).send('Server error: could not load attendees.');
+  }
+};
+
+// GET /api/lookup-teammate?email=xxx&hackathonId=yyy
+exports.lookupTeammate = async (req, res) => {
+  try {
+    const { email, hackathonId } = req.query;
+
+    if (!email || !hackathonId) {
+      return res.json({ valid: false, message: 'Email and hackathon ID are required.' });
+    }
+
+    const norm = email.trim().toLowerCase();
+
+    const userDoc = await User.findOne({ email: norm, role: 'student' });
+    if (!userDoc) {
+      return res.json({ valid: false, message: `No student account found for ${norm}.` });
+    }
+
+    const currentUserId = req.session?.user?.userId || '';
+    if (userDoc.userId === currentUserId) {
+      return res.json({ valid: false, message: 'You cannot add yourself as a teammate.' });
+    }
+
+    const hackathon = await Hackathon.findById(hackathonId);
+    if (!hackathon) {
+      return res.json({ valid: false, message: 'Hackathon not found.' });
+    }
+
+    const issues = [];
+
+    const schoolOk = hackathon.eligibleSchools.includes('open') ||
+                     hackathon.eligibleSchools.includes(userDoc.school);
+    if (!schoolOk) issues.push(`school (${userDoc.school.toUpperCase()}) is not eligible`);
+
+    const majorOk = hackathon.eligibleMajors.includes('open') ||
+                    hackathon.eligibleMajors.includes(userDoc.major);
+    if (!majorOk) issues.push(`major (${userDoc.major}) is not eligible`);
+
+    if (issues.length > 0) {
+      return res.json({
+        valid:   false,
+        message: `${norm} does not meet eligibility: ${issues.join(', ')}.`,
+      });
+    }
+
+    return res.json({
+      valid:    true,
+      userId:   userDoc.userId,
+      username: userDoc.username,
+      message:  `✓ ${userDoc.username} (${norm}) is eligible.`,
+    });
+
+  } catch (err) {
+    console.error('Teammate lookup error:', err.message);
+    return res.json({ valid: false, message: 'Server error during lookup.' });
   }
 };

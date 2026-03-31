@@ -26,11 +26,9 @@
       <tr>
         <th>#</th>
         <th>Team Leader</th>
-        <th>Email</th>
-        <th>School</th>
-        <th>Major</th>
         <th>Team Size</th>
-        <th>Team Members</th>
+        <th>Member User IDs</th>
+        <th>Member Emails</th>
         <th>Registered At</th>
       </tr>
     </thead>
@@ -39,21 +37,28 @@
         <tr>
           <td><%= i + 1 %></td>
           <td><%= r.username %></td>
-          <td><%= r.email %></td>
-          <td><%= schoolMap[r.school] || r.school %></td>
-          <td><%= majorMap[r.major]   || r.major %></td>
           <td><%= r.teamSize %></td>
+
+          <!-- All User IDs — leader first, then teammates -->
           <td>
-            <% if (r.teamMembers && r.teamMembers.length > 0) { %>
-              <ul style="margin:0; padding-left:16px;">
-                <% r.teamMembers.forEach(m => { %>
-                  <li><%= m.username || m.email %> &lt;<%= m.email %>&gt;</li>
-                <% }) %>
-              </ul>
-            <% } else { %>
-              <em>Solo</em>
-            <% } %>
+            <ul style="margin:0; padding-left:16px;">
+              <li><%= r.userId %> (leader)</li>
+              <% (r.teamMembers || []).forEach(m => { %>
+                <li><%= m.userId %></li>
+              <% }) %>
+            </ul>
           </td>
+
+          <!-- All Emails — leader first, then teammates -->
+          <td>
+            <ul style="margin:0; padding-left:16px;">
+              <li><%= r.email %> (leader)</li>
+              <% (r.teamMembers || []).forEach(m => { %>
+                <li><%= m.email %></li>
+              <% }) %>
+            </ul>
+          </td>
+
           <td><%= r.registeredAt.toLocaleDateString('en-GB') %></td>
         </tr>
       <% }) %>

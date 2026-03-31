@@ -55,8 +55,8 @@ server.get('/api/majors', require('./controllers/hackathonController').getMajors
 
 // protected routes
 server.use('/all-events', alleventRoutes);//landing page
-server.use('/cca-events', requireLogin, ccaRoutes);
 server.use('/hack-events', requireLogin, hackathonRoutes);
+server.use('/cca-events', requireLogin, ccaRoutes);
 server.use('/dashboard',requireLogin,profileRoutes);
 server.use('/career-events', requireLogin, careerRoutes);
 
