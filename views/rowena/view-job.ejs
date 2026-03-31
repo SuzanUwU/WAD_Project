@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All Jobs</title>
+</head>
+<body>
+
+<% if (user && user.role === 'admin') { %>
+<p align="right">
+  <a href="/create">
+    <button type="button">Create New Job</button>
+  </a>
+</p>
+<% } %>
+
+<% if(user && user.role==='user'){
+  %>
+  <a href="/views/viewapplications.ejs"><button type="button">View Applied Job</button></a>
+
+<%} %>
+
+  <% if (joblist.length === 0) { %>
+
+    <center>
+      <h3>There are no jobs available yet</h3>
+    </center>
+
+  <% } else { %>
+
+    <br><br>
+    <h2>Filter</h2>
+
+    <table width="100%">
+      <tr>
+        <td width="20%" valign="top">
+          <form action="/search-job" method="POST">
+            Search by Words
+            <input type="text" name="keyword" placeholder="Search"><br><br>
+
+            Find Salary amount
+            <input type="number" name="money" placeholder="Search Salary"><br><br>
+
+            <button type="submit">Search</button>
+          </form>
+        </td>
+
+        <td width="80%" valign="top" align="left">
+          <h2>View All Jobs</h2>
+
+          <table border="1">
+            <tr>
+              <th>Logo</th>
+              <th>Company</th>
+              <th>JobTitle</th>
+              <th>Job Description</th>
+              <th>Salary</th>
+              <th>Start Date</th>
+              <th>EndDate</th>
+              <th>Status</th>
+              <th>Modification</th>
+            </tr>
+
+            <% joblist.forEach(job => { %>
+              <tr>
+                <td width="100" height="100">
+                  <img src="<%= job.companyicon %>" style="width:100%; height:100%; object-fit:cover;">
+</td> <!--displays image-->
+                <td><%= job.company %></td>
+                <td><%= job.jobtitle %></td>
+                <td><%= job.jobdescription %></td>
+                <td>$<%= job.salary %></td>
+                <td><%= job.startDate ? new Date(job.startDate).toLocaleDateString() : '' %></td>
+                <td><%= job.EndDate ? new Date(job.EndDate).toLocaleDateString() : '' %></td>
+               <td><%= new Date() > new Date(job.postingEndDate) ? 'Expired' : 'Active' %> </td>
+             
+               
+                <td>
+                  <a href="/update?_id=<%= job._id %>">Edit</a> |
+                  <a href="/delete?_id=<%= job._id %>">Delete</a>
+                </td>
+              </tr>
+            <% }); %>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+  <% } %>
+
+</body>
+</html>
