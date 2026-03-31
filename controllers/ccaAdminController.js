@@ -1,59 +1,12 @@
 const CCA = require("../models/CCA");
 const Event = require("../models/eventModel");
-const Registration = require("../models/CCARegistration");
-const User = require("../models/user-model");
 const Review = require("../models/CCAReview");
+const User = require("../models/user-model");
 
-// SendGrid Email function
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const RSVP = require("../models/rsvpModel");
+const mongoose = require("mongoose");
 
-async function sendEmail(to, subject, text) {
-  try {
-    console.log("Sending email to:", to);
-
-    await sgMail.send({
-      to,
-      from: {
-        email: process.env.EMAIL_FROM,
-        name: "SMU CCA Event System"
-      },
-
-      // email subject
-      subject: `SMU Event Update: ${subject}`,
-
-      text: text,
-
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          
-          <h2 style="color:#4CAF50;">SMU CCA Event Notification</h2>
-
-          <p>Hello,</p>
-
-          <p>${text}</p>
-
-          <hr style="margin:20px 0;">
-
-          <p style="font-size:14px; color:#555;">
-            This is an official notification from the SMU Campus Event System.
-          </p>
-
-          <p style="font-size:14px;">
-            Regards,<br>
-            <b>SMU CCA Event Team</b>
-          </p>
-
-        </div>
-      `
-    });
-
-    console.log("Email sent successfully!");
-
-  } catch (error) {
-    console.error("SendGrid error:", error.response?.body || error);
-  }
-}
+const RSVPModel = mongoose.model("RSVP");
 
 // ================= VIEW ALL =================
 exports.getAllEvents = async (req, res) => {
@@ -64,13 +17,11 @@ exports.getAllEvents = async (req, res) => {
     const sort = req.query.sort || "default";
 
     let query = {};
-
     if (club !== "All") {
       query.clubType = club;
     }
 
     const ccas = await CCA.find(query).populate("eventId");
-
     const today = new Date();
 
     const filtered = ccas
@@ -78,16 +29,12 @@ exports.getAllEvents = async (req, res) => {
         const event = cca.eventId;
         if (!event) return null;
 
-        // SEARCH
         const title = event.title || "";
         if (!title.toLowerCase().includes(search.toLowerCase())) return null;
 
-        // DATE
         let eventDate = event.startDate ? new Date(event.startDate) : null;
 
-        // STATUS
         let eventStatus = "N/A";
-
         if (eventDate && !isNaN(eventDate)) {
           if (eventDate > today) eventStatus = "Upcoming";
           else if (eventDate.toDateString() === today.toDateString()) eventStatus = "Ongoing";
@@ -103,7 +50,6 @@ exports.getAllEvents = async (req, res) => {
       })
       .filter(e => e !== null);
 
-    // SORT
     const sortedEvents = filtered.sort((a, b) => {
       const dateA = a.eventDate || new Date(0);
       const dateB = b.eventDate || new Date(0);
@@ -141,6 +87,8 @@ exports.showCreateForm = (req, res) => {
 // ================= CREATE EVENT =================
 exports.createEvent = async (req, res) => {
   try {
+
+    // Event WITHOUT image
     const newEvent = await Event.create({
       title: req.body.title,
       organizer: req.body.organizer,
@@ -148,15 +96,10 @@ exports.createEvent = async (req, res) => {
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       location: req.body.location,
-      description: req.body.description,
-      image: req.file
-        ? {
-            data: req.file.buffer,
-            contentType: req.file.mimetype
-          }
-        : undefined
+      description: req.body.description
     });
 
+    // CCA WITH image
     await CCA.create({
       eventId: newEvent._id,
       title: req.body.title,
@@ -166,12 +109,14 @@ exports.createEvent = async (req, res) => {
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       location: req.body.location,
+
       image: req.file
         ? {
             data: req.file.buffer,
             contentType: req.file.mimetype
           }
         : undefined,
+
       clubType: req.body.clubType,
       capacity: req.body.capacity || 0
     });
@@ -208,8 +153,32 @@ exports.updateEvent = async (req, res) => {
   try {
     const cca = await CCA.findById(req.params.id).populate("eventId");
 
+    if (!cca) return res.send("CCA event not found");
+
     const oldEvent = cca.eventId;
 
+    // ================= DETECT IMPORTANT CHANGES =================
+    let changes = [];
+
+    if (oldEvent.location !== req.body.location) {
+      changes.push("location");
+    }
+
+    if (
+      new Date(oldEvent.startDate).toISOString() !==
+      new Date(req.body.startDate).toISOString()
+    ) {
+      changes.push("start date");
+    }
+
+    if (
+      new Date(oldEvent.endDate).toISOString() !==
+      new Date(req.body.endDate).toISOString()
+    ) {
+      changes.push("end date");
+    }
+
+    // ================= PREPARE UPDATE =================
     const updateEventData = {
       title: req.body.title,
       organizer: req.body.organizer,
@@ -219,73 +188,42 @@ exports.updateEvent = async (req, res) => {
       description: req.body.description
     };
 
-    if (req.file) {
-      updateEventData.image = {
-        data: req.file.buffer,
-        contentType: req.file.mimetype
-      };
-    }
-
-    // ================= CHECK CHANGES =================
-    const isDateChanged =
-      new Date(req.body.startDate).toISOString() !== new Date(oldEvent.startDate).toISOString() ||
-      new Date(req.body.endDate).toISOString() !== new Date(oldEvent.endDate).toISOString();
-
-    const isLocationChanged =
-      req.body.location !== oldEvent.location;
-
-    const isCapacityChanged =
-      req.body.capacity != cca.capacity;
-    // =================================================
-
-    // update Event collection
+    // ================= UPDATE EVENT SCHEMA =================
     await Event.updateById(cca.eventId._id, updateEventData);
 
-    // update CCA collection
+    // ================= UPDATE CCA SCHEMA =================
     await CCA.findByIdAndUpdate(req.params.id, {
       ...updateEventData,
       clubType: req.body.clubType,
-      capacity: req.body.capacity || 0
+      capacity: req.body.capacity || 0,
+
+      ...(req.file && {
+        image: {
+          data: req.file.buffer,
+          contentType: req.file.mimetype
+        }
+      })
     });
 
-    // ================= SEND EMAIL (ONLY IF IMPORTANT) =================
-    if (isDateChanged || isLocationChanged || isCapacityChanged) {
-      console.log("IMPORTANT CHANGE DETECTED");
-      const registrations = await Registration.find({
-        eventId: cca._id
-      });
+    // ================= 🔔 SMART NOTIFICATIONS =================
+    if (changes.length > 0) {
+      const RSVPModel = require("mongoose").model("RSVP");
+      const CCANotification = require("../models/CCANotification");
 
-      console.log("Registrations found:", registrations.length);
+      const rsvps = await RSVPModel.find({ event: cca.eventId._id });
 
-      for (let r of registrations) {
-        const user = await User.findOne({ userId: r.userId });
+      const message = `📢 Event "${req.body.title}" updated: ${changes.join(", ")}`;
 
-        if (user && user.email) {
-
-          // temporary testing
-          // let emailToSend = user.email;
-
-          // if (emailToSend.endsWith("@computing.smu.edu.sg")) {
-          //   emailToSend = "byunlyra@gmail.com";
-          // }
-
-          const emailToSend = user.email;
-
-          await sendEmail(
-            emailToSend,
-            req.body.title,
-            `The event "${req.body.title}" has been updated.
-
-          New Date: ${req.body.startDate}
-          Location: ${req.body.location}
-
-          Please check the system for full details.`
-          );
-
-        }
+      for (let r of rsvps) {
+        await CCANotification.create({
+          userId: r.user,
+          eventId: cca.eventId._id,
+          message
+        });
       }
     }
-    // =================================================================
+
+    // =========================================================
 
     res.redirect("/cca-events/ccaAdmin");
 
@@ -301,31 +239,7 @@ exports.deleteEvent = async (req, res) => {
   try {
     const cca = await CCA.findById(req.params.id).populate("eventId");
 
-    // get all registered users
-    const registrations = await Registration.find({
-      eventId: cca._id
-    });
-
-    for (let r of registrations) {
-      const user = await User.findOne({ userId: r.userId });
-
-      if (user && user.email) {
-        
-        let emailToSend = user.email;
-
-        if (emailToSend.endsWith("@computing.smu.edu.sg")) {
-          emailToSend = "byunlyra@gmail.com";
-        }
-
-        await sendEmail(
-          emailToSend,
-          "Event Cancelled",
-          `The event "${cca.eventId.title}" has been cancelled.`
-        );
-      }
-    }
-
-    await Event.updateById(cca.eventId);
+    await Event.deleteById(cca.eventId._id);
     await CCA.findByIdAndDelete(req.params.id);
 
     res.redirect("/cca-events/ccaAdmin");
@@ -340,26 +254,35 @@ exports.deleteEvent = async (req, res) => {
 // ================= ATTENDEES =================
 exports.getAttendees = async (req, res) => {
   try {
-    const cca = await CCA.findById(req.params.id).populate("eventId");
+    const eventId = req.params.id;
 
-    const registrations = await Registration.find({
-      eventId: cca._id
+    const cca = await CCA.findById(eventId);
+    const event = await Event.findById(cca.eventId);
+
+    const confirmed = await RSVPModel.find({
+      event: event._id,
+      status: "confirmed"
     });
 
-    const attendees = await Promise.all(
-      registrations.map(async (r) => {
-        const user = await User.findOne({ userId: r.userId });
+    const waitlist = await RSVP.getWaitlist(event._id);
 
-        return {
-          userId: user || null
-        };
-      })
-    );
+    const userIds = [
+      ...confirmed.map(r => r.user),
+      ...waitlist.map(r => r.user)
+    ];
 
-    res.render("khin/attendees", {
-      event: cca.eventId,
-      attendees,
-      user: req.session.user,
+    const users = await User.find({ userId: { $in: userIds } });
+
+    const userMap = {};
+    users.forEach(u => {
+      userMap[u.userId] = u;
+    });
+
+    res.render("khin/ccaAttendees", {
+      event,
+      confirmed,
+      waitlist,
+      userMap,
       capacity: cca.capacity
     });
 
@@ -369,7 +292,7 @@ exports.getAttendees = async (req, res) => {
   }
 };
 
-// ================= VIEW REVIEWS per EVENT =================
+// ================= VIEW REVIEWS =================
 exports.getReviewsByEvent = async (req, res) => {
   try {
     const cca = await CCA.findById(req.params.id).populate("eventId");
@@ -390,3 +313,4 @@ exports.getReviewsByEvent = async (req, res) => {
     res.send("Error loading reviews");
   }
 };
+

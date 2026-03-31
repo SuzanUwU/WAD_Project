@@ -1,6 +1,7 @@
 const CCA    = require("../models/CCA");
 const Review = require("../models/CCAReview");
 const RSVP   = require("../models/rsvpModel");
+const CCANotification = require("../models/CCANotification");
 
 // ================= CCA EVENTS LIST =================
 exports.getCCAEvents = async (req, res) => {
@@ -128,7 +129,8 @@ exports.getEventDetail = async (req, res) => {
     const hasReviewed = userId
       ? !!(await Review.findOne({ eventId: cca._id, userId }))
       : false;
-    console.log(cca);
+
+    // console.log(cca._id);
     res.render("khin/ccaEventDetails", {
       event,
       cca,
@@ -210,5 +212,25 @@ exports.deleteReview = async (req, res) => {
     res.redirect(`/cca-events/${cca.eventId}`);
   } catch (err) {
     res.status(500).send(err.message);
+  }
+};
+
+
+// ================= VIEW NOTIFICATIONS =================
+exports.getNotifications = async (req, res) => {
+  try {
+    const userId = req.session.user.userId;
+
+    const notifications = await CCANotification.find({ userId })
+      .sort({ createdAt: -1 });
+
+    res.render("khin/ccaNoti", {
+      notifications,
+      user: req.session.user
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error loading notifications");
   }
 };

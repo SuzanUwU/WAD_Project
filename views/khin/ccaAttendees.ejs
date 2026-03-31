@@ -38,6 +38,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 10px;
 }
 
 th, td {
@@ -52,7 +53,7 @@ th {
 
 /* FOOTER */
 .footer {
-    margin-top: 15px;
+    margin-top: 20px;
     font-weight: bold;
 }
 </style>
@@ -67,15 +68,12 @@ th {
     <h2>Event Attendees</h2>
 
     <div style="margin-left:auto; text-align:right;">
-
         <% if (user) { %>
             <div>
                 Logged in as <b><%= user.username %></b> (<%= user.role %>)
             </div>
-
             <a href="/logout">Logout</a>
         <% } %>
-
     </div>
 </div>
 
@@ -83,46 +81,82 @@ th {
 
 <div class="card">
 
-<h2><%= event.title %></h2>
+<h2><%= event ? event.title : "Event Attendees" %></h2>
 
 <br>
 
-<% if (!attendees || attendees.length === 0) { %>
+<!-- ================= CONFIRMED ================= -->
+<h3>Confirmed Attendees</h3>
 
-<p>No attendees yet.</p>
+<p>
+    Total Confirmed: 
+    <b><%= Math.min(confirmed.length, capacity || 0) %></b> / <%= capacity || 0 %>
 
+    <% if (capacity && confirmed.length >= capacity) { %>
+        <span style="color:red;"> (FULL)</span>
+    <% } %>
+</p>
+
+<% if (!confirmed || confirmed.length === 0) { %>
+    <p>No confirmed attendees yet.</p>
 <% } else { %>
 
 <table>
-
 <tr>
 <th>Name</th>
-<th>Student ID</th>
 <th>Email</th>
 </tr>
 
-<% attendees.forEach(a => { %>
-
+<% confirmed.forEach(a => { %>
 <tr>
-<td><%= a.userId?.username || "N/A" %></td>
-<td><%= a.userId?.userId || "N/A" %></td>
-<td><%= a.userId?.email || "N/A" %></td>
+<td><%= userMap[a.user]?.username || a.user %></td>
+<td><%= userMap[a.user]?.email || "N/A" %></td>
 </tr>
-
 <% }) %>
 
 </table>
 
 <% } %>
 
-<div class="footer">
-<b>
-Total Attendees: <%= attendees.length %> / <%= capacity || 0 %>
+<br>
 
-<% if (capacity && attendees.length >= capacity) { %>
-  <span style="color:red;">(FULL)</span>
+<!-- ================= WAITLIST ================= -->
+<h3 style="color:#888;">Waitlist</h3>
+
+<% if (!waitlist || waitlist.length === 0) { %>
+    <p>No one in waitlist.</p>
+<% } else { %>
+
+<table>
+<tr>
+<th>Position</th>
+<th>Name</th>
+<th>Email</th>
+<th>Status</th>
+</tr>
+
+<% waitlist.forEach((a, index) => { %>
+<tr>
+<td><%= index + 1 %></td>
+<td><%= userMap[a.user]?.username || a.user %></td>
+<td><%= userMap[a.user]?.email || "N/A" %></td>
+<td><%= a.status %></td>
+</tr>
+<% }) %>
+
+</table>
+
 <% } %>
-</b>
+
+<!-- ================= FOOTER ================= -->
+<div class="footer">
+
+Confirmed: <%= Math.min(confirmed.length, capacity || 0) %> / <%= capacity || 0 %>
+
+<br>
+
+Waitlist: <%= waitlist.length %>
+
 </div>
 
 <br>

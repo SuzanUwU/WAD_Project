@@ -89,13 +89,26 @@ input, textarea, select {
 <div class="card">
 
 <form action="/cca-events/ccaAdmin/<%= cca._id %>/edit" method="POST" enctype="multipart/form-data">
-
 <!-- IMAGE -->
 <div class="event-image">
-<% if (event.image && event.image.data) { %>
-    <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>">
+<% if (cca.image && cca.image.data) { %>
+
+    <% 
+      let imageBuffer;
+
+      if (cca.image.data.data) {
+        imageBuffer = Buffer.from(cca.image.data.data);
+      } else {
+        imageBuffer = cca.image.data;
+      }
+
+      const type = cca.image.contentType || "image/jpeg";
+    %>
+
+    <img src="data:<%= type %>;base64,<%= imageBuffer.toString('base64') %>">
+
 <% } else { %>
-    <img src="/images/default.png">
+    <img src="/images/placeholder.jpg">
 <% } %>
 </div>
 
@@ -107,7 +120,7 @@ input, textarea, select {
 <!-- TITLE -->
 <div class="form-group">
     <label>Title</label>
-    <input name="title" value="<%= event.title %>" required>
+    <input name="title" value="<%= cca.title %>" required>
 </div>
 
 <!-- ORGANIZER -->
@@ -122,7 +135,7 @@ input, textarea, select {
     <input 
         type="date" 
         name="startDate" 
-        value="<%= event.startDate ? event.startDate.toISOString().split('T')[0] : '' %>" 
+        value="<%= event.startDate ? new Date(event.startDate).toISOString().split('T')[0] : '' %>"
         required
     >
 </div>
@@ -133,7 +146,7 @@ input, textarea, select {
     <input 
         type="date" 
         name="endDate" 
-        value="<%= event.endDate ? event.endDate.toISOString().split('T')[0] : '' %>" 
+        value="<%= event.endDate ? new Date(event.endDate).toISOString().split('T')[0] : '' %>"
         required
     >
 </div>
@@ -141,7 +154,7 @@ input, textarea, select {
 <!-- LOCATION -->
 <div class="form-group">
     <label>Location</label>
-    <input name="location" value="<%= event.location %>" required>
+    <input name="location" value="<%= cca.location %>" required>
 </div>
 
 <!-- CLUB TYPE (DROPDOWN FIXED) -->
@@ -166,7 +179,7 @@ input, textarea, select {
 <!-- DESCRIPTION -->
 <div class="form-group">
     <label>Description</label>
-    <textarea name="description" rows="4" required><%= event.description %></textarea>
+    <textarea name="description" rows="4" required><%= cca.description %></textarea>
 </div>
 
 <button type="submit" class="btn btn-primary">

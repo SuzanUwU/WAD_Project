@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CCA Notifications</title>
+</head>
+
+<body>
+
+<h2>🔔 Notifications</h2>
+
+<% if (!notifications.length) { %>
+  <p>No notifications</p>
+<% } else { %>
+
+  <ul>
+    <% notifications.forEach(n => { %>
+      <li>
+        <%= n.message %>
+        <br>
+        <small><%= new Date(n.createdAt).toLocaleString() %></small>
+      </li>
+    <% }) %>
+  </ul>
+
+<% } %>
+
+<br>
+<a href="/cca-events/cca">← Back</a>
+
+</body>
+</html>

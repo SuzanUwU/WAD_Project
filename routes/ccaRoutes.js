@@ -13,6 +13,9 @@ const upload = multer({ storage });
 
 // ================= USER ROUTES =================
 
+
+router.get("/notifications", requireLogin, ccaController.getNotifications);
+
 // Static FIRST
 router.get("/cca", ccaController.getCCAEvents);
 router.get("/my-cca-events", requireLogin, ccaController.getMyEvents);

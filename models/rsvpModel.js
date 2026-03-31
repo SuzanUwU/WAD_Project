@@ -62,3 +62,4 @@ exports.updateNote = function(id, note) {
 exports.deleteByEventId = function(eventId) {
   return RSVP.deleteMany({ event: eventId });
 }
+
