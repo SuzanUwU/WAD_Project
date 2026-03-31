@@ -10,16 +10,6 @@ body {
     margin: 0;
 }
 
-/* HEADER */
-.header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background-color: white;
-    border-bottom: 1px solid #ddd;
-}
-
 .btn {
     padding: 10px 14px;
     border-radius: 6px;
@@ -91,30 +81,20 @@ body {
     text-decoration: none;
     border-radius: 6px;
 }
-
 </style>
 
 </head>
 
 <body>
 
-<!-- HEADER -->
-<div class="header">
-    <img src="/images/smu.webp" width="70">
-    <h2>My Registered Events</h2>
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
 
-    <div style="margin-left:auto; text-align:right;">
-
-        <% if (user) { %>
-            <div>
-                Logged in as <b><%= user.username %></b> (<%= user.role %>)
-            </div>
-
-            <a href="/logout">Logout</a>
-        <% } %>
-
-    </div>
-</div>
+<!-- <div style="width:80%; margin: 20px auto;">
+    <a href="/cca-events/cca" class="top-link">
+        ← Back to CCA Events
+    </a>
+</div> --> 
 
 <div class="container">
 
@@ -129,7 +109,7 @@ body {
 <p>You have not registered for any events yet.</p>
 
 <a href="/cca-events/cca">
-    <button>Browse CCA Events</button>
+    <button class="btn btn-primary">Browse CCA Events</button>
 </a>
 
 <% } else { %>
@@ -174,7 +154,7 @@ body {
     <!-- ACTION -->
     <div>
 
-        <a class="view-btn" href="/cca-events/<%= event.eventId %>">
+        <a class="view-btn" href="/cca-events/<%= event.eventId._id %>">
             View Details
         </a>
 

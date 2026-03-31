@@ -49,9 +49,6 @@ router.get("/ccaAdmin/:id/reviews", requireAdmin, ccaAdminController.getReviewsB
 // ================= USER ACTION ROUTES =================
 // These use /:id so must be AFTER review routes
 
-router.get("/:id/cca-register", ccaController.showRegisterForm);
-router.post("/:id/cca-register", requireLogin, ccaController.registerEvent);
-
 router.post("/:id/cca-review", requireLogin, ccaController.submitReview);
 
 

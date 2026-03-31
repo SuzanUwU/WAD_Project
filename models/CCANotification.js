@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const ccaNotificationSchema = new mongoose.Schema({
   userId: {
-    type: String,   // same as your RSVP user (e.g. "S006")
+    type: String,
     required: true
   },
 
@@ -11,10 +11,14 @@ const ccaNotificationSchema = new mongoose.Schema({
     ref: "Event"
   },
 
-  message: {
-    type: String,
-    required: true
-  },
+  eventTitle: String,   // for display
+
+  field: String,        // what changed (location, capacity, date)
+
+  oldValue: String,     // before
+  newValue: String,     // after
+
+  message: String,      
 
   isRead: {
     type: Boolean,

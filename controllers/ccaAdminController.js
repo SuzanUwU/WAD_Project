@@ -152,33 +152,69 @@ exports.showEditForm = async (req, res) => {
 exports.updateEvent = async (req, res) => {
   try {
     const cca = await CCA.findById(req.params.id).populate("eventId");
-
     if (!cca) return res.send("CCA event not found");
 
     const oldEvent = cca.eventId;
 
-    // ================= DETECT IMPORTANT CHANGES =================
-    let changes = [];
+    const CCANotification = require("../models/CCANotification");
+    const rsvps = await RSVPModel.find({ event: cca.eventId._id });
 
-    if (oldEvent.location !== req.body.location) {
-      changes.push("location");
+    // ================= CREATE HELPER FUNCTION =================
+    const createNotifications = async (field, oldVal, newVal) => {
+      for (let r of rsvps) {
+        await CCANotification.create({
+          userId: r.user,
+          eventId: cca.eventId._id,
+          eventTitle: oldEvent.title,
+          field,
+          oldValue: oldVal != null ? oldVal.toString() : "",
+          newValue: newVal != null ? newVal.toString() : ""
+        });
+      }
+    };
+
+    // ================= DETECT CHANGES =================
+
+    // LOCATION
+    if (oldEvent.location.trim() !== req.body.location.trim()) {
+      await createNotifications("location", oldEvent.location, req.body.location);
     }
 
+    // START DATE
     if (
       new Date(oldEvent.startDate).toISOString() !==
       new Date(req.body.startDate).toISOString()
     ) {
-      changes.push("start date");
+      await createNotifications(
+        "startDate",
+        new Date(oldEvent.startDate).toLocaleDateString(),
+        new Date(req.body.startDate).toLocaleDateString()
+      );
     }
 
+    // END DATE
     if (
       new Date(oldEvent.endDate).toISOString() !==
       new Date(req.body.endDate).toISOString()
     ) {
-      changes.push("end date");
+      await createNotifications(
+        "endDate",
+        new Date(oldEvent.endDate).toLocaleDateString(),
+        new Date(req.body.endDate).toLocaleDateString()
+      );
     }
 
-    // ================= PREPARE UPDATE =================
+    // CAPACITY
+    if (cca.capacity !== Number(req.body.capacity)) {
+      await createNotifications(
+        "capacity",
+        cca.capacity,
+        req.body.capacity
+      );
+    }
+
+    // ================= UPDATE DATA =================
+
     const updateEventData = {
       title: req.body.title,
       organizer: req.body.organizer,
@@ -188,10 +224,8 @@ exports.updateEvent = async (req, res) => {
       description: req.body.description
     };
 
-    // ================= UPDATE EVENT SCHEMA =================
     await Event.updateById(cca.eventId._id, updateEventData);
 
-    // ================= UPDATE CCA SCHEMA =================
     await CCA.findByIdAndUpdate(req.params.id, {
       ...updateEventData,
       clubType: req.body.clubType,
@@ -205,26 +239,6 @@ exports.updateEvent = async (req, res) => {
       })
     });
 
-    // ================= 🔔 SMART NOTIFICATIONS =================
-    if (changes.length > 0) {
-      const RSVPModel = require("mongoose").model("RSVP");
-      const CCANotification = require("../models/CCANotification");
-
-      const rsvps = await RSVPModel.find({ event: cca.eventId._id });
-
-      const message = `📢 Event "${req.body.title}" updated: ${changes.join(", ")}`;
-
-      for (let r of rsvps) {
-        await CCANotification.create({
-          userId: r.user,
-          eventId: cca.eventId._id,
-          message
-        });
-      }
-    }
-
-    // =========================================================
-
     res.redirect("/cca-events/ccaAdmin");
 
   } catch (err) {
@@ -232,7 +246,6 @@ exports.updateEvent = async (req, res) => {
     res.send("Error updating event");
   }
 };
-
 
 // ================= DELETE =================
 exports.deleteEvent = async (req, res) => {
@@ -291,6 +304,7 @@ exports.getAttendees = async (req, res) => {
     res.send("Error loading attendees");
   }
 };
+
 
 // ================= VIEW REVIEWS =================
 exports.getReviewsByEvent = async (req, res) => {

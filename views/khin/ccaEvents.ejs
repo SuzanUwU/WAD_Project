@@ -10,18 +10,23 @@ body {
     margin: 0;
 }
 
-.header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background-color: white;
-    border-bottom: 1px solid #ddd;
-}
-
 .container {
     width: 80%;
     margin: 20px auto;
+}
+
+/* 🔥 NEW TOP BAR */
+.top-bar {
+    width: 80%;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* center button alignment */
+.top-center {
+    text-align: center;
 }
 
 .search-bar {
@@ -45,12 +50,6 @@ body {
     background: black;
     color: white;
     cursor: pointer;
-}
-
-.top-link {
-    display: inline-block;
-    margin-bottom: 20px;
-    color: #007bff;
 }
 
 .btn {
@@ -81,9 +80,9 @@ body {
 }
 
 .event-image img {
-    width: 180px;
-    height: 130px;
-    object-fit: cover;
+    width: 250px;
+    height: 150px;
+    object-fit: contain;
     border-radius: 10px;
 }
 
@@ -144,43 +143,41 @@ body {
 
 <body>
 
-<div class="header">
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
 
-    <div style="display:flex; align-items:center; gap:15px;">
-        <img src="/images/smu.webp" width="70">
-        <h2>CCA Club Events</h2>
+<!-- NEW TOP BAR (LEFT / CENTER / RIGHT) -->
+<div class="top-bar">
+
+    <!-- LEFT -->
+    <div>
+        <a href="/all-events" style="text-decoration:none; color:#007bff;">
+            Back to Main Events
+        </a>
     </div>
 
-    <div style="margin-left:auto; text-align:right;">
+    <!-- CENTER -->
+    <div class="top-center">
+        <a href="/cca-events/my-cca-events" style="text-decoration:none; color:#236827;">
+            My Registered Events
+        </a>
+    </div>
 
-        <% if (user) { %>
-            <div>
-                Logged in as <b><%= user.username %></b> (<%= user.role %>)
-            </div>
-
-            <a href="/logout">Logout</a>
-        <% } %>
-
+    <!-- RIGHT -->
+    <div>
+        <a href="/cca-events/notifications" style="text-decoration:none; color:#333;">
+            🔔 Notifications
+        </a>
     </div>
 
 </div>
 
 <div class="container">
-    <a href="/all-events" class="top-link">← Back to Main Events</a>
-
-<a href="/cca-events/notifications">🔔 Notifications</a>
-
-    <form action="/cca-events/my-cca-events" method="GET" style="margin-bottom:15px;">
-        <button type="submit" class="btn btn-primary">
-            My Registered Events
-        </button>
-    </form>
 
 <form method="GET" action="/cca-events/cca" class="search-bar">
 
     <input type="text" name="search" placeholder="Search Event..." value="<%= search %>">
 
-    <!-- CLUB FILTER -->
     <select name="club">
         <option value="All" <%= club==="All" ? "selected" : "" %>>All</option>
         <option value="Sports" <%= club==="Sports" ? "selected" : "" %>>Sports</option>
@@ -190,7 +187,6 @@ body {
         <option value="Leadership" <%= club==="Leadership" ? "selected" : "" %>>Leadership</option>
     </select>
 
-    <!-- STATUS FILTER -->
     <select name="status">
         <option value="All" <%= status==="All" ? "selected" : "" %>>All Status</option>
         <option value="Upcoming" <%= status==="Upcoming" ? "selected" : "" %>>Upcoming</option>
@@ -198,7 +194,6 @@ body {
         <option value="Past" <%= status==="Past" ? "selected" : "" %>>Past</option>
     </select>
 
-    <!-- SORT -->
     <select name="sort">
         <option value="default" <%= (!sort || sort==="default") ? "selected" : "" %>>Sort by</option>
         <option value="newest" <%= sort==="newest" ? "selected" : "" %>>Newest First</option>
@@ -206,6 +201,8 @@ body {
     </select>
 
     <button type="submit">Filter</button>
+
+    <a href="/cca-events/cca" style="margin-left:10px;">Clear</a>
 
 </form>
 
@@ -232,9 +229,7 @@ body {
         }
         %>
 
-        <img 
-        src="data:<%= cca.image.contentType %>;base64,<%= imageBuffer.toString('base64') %>"
-        >
+        <img src="data:<%= cca.image.contentType %>;base64,<%= imageBuffer.toString('base64') %>">
 
     <% } else { %>
         <img src="/images/placeholder.jpg">
@@ -272,17 +267,12 @@ body {
             }
         %>
 
-        <p>
-        <b>Date:</b>
-
+        <p><b>Date:</b>
         <% if (cca.startDate && cca.endDate) { %>
-            <%= new Date(cca.startDate).toLocaleDateString('en-GB') %> 
-            - 
+            <%= new Date(cca.startDate).toLocaleDateString('en-GB') %> - 
             <%= new Date(cca.endDate).toLocaleDateString('en-GB') %>
-
         <% } else if (eventDate) { %>
             <%= eventDate.toLocaleDateString('en-GB') %>
-
         <% } else { %>
             N/A
         <% } %>
@@ -290,13 +280,36 @@ body {
 
         <p><b>Location:</b> <%= event.location || "N/A" %></p>
         <p><b>Club Type:</b> <%= cca.clubType || "N/A" %></p>
-        
         <p class="<%= statusClass %>"><b>Status:</b> <%= eventStatus %></p>
+
+        <!-- Notifications -->
+        <% if (cca.latestNoti) { %>
+
+        <p style="font-size:13px; color: red;">
+            
+            <% if (cca.latestNoti.field === "location") { %>
+            Location changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
+
+            <% } else if (cca.latestNoti.field === "capacity") { %>
+            Capacity changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
+
+            <% } else if (cca.latestNoti.field === "startDate") { %>
+            Start date changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
+
+            <% } else if (cca.latestNoti.field === "endDate") { %>
+            End date changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
+
+            <% } else { %>
+            Event updated
+            <% } %>
+
+        </p>
+
+        <% } %>
 
     </div>
 
     <div>
-
         <% if (cca.registered) { %>
             <span class="registered-badge">Registered</span>
         <% } %>
@@ -304,7 +317,6 @@ body {
         <a class="view-btn" href="/cca-events/<%= cca.eventId._id %>">
             View Details
         </a>
-        
     </div>
 
 </div>

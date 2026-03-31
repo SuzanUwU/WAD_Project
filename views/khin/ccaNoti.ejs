@@ -2,30 +2,104 @@
 <html>
 <head>
 <title>CCA Notifications</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+.container {
+    width: 70%;
+    margin: 30px auto;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.time {
+    color: gray;
+    font-size: 13px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 20px;
+    color: #007bff;
+    text-decoration: none;
+}
+</style>
+
 </head>
 
 <body>
 
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
+
+<div class="container">
+
 <h2>🔔 Notifications</h2>
 
 <% if (!notifications.length) { %>
+
   <p>No notifications</p>
+
 <% } else { %>
 
-  <ul>
-    <% notifications.forEach(n => { %>
-      <li>
-        <%= n.message %>
-        <br>
-        <small><%= new Date(n.createdAt).toLocaleString() %></small>
-      </li>
-    <% }) %>
-  </ul>
+  <% notifications.forEach(n => { %>
+
+    <div class="card">
+
+        <b>📢 <%= n.eventTitle || "Event Update" %></b>
+        <br><br>
+
+        <% if (n.field === "location") { %>
+            Location changed from 
+            <b style="color:red;"><%= n.oldValue %></b> →
+            <b style="color:green;"><%= n.newValue %></b>
+
+        <% } else if (n.field === "capacity") { %>
+            Capacity changed from 
+            <b style="color:red;"><%= n.oldValue %></b> →
+            <b style="color:green;"><%= n.newValue %></b>
+
+        <% } else if (n.field === "startDate") { %>
+            Start Date changed from 
+            <b style="color:red;"><%= n.oldValue %></b> →
+            <b style="color:green;"><%= n.newValue %></b>
+
+        <% } else if (n.field === "endDate") { %>
+            End Date changed from 
+            <b style="color:red;"><%= n.oldValue %></b> →
+            <b style="color:green;"><%= n.newValue %></b>
+
+        <% } else { %>
+            <!-- fallback for old notifications -->
+            <%= n.message %>
+        <% } %>
+
+        <br><br>
+
+        <div class="time">
+            <%= new Date(n.createdAt).toLocaleString() %>
+        </div>
+
+    </div>
+
+  <% }) %>
 
 <% } %>
 
-<br>
-<a href="/cca-events/cca">← Back</a>
+<a href="/cca-events/cca" class="back-link">← Back to CCA Events</a>
+
+</div>
 
 </body>
 </html>

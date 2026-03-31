@@ -87,9 +87,9 @@ body {
 }
 
 .event-image img {
-    width: 180px;
-    height: 130px;
-    object-fit: cover;
+    width: 250px;
+    height: 150px;
+    object-fit: contain;
     border-radius: 10px;
 }
 
@@ -256,8 +256,12 @@ body {
 
     <div class="actions">
 
+        <a href="/cca-events/<%= event.eventId._id %>">
+            <button class="btn btn-info btn-small">View</button>
+        </a>
+        
         <a href="/cca-events/ccaAdmin/<%= event._id %>/edit">
-            <button class="btn btn-warning btn-small">Edit</button>
+            <button class="btn btn-warning btn-small">&nbsp;Edit&nbsp;</button>
         </a>
 
         <form action="/cca-events/ccaAdmin/delete/<%= event._id %>" method="POST" style="display:inline;">

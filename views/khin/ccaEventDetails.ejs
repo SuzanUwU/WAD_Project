@@ -10,15 +10,6 @@ body {
     margin: 0;
 }
 
-.header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background-color: white;
-    border-bottom: 1px solid #ddd;
-}
-
 .container {
     width: 70%;
     margin: 30px auto;
@@ -37,9 +28,8 @@ body {
 
 .event-image img {
     width: 100%;
-    max-width: 350px;   
-    height: 220px;     
-    object-fit: cover; 
+    height: 200px;
+    object-fit: contain;
     border-radius: 10px;
 }
 
@@ -83,25 +73,22 @@ body {
 
 <body>
 
-<% const spotsRemaining = cca.capacity - confirmedCount; %>
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
 
-<!-- HEADER -->
-<div class="header">
-    <img src="/images/smu.webp" width="70">
-    <h2>Event Details</h2>
-
-    <div style="margin-left:auto;">
-        <% if (user) { %>
-            Logged in as <b><%= user.username %></b>
-            <a href="/logout">Logout</a>
-        <% } %>
-    </div>
+<div style="width:70%; margin: 20px auto;">
+    <a href="/cca-events/cca" style="text-decoration:none; color:#007bff;">
+        ← Back to CCA Events
+    </a>
 </div>
+
+<% const spotsRemaining = cca.capacity - confirmedCount; %>
+<% const isAdmin = user && user.role === "admin"; %>
 
 <div class="container">
 <div class="card">
 
-<!-- IMAGE (FIXED: supports buffer + string) -->
+<!-- IMAGE -->
 <div class="event-image">
 <% if (cca.image) { %>
 
@@ -156,32 +143,34 @@ body {
         <p>Event full, <%= waitlistCount || 0 %> in queue</p>
     <% } %>
 
-    <% if (registered) { %>
+    <% if (!isAdmin) { %>
 
-        <% if (registered === 'confirmed') { %>
-            <p style="color:green;"><b>You are registered.</b></p>
+        <% if (registered) { %>
+
+            <% if (registered === 'confirmed') { %>
+                <p style="color:green;"><b>You are registered.</b></p>
+            <% } else { %>
+                <p style="color:orange;"><b>You are on waitlist.</b></p>
+            <% } %>
+
+            <a href="/cca-events/my-cca-events" class="btn btn-primary">
+                View My Registered Events
+            </a>
+
+        <% } else if (endDate && endDate < today) { %>
+
+            <p><b>Event ended. Registration closed.</b></p>
+
         <% } else { %>
-            <p style="color:orange;"><b>You are on waitlist.</b></p>
+
+            <form method="POST" action="/dashboard/rsvp-join">
+                <input type="hidden" name="eventId" value="<%= cca.eventId %>"/>
+                <button type="submit">
+                    <%= spotsRemaining > 0 ? "Register" : "Join Waitlist" %>
+                </button>
+            </form>
+
         <% } %>
-
-        <a href="/cca-events/my-cca-events" class="btn btn-primary">
-            View My Registered Events
-        </a>
-
-    <% } else if (endDate && endDate < today) { %>
-
-        <p><b>Event ended. Registration closed.</b></p>
-
-    <% } else { %>
-
-        <!-- NEW FLOW: DIRECT RSVP -->
-        <form method="POST" action="/dashboard/rsvp-join">
-            <!-- <input type="hidden" name="eventId" value="<%= cca._id %>"/> -->
-            <input type="hidden" name="eventId" value="<%= cca.eventId %>"/>
-            <button type="submit">
-                <%= spotsRemaining > 0 ? "Register" : "Join Waitlist" %>
-            </button>
-        </form>
 
     <% } %>
 
@@ -207,7 +196,7 @@ body {
 <!-- REVIEW FORM -->
 <div style="margin-top:20px;">
 
-<% if (registered && endDate && endDate < today) { %>
+<% if (!isAdmin && registered && endDate && endDate < today) { %>
 
     <% if (!hasReviewed) { %>
 
@@ -231,11 +220,11 @@ body {
         <p>You already reviewed</p>
     <% } %>
 
-<% } else if (!registered) { %>
+<% } else if (!registered && !isAdmin) { %>
 
     <p>Only registered users can review</p>
 
-<% } else { %>
+<% } else if (!isAdmin) { %>
 
     <p>Review available after event ends</p>
 

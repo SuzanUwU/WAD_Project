@@ -25,6 +25,14 @@ exports.getCCAEvents = async (req, res) => {
       registeredEventIds = rsvps.map(r => r.event.toString()); // Event _id strings
     }
 
+    const CCANotification = require("../models/CCANotification");
+
+    let notifications = [];
+    if (userId) {
+      notifications = await CCANotification.find({ userId })
+        .sort({ createdAt: -1 });
+    }
+
     const filtered = ccas.map(cca => {
       const event = cca.eventId;
       if (!event) return null;
@@ -47,7 +55,19 @@ exports.getCCAEvents = async (req, res) => {
 
       const registered = registeredEventIds.includes(event._id.toString()); // ← Event _id
 
-      return { ...cca.toObject(), registered, eventDate: start, eventStatus };
+      // find latest notification for THIS event
+      const latestNoti = notifications.find(n =>
+        n.eventId?.toString() === event._id.toString()
+      );
+
+      return { 
+        ...cca.toObject(), 
+        registered, 
+        eventDate: start, 
+        eventStatus,
+        latestNoti 
+      };
+      
     }).filter(Boolean);
 
     filtered.sort((a, b) => {
@@ -64,39 +84,20 @@ exports.getCCAEvents = async (req, res) => {
   }
 };
 
-// ================= SHOW REGISTER FORM =================
-exports.showRegisterForm = async (req, res) => {
-  try {
-    const cca = await CCA.findOne({ eventId: req.params.id }).populate("eventId");
-    if (!cca?.eventId) return res.status(404).send("Event not found");
 
-    const userId = req.session.user?.userId;
-    const rsvp   = userId ? await RSVP.isAlreadyRsvp(req.params.id, userId) : null; // ← Event _id
-
-    res.render("khin/ccaRegister", {
-      event:      cca.eventId,
-      cca,
-      registered: !!rsvp,
-      user:       req.session.user
-    });
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-};
-
-// ================= REGISTER EVENT =================
-// Delegates to joinRsvp — just redirect to the shared RSVP join route
-exports.registerEvent = async (req, res) => {
-  try {
-    const cca = await CCA.findOne({ eventId: req.params.id });
-    if (!cca) return res.status(404).send("Event not found");
-    // req.params.id is already the Event _id — forward it to joinRsvp
-    req.body.eventId = req.params.id;
-    return require('./profileController').joinRsvp(req, res);
-  } catch (err) {
-    res.status(500).send(err.message);
-  }
-};
+// // ================= REGISTER EVENT =================
+// // Delegates to joinRsvp — just redirect to the shared RSVP join route
+// exports.registerEvent = async (req, res) => {
+//   try {
+//     const cca = await CCA.findOne({ eventId: req.params.id });
+//     if (!cca) return res.status(404).send("Event not found");
+//     // req.params.id is already the Event _id — forward it to joinRsvp
+//     req.body.eventId = req.params.id;
+//     return require('./profileController').joinRsvp(req, res);
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// };
 
 // ================= MY EVENTS =================
 exports.getMyEvents = async (req, res) => {
@@ -224,6 +225,7 @@ exports.getNotifications = async (req, res) => {
     const notifications = await CCANotification.find({ userId })
       .sort({ createdAt: -1 });
 
+    // res.render("khin/ccaNoti", {
     res.render("khin/ccaNoti", {
       notifications,
       user: req.session.user
