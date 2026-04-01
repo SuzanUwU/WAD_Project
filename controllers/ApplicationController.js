@@ -16,11 +16,10 @@ exports.applyJob = async (req, res) => {
         const newEndDate = new Date(findjob.endDate);
 
     
-        // get all accepted jobs for this user
-        const acceptedApplications = await JobApplication.find({
-            userId: userId,
-            status: 'accepted'
-        }).populate('jobId');
+        // check if user has any active jobs 
+
+        const acceptedApplications = await JobApplication.findByUserAndStatus ({
+            userId: userId,status: 'accepted'}).populate('jobId');
 
         for (let app of acceptedApplications) {
             if (!app.jobId) {
@@ -39,8 +38,8 @@ exports.applyJob = async (req, res) => {
         await JobApplication.create({
             userId: userId,
             jobId: jobId,
-            appliedDate: new Date(),
-            status: 'pending'
+             appliedDate: new Date(),
+              status: 'pending'
         });
 
         return res.send('Application submitted successfully');
@@ -82,7 +81,7 @@ exports.retrieveAppliedJobs = async (req, res) => {
 
 exports.retrieveAllApplicants = async (req, res) => {
     try {
-        const applicants = await JobApplication.find()
+        const applicants = await JobApplication.viewall
             .populate('userId')
             .populate('jobId');
 
@@ -95,16 +94,6 @@ exports.retrieveAllApplicants = async (req, res) => {
         res.send('Unable to retrieve applicants');
     }
 };
-
-
-
-
-
-
-
-
-
-
 
 
 // user interface to delete application 
@@ -125,11 +114,10 @@ exports.retrieveActiveJobs = async (req, res) => {
     const userId = req.session.userId || req.session.user?.id;
 
     try {
-        
-     const activerecords = await JobApplication.find({
+        const activerecords = await JobApplication.findByUserAndStatus({
           userId: userId, status: 'accepted'}).populate('jobId');
         
-        const user = req.session.user;
+         const user = req.session.user;
         res.render('rowena/active-jobs', {
             records:activerecords,
             user: user
@@ -158,9 +146,6 @@ exports.acceptApplicant = async (req, res) => {
         res.send('Failed to accept applicant');
     }
 };
-
-
-
 
 
 exports.rejectApplicant = async (req, res) => {

@@ -46,5 +46,29 @@ const jobApplicationSchema = new mongoose.Schema({
 jobApplicationSchema.index({ userId: 1, jobId: 1 }, { unique: true })
 
 
+// find applicants with job status 
+exports.findByUserAndStatus = function(userId, status) {
+  return JobApplication.find({ userId, status }).populate('jobId');
+};
+
+exports.create = function (details){
+  return JobApplication.create(details)
+}
+
+
+exports.findByIdAndDelete =function(id){
+  return JobApplication.findByIdAndDelete(id)
+}
+
+exports.findByIdAndUpdate = function(id, status) {
+  return JobApplication.findByIdAndUpdate(id, { status: status });
+}
+
+exports.viewall = function (){
+  return JobApplication.find();
+}
+
+
+
 
 module.exports = mongoose.model('JobApplication', jobApplicationSchema);
