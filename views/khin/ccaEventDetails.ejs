@@ -163,8 +163,9 @@ body {
 
         <% } else { %>
 
+            <!-- ✅ FIXED HERE -->
             <form method="POST" action="/dashboard/rsvp-join">
-                <input type="hidden" name="eventId" value="<%= cca.eventId %>"/>
+                <input type="hidden" name="eventId" value="<%= cca.eventId._id %>"/>
                 <button type="submit">
                     <%= spotsRemaining > 0 ? "Register" : "Join Waitlist" %>
                 </button>
@@ -200,7 +201,8 @@ body {
 
     <% if (!hasReviewed) { %>
 
-        <form action="/cca-events/<%= cca._id %>/cca-review" method="POST">
+        <!-- ✅ FIXED HERE -->
+        <form action="/cca-events/<%= cca.eventId._id %>/cca-review" method="POST">
 
             <select name="rating" required>
                 <option value="">Select rating</option>

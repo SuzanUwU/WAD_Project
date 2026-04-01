@@ -47,6 +47,7 @@
     </p>
 
     <!-- Hidden inputs pass session values to the server on submit -->
+    <input type="hidden" name="eventId"  value="<%= hackathon.eventId || '' %>"/>
     <input type="hidden" name="userId"   value="<%= currentUser.userId %>"/>
     <input type="hidden" name="username" value="<%= currentUser.username %>"/>
     <input type="hidden" name="email"    value="<%= currentUser.email %>"/>

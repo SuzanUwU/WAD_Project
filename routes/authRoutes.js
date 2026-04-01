@@ -1,5 +1,5 @@
 const express = require('express');
-const User = require('../models/user-model');
+const User = require('../models/userModel');
 const authController = require('../controllers/authController'); // added by John 21 March
 const settingsController = require('../controllers/usersettingsController')
 const router = express.Router();

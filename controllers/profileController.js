@@ -1,6 +1,6 @@
 const Event = require('../models/eventModel');
 const RSVP = require('../models/rsvpModel');
-
+const hackRegistration = require('../models/HackRegistration');
 
 async function buildEventMap(allRsvps) {
   const eventIds = allRsvps.map(r => r.event.toString());
@@ -124,6 +124,9 @@ exports.deleteRsvp = async (req, res) => {
         }
       }
     }
+    if (event.category === 'Hackathon') {
+      await hackRegistration.delete(event._id, rsvp.user);
+    }
     await RSVP.cancel(rsvp._id);
     await promoteFromWaitlist(rsvp.event);
     res.redirect('/dashboard?msg=Event+removed');
@@ -146,6 +149,7 @@ exports.joinRsvp = async (req, res) => {
     if (isFull) {
       await RSVP.join(newEvent._id, userId, 'waitlist');
       const position = await RSVP.getWaitlistPosition(newEvent._id, userId);
+      //leave the hackathon info in hackregistration, only delete if they cancel rsvp
       return res.redirect(`/dashboard?msg=Added+to+waitlist+%23${position}`);
     }
     // time conflict check only happens for to b confirmed
@@ -169,9 +173,16 @@ exports.joinRsvp = async (req, res) => {
 
 // POST //dashboard/rsvp-replace
 exports.replaceRsvp = async (req, res) => {
+  const oldRsvpId = req.body.oldRsvpId;
+  const oldEventId = req.body.oldEventId;
+  const userId = req.session.user.userId;
+
   try {
-    const userId = req.session.user.userId;
-    await RSVP.cancel(req.body.oldRsvpId); // old event spot freed
+    await RSVP.cancel(oldRsvpId); // old event spot freed
+    const oldEvent = await Event.findById(oldEventId);
+    if (oldEvent.category === 'Hackathon') {
+      await hackRegistration.delete(oldEvent._id, userId);
+    }
     await promoteFromWaitlist(req.body.oldEventId);
     await RSVP.join(req.body.newEventId, userId, 'confirmed'); // new event has space guaranteed from prev checks
     res.redirect('/dashboard?msg=Event+replaced');

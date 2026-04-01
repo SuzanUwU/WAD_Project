@@ -1,12 +1,11 @@
-const CCA = require("../models/CCA");
+const CCAmodel = require("../models/CCA");
 const Event = require("../models/eventModel");
-const Review = require("../models/CCAReview");
-const User = require("../models/user-model");
+const ReviewModel = require("../models/CCAReview");
+const NotificationModel = require("../models/CCANotification");
 
 const RSVP = require("../models/rsvpModel");
-const mongoose = require("mongoose");
+const User = require("../models/userModel");
 
-const RSVPModel = mongoose.model("RSVP");
 
 // ================= VIEW ALL =================
 exports.getAllEvents = async (req, res) => {
@@ -21,31 +20,33 @@ exports.getAllEvents = async (req, res) => {
       query.clubType = club;
     }
 
-    const ccas = await CCA.find(query).populate("eventId");
+    const ccas = await CCAmodel.getAllCCA(query);
+
     const today = new Date();
+    today.setHours(0,0,0,0);
 
     const filtered = ccas
       .map((cca) => {
         const event = cca.eventId;
         if (!event) return null;
 
-        const title = event.title || "";
-        if (!title.toLowerCase().includes(search.toLowerCase())) return null;
+        if (!event.title.toLowerCase().includes(search.toLowerCase())) return null;
 
-        let eventDate = event.startDate ? new Date(event.startDate) : null;
+        const start = new Date(cca.startDate);
+        const end   = new Date(cca.endDate);
+        start.setHours(0,0,0,0);
+        end.setHours(0,0,0,0);
 
         let eventStatus = "N/A";
-        if (eventDate && !isNaN(eventDate)) {
-          if (eventDate > today) eventStatus = "Upcoming";
-          else if (eventDate.toDateString() === today.toDateString()) eventStatus = "Ongoing";
-          else eventStatus = "Past";
-        }
+        if (today < start) eventStatus = "Upcoming";
+        else if (today >= start && today <= end) eventStatus = "Ongoing";
+        else eventStatus = "Past";
 
         if (status !== "All" && eventStatus !== status) return null;
 
         return {
           ...cca.toObject(),
-          eventDate
+          eventDate: start
         };
       })
       .filter(e => e !== null);
@@ -84,11 +85,9 @@ exports.showCreateForm = (req, res) => {
 };
 
 
-// ================= CREATE EVENT =================
+// ================= CREATE =================
 exports.createEvent = async (req, res) => {
   try {
-
-    // Event WITHOUT image
     const newEvent = await Event.create({
       title: req.body.title,
       organizer: req.body.organizer,
@@ -99,8 +98,7 @@ exports.createEvent = async (req, res) => {
       description: req.body.description
     });
 
-    // CCA WITH image
-    await CCA.create({
+    await CCAmodel.createCCA({
       eventId: newEvent._id,
       title: req.body.title,
       organizer: req.body.organizer,
@@ -109,16 +107,15 @@ exports.createEvent = async (req, res) => {
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       location: req.body.location,
-
-      image: req.file
-        ? {
-            data: req.file.buffer,
-            contentType: req.file.mimetype
-          }
-        : undefined,
-
       clubType: req.body.clubType,
-      capacity: req.body.capacity || 0
+      capacity: req.body.capacity || 0,
+
+      ...(req.file && {
+        image: {
+          data: req.file.buffer,
+          contentType: req.file.mimetype
+        }
+      })
     });
 
     res.redirect("/cca-events/ccaAdmin");
@@ -133,7 +130,7 @@ exports.createEvent = async (req, res) => {
 // ================= EDIT FORM =================
 exports.showEditForm = async (req, res) => {
   try {
-    const cca = await CCA.findById(req.params.id).populate("eventId");
+    const cca = await CCAmodel.getCCAById(req.params.id);
 
     res.render("khin/ccaEdit", {
       cca,
@@ -151,18 +148,16 @@ exports.showEditForm = async (req, res) => {
 // ================= UPDATE =================
 exports.updateEvent = async (req, res) => {
   try {
-    const cca = await CCA.findById(req.params.id).populate("eventId");
+    const cca = await CCAmodel.getCCAById(req.params.id);
     if (!cca) return res.send("CCA event not found");
 
     const oldEvent = cca.eventId;
 
-    const CCANotification = require("../models/CCANotification");
-    const rsvps = await RSVPModel.find({ event: cca.eventId._id });
+    const rsvps = await RSVP.getByEvent(cca.eventId._id);
 
-    // ================= CREATE HELPER FUNCTION =================
     const createNotifications = async (field, oldVal, newVal) => {
       for (let r of rsvps) {
-        await CCANotification.create({
+        await NotificationModel.createNotification({
           userId: r.user,
           eventId: cca.eventId._id,
           eventTitle: oldEvent.title,
@@ -173,61 +168,30 @@ exports.updateEvent = async (req, res) => {
       }
     };
 
-    // ================= DETECT CHANGES =================
-
-    // LOCATION
-    if (oldEvent.location.trim() !== req.body.location.trim()) {
+    if (oldEvent.location !== req.body.location) {
       await createNotifications("location", oldEvent.location, req.body.location);
     }
 
-    // START DATE
-    if (
-      new Date(oldEvent.startDate).toISOString() !==
-      new Date(req.body.startDate).toISOString()
-    ) {
-      await createNotifications(
-        "startDate",
-        new Date(oldEvent.startDate).toLocaleDateString(),
-        new Date(req.body.startDate).toLocaleDateString()
-      );
-    }
-
-    // END DATE
-    if (
-      new Date(oldEvent.endDate).toISOString() !==
-      new Date(req.body.endDate).toISOString()
-    ) {
-      await createNotifications(
-        "endDate",
-        new Date(oldEvent.endDate).toLocaleDateString(),
-        new Date(req.body.endDate).toLocaleDateString()
-      );
-    }
-
-    // CAPACITY
     if (cca.capacity !== Number(req.body.capacity)) {
-      await createNotifications(
-        "capacity",
-        cca.capacity,
-        req.body.capacity
-      );
+      await createNotifications("capacity", cca.capacity, req.body.capacity);
     }
 
-    // ================= UPDATE DATA =================
-
-    const updateEventData = {
+    await Event.findByIdAndUpdate(cca.eventId._id, {
       title: req.body.title,
       organizer: req.body.organizer,
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       location: req.body.location,
       description: req.body.description
-    };
+    });
 
-    await Event.updateById(cca.eventId._id, updateEventData);
-
-    await CCA.findByIdAndUpdate(req.params.id, {
-      ...updateEventData,
+    await CCAmodel.updateCCA(req.params.id, {
+      title: req.body.title,
+      organizer: req.body.organizer,
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
+      location: req.body.location,
+      description: req.body.description,
       clubType: req.body.clubType,
       capacity: req.body.capacity || 0,
 
@@ -247,13 +211,16 @@ exports.updateEvent = async (req, res) => {
   }
 };
 
+
 // ================= DELETE =================
 exports.deleteEvent = async (req, res) => {
   try {
-    const cca = await CCA.findById(req.params.id).populate("eventId");
+    const cca = await CCAmodel.getCCAById(req.params.id);
 
-    await Event.deleteById(cca.eventId._id);
-    await CCA.findByIdAndDelete(req.params.id);
+    await Event.findByIdAndDelete(cca.eventId._id);
+    await CCAmodel.deleteCCA(req.params.id);
+
+    await RSVP.deleteByEventId(cca.eventId._id);
 
     res.redirect("/cca-events/ccaAdmin");
 
@@ -267,15 +234,10 @@ exports.deleteEvent = async (req, res) => {
 // ================= ATTENDEES =================
 exports.getAttendees = async (req, res) => {
   try {
-    const eventId = req.params.id;
+    const cca = await CCAmodel.getCCAById(req.params.id);
+    const event = cca.eventId;
 
-    const cca = await CCA.findById(eventId);
-    const event = await Event.findById(cca.eventId);
-
-    const confirmed = await RSVPModel.find({
-      event: event._id,
-      status: "confirmed"
-    });
+    const confirmed = await RSVP.getConfirmed(event._id);
 
     const waitlist = await RSVP.getWaitlist(event._id);
 
@@ -306,15 +268,12 @@ exports.getAttendees = async (req, res) => {
 };
 
 
-// ================= VIEW REVIEWS =================
+// ================= REVIEWS =================
 exports.getReviewsByEvent = async (req, res) => {
   try {
-    const cca = await CCA.findById(req.params.id).populate("eventId");
+    const cca = await CCAmodel.getCCAById(req.params.id);
 
-    if (!cca) return res.send("Event not found");
-
-    const reviews = await Review.find({ eventId: cca._id })
-      .sort({ createdAt: -1 });
+    const reviews = await ReviewModel.getReviewsByEvent(cca._id);
 
     res.render("khin/adminCcaReviews", {
       event: cca.eventId,
@@ -327,4 +286,3 @@ exports.getReviewsByEvent = async (req, res) => {
     res.send("Error loading reviews");
   }
 };
-

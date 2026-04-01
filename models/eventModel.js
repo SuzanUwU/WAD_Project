@@ -14,9 +14,6 @@ const eventSchema = new mongoose.Schema({
 
 const Event = mongoose.model('Event', eventSchema,'events');
 
-// Export the model AND the helper functions
-module.exports = Event; // → this makes Event.find() work in routes
-
 exports.retrieveAll = function() {
   return Event.find();
 }

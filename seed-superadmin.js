@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const express = require("express");
 const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
-const User = require('./models/user-model');
+const User = require('./models/userModel');
 
 // Specify the path to the environment variablef file 'config.env'
 dotenv.config({ path: './config.env' });

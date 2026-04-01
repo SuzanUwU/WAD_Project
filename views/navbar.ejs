@@ -38,10 +38,41 @@
             </div>
             <div class="dropdown-menu">
               <a href="/usersettings" class="dropdown-item">Profile (<%= user.userId %>)</a>
-              <a href="/logout" class="dropdown-item">Logout</a>
+
+              <!-- ADMIN PANEL (ROBUST VERSION) -->
+              <% 
+                const type = user.admin_type ? user.admin_type.trim().toLowerCase() : "";
+              %>
+
+              <% if (user.role === 'admin') { %>
+
+                <% if (type.includes('cca')) { %>
+                  <a href="/cca-events/ccaAdmin" class="dropdown-item">⚙ Manage CCA Events</a>
+                <% } %>
+
+                <!-- need to add yujia, ari, rownea routes to admin pages  -->
+
+                <% if (type.includes('career')) { %>
+                  <a href="/career-events/admin" class="dropdown-item">⚙ Manage Career Events</a>
+                <% } %>
+
+                <% if (type.includes('hack')) { %>
+                  <a href="/hack-events/admin" class="dropdown-item">⚙ Manage Hackathons</a>
+                <% } %>
+
+                <% if (type.includes('ptjob')) { %>
+                  <a href="/events/part-time-jobs" class="dropdown-item">⚙ Manage Part-Time Jobs</a>
+                <% } %>
+
+              <% } %>
+              <!-- END ADMIN PANEL -->
+
               <% if (user.role === 'superadmin') { %>
                 <a href="/superadmin/admins-settings" class="dropdown-item">👑 Admin Settings</a>
               <% } %>
+
+              <a href="/logout" class="dropdown-item">Logout</a>
+
             </div>
           </div>
         </div>

@@ -34,6 +34,12 @@
       <textarea id="description" name="description" rows="4" cols="70"
                 required><%= hackathon.description || '' %></textarea>
     </p>
+    <p>
+      <label for="location">Location / Venue: *</label><br/>
+      <input type="text" id="location" name="location"
+             value="<%= hackathon.location || '' %>" required size="60"
+             placeholder="e.g. SMU SCIS Seminar Room 2-1, or Online (Zoom)"/>
+    </p>
   </fieldset>
 
   <!-- BANNER IMAGE -->
@@ -138,6 +144,12 @@
       <label for="teamSizeMax">Maximum: *</label>
       <input type="number" id="teamSizeMax" name="teamSizeMax"
              value="<%= hackathon.teamSizeMax || 4 %>" min="1" max="20" required size="4"/>
+    </p>
+    <p>
+      <label for="capacity">Team Capacity: *</label><br/>
+      <input type="number" id="capacity" name="capacity"
+             value="<%= hackathon.capacity || 50%>" min="1" required size="6"/>
+      <br/><small>Maximum number of teams allowed to register.</small>
     </p>
   </fieldset>
 

@@ -2,6 +2,15 @@ const express = require('express');
 const router = express.Router();
 const superadminController = require('../controllers/superadminController');
 
+// ================= CREATE ADMIN =================
+
+router.get('/create-admin', superadminController.showCreateAdmin);
+
+router.post('/create-admin', superadminController.createAdmin);
+
+
+// ================= EXISTING ROUTES =================
+
 // List admins
 router.get('/admins-settings', superadminController.listAdmins);
 

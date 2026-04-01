@@ -17,7 +17,7 @@ const upload = require('multer')({ storage: multer.memoryStorage() });
 router.get('/', async (req, res) => {
   try {
     // 1. Fetch all standard events
-    const events = await Event.find().sort({ date: -1 }); 
+    const events = await Event.retrieveAll().sort({ startDate : -1 }); 
     
     // 2. Set up an empty array just in case they aren't logged in
     let mySavedEvents = [];

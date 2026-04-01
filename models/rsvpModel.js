@@ -43,6 +43,12 @@ exports.getConfirmedForUser = function(userId) {
 exports.getWaitlist = async function(eventId) {
   return await RSVP.find({ event: eventId, status: 'waitlist' }).sort({ joinedAt: 1 });
 };
+exports.getAttendees = async function(eventId) {
+  return await RSVP.find({ event: eventId, status: 'confirmed' });
+}
+exports.getAttendeesByEvent = function(eventId) {
+  return RSVP.find({ event: eventId });
+}
 exports.getDocCount = async function(eventId,state) {
   const attendees = await RSVP.find({ event: eventId, status: state });
   return attendees.length? attendees.length : 0;
@@ -63,3 +69,12 @@ exports.deleteByEventId = function(eventId) {
   return RSVP.deleteMany({ event: eventId });
 }
 
+// can I add these functions?-khin
+// for notifications
+exports.getByEvent = function(eventId) {
+  return RSVP.find({ event: eventId });
+}
+// for attendee list
+exports.getConfirmed = function(eventId) {
+  return RSVP.find({ event: eventId, status: "confirmed" });
+}

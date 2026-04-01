@@ -40,22 +40,37 @@
           <td><strong><%= admin.userId %></strong></td>
           <td><%= admin.username %></td>
           <td><%= admin.email %></td>
-          <td><span style="background: #e3f2fd; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
-            <%= admin.scope %>
-          </span></td>
-          <td><%= new Date(admin.createdAt).toLocaleDateString() %></td>
+
           <td>
-            <a href="/superadmin/edit-admin/<%= admin._id %>" class="btn btn-edit">✏️ Edit</a>
-            <button class="btn btn-delete" onclick="confirmDelete('<%= admin._id %>', '<%= admin.username %>')">
-              🗑️ Delete
-            </button>
+            <span style="background: #e3f2fd; padding: 4px 8px; border-radius: 12px; font-size: 12px;">
+              <%= admin.admin_type || admin.scope || '-' %>
+            </span>
+          </td>
+
+          <td>
+            <%= admin.createdAt ? new Date(admin.createdAt).toLocaleDateString() : '-' %>
+          </td>
+
+          <td>
+            <a href="/superadmin/admins-settings/edit/<%= admin._id %>" class="btn btn-edit">✏️ Edit</a>
+
+            <form action="/superadmin/admins-settings/delete/<%= admin._id %>" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-delete" onclick="return confirm('Delete this admin?')">
+                🗑️ Delete
+              </button>
+            </form>
           </td>
         </tr>
       <% }) %>
     </tbody>
   </table>
 
-  <script>
+  <p><a href="/all-events">← Back to Events</a></p>
+</body>
+</html>
+
+<!-- Moved to controller instead -->
+  <!-- <script>
     function confirmDelete(adminId, adminName) {
       const password = prompt(`Enter Super Admin password to delete ${adminName}:`);
       if (password) {
@@ -75,8 +90,4 @@
         });
       }
     }
-  </script>
-
-  <p><a href="/all-events">← Back to Events</a></p>
-</body>
-</html>
+  </script> -->

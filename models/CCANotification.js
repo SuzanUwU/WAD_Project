@@ -1,34 +1,32 @@
 const mongoose = require("mongoose");
 
 const ccaNotificationSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    required: true
-  },
-
+  userId: String,
   eventId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Event"
   },
-
-  eventTitle: String,   // for display
-
-  field: String,        // what changed (location, capacity, date)
-
-  oldValue: String,     // before
-  newValue: String,     // after
-
-  message: String,      
-
-  isRead: {
-    type: Boolean,
-    default: false
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+  eventTitle: String,
+  field: String,
+  oldValue: String,
+  newValue: String,
+  isRead: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("CCANotification", ccaNotificationSchema);
+const CCANotification = mongoose.model("CCANotification", ccaNotificationSchema);
+
+
+// ================= FUNCTIONS =================
+
+exports.createNotification = function(data) {
+  return CCANotification.create(data);
+};
+
+exports.getUserNotifications = function(userId) {
+  return CCANotification.find({ userId }).sort({ createdAt: -1 });
+};
+
+exports.markAsRead = function(id) {
+  return CCANotification.updateOne({ _id: id }, { isRead: true });
+};

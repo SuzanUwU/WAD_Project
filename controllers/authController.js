@@ -1,4 +1,4 @@
-const User = require('../models/user-model');
+const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const School = require('../models/school-model');
 
@@ -185,8 +185,17 @@ const login = async (req, res) => {
             school:     user.school,
             major:      user.major,
             schoolName,
-            majorName
+            majorName,
+
+            // added codes for checking which admin 
+            admin_type: user.admin_type 
+                || (user.scope === "cca" ? "cca-admin"
+                : user.scope === "career" ? "career-admin"
+                : user.scope === "hack" ? "hack-admin"
+                : user.scope === "ptjob" ? "ptjob-admin"
+                : null)
         };
+
 
         console.log(`✅ Login: ${user.userId} (${user.role} - ${schoolName} / ${majorName})`);
         res.redirect('/all-events');

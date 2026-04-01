@@ -6,6 +6,7 @@
     <title>Career form</title>
 </head>
 <body>
+    <%- include('./navbar') %>
     <% function toDatetimeLocal(d) {
         if (!d) return '';
         return new Date(d).toISOString().slice(0, 16);

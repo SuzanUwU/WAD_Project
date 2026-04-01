@@ -31,7 +31,7 @@ const viewSavedEvents = async (req, res) => {
             
             // Search the main Event database for ALL events that match those IDs
             // The $in operator is a MongoDB superpower for searching arrays!
-            fullEventDetails = await Event.find({ _id: { $in: eventIds } });
+            fullEventDetails = await Event.findManyByIds(eventIds);
         }
 
         // 3. Send the FULL event details to the EJS page

@@ -6,16 +6,17 @@
   <title>My Dashboard</title>
   <style>
   #toast {
-    position: fixed;
-    top: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #333;
-    color: #fff;
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-  }
+  position: fixed;
+  top: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100; 
+  background: #333;
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
 </style>
 </head>
 <body>
@@ -23,9 +24,7 @@
   <div id="toast"><%= msg %></div>
   <% } %>
 
-  <a href="/">← Home</a> |
-  <a href="/career-events">Careers</a>
-
+  <%- include('./navbar') %>
   <h1>My Dashboard</h1>
   <hr/>
 

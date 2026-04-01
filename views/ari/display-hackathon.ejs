@@ -30,7 +30,11 @@
 <% } %>
 
 <p><a href="/all-events">← Back to Events Dashboard</a></p>
-<p><a href="/hack-events/new">+ Create New Hackathon</a></p>
+<br><br>
+<% if (user && user.role !== 'student') { %>
+  <p><a href="/hack-events/new">+ Create New Hackathon</a></p>
+  <br><br>
+<% } %>
 
 <!--   FILTER SECTION      -->
 <section>
@@ -93,7 +97,9 @@
         <col style="width:8%"/>  <!-- Reg Deadline -->
         <col style="width:6%"/>  <!-- Team Size -->
         <col style="width:7%"/>  <!-- Status -->
-        <col style="width:9%"/>  <!-- Actions -->
+        <% if (user && user.role !== 'student') { %>
+          <col style="width:9%"/>  <!-- Actions -->
+        <% } %>
       </colgroup>      
       <thead>
         <tr>
@@ -106,15 +112,22 @@
           <th>Registration Deadline</th>
           <th>Team Size</th>
           <th>Status</th>
-          <th>Actions</th>
+          <% if (user && user.role !== 'student') { %>
+            <th>Actions</th>
+          <% } %>
         </tr>
       </thead>
       <tbody>
         <% hackathons.forEach(h => { %>
           <tr>
-            <td><strong><%= h.name %></strong><br/><small><%= h.title %></small></td>
+            <td><strong><%= h.title %></strong><br/><small><%= h.name %></small></td>
 
-            <td><%= h.description %></td>
+            <td><%= h.description %><br><br>
+              <strong>Location:</strong> <%= !h.location || h.location === '' ? '-' : h.location %><br><br>
+              <strong>Capacity:</strong> <%= h.capacity === Infinity ? '-' : h.capacity + ' groups' %> <br><br>
+             </td>
+            
+            </td>
 
             <!-- Banner image: show image if available, placeholder text if not -->
             <td>
@@ -177,18 +190,17 @@
                 </a>
               <% } %>
             </td>
-
+            <% if (user && user.role !== 'student') { %>
             <td>
-              <a href="/hack-events/<%= h._id %>/edit">[Edit]</a>
-              &nbsp;
-              <a href="/hack-events/<%= h._id %>/attendees">[View Attendees]</a>
-              &nbsp;
+              <a href="/hack-events/<%= h._id %>/edit">[Edit]</a><br><br>
+              <a href="/hack-events/<%= h._id %>/attendees">[View Attendees]</a><br><br>
               <form method="POST" action="/hack-events/<%= h._id %>/delete"
                     style="display:inline"
-                    onsubmit="return confirm('Delete <%= h.name %>? This cannot be undone.')">
+                    onsubmit="return confirm('Delete <%= h.title %>? This cannot be undone.')">
                 <button type="submit">Delete</button>
               </form>
             </td>
+            <% } %>
           </tr>
         <% }) %>
       </tbody>

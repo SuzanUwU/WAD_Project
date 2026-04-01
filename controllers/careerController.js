@@ -1,7 +1,7 @@
 const Career = require('../models/careerModel');
 const RSVP = require('../models/rsvpModel');
 const Event = require('../models/eventModel');
-const User = require('../models/user-model');
+const User = require('../models/userModel');
 const categories = ['full-time', 'internship', 'workshop'];
 const sectors = ['Information Technology', 'Banking', 'Marketing', 'Accounting', 'Human Resources', 'Consulting', 'Legal', 'Operations', 'Other'];
 
@@ -60,7 +60,7 @@ exports.displayCareers = async (req, res) => {
     const careerEvents = await Career.findWithFilter(filter);
     const rsvps = await RSVP.getUserRSVP(req.session.user.userId);
     const pinnedIDs = rsvps.map(r => r.event.toString());
-    // const user = await User.findById(req.session.user.id); //add later when we have career admin
+    const user = await User.findById(req.session.user.id);
     // const isCareerAdmin = user?.admin_type === 'career-admin';
     res.render('career', {
       jobs: careerEvents.filter(e => e.careerType !== 'workshop'),
@@ -117,9 +117,7 @@ exports.createCareer = async (req, res) => {
   try {
     const data  = clean(req.body);
     const error = validate(data);
-    if (await Career.findWithFilter({...data})) {
-    error.push('An event with the same details already exists');
-    }
+    
     if (error.length > 0) {
       console.log(error);
       return res.render('career-form', { event: data, action: '/career-events/career-create', categories, sectors, error });

@@ -4,12 +4,13 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Careers</title>
-    <style>
-  #toast {
+  <style>
+    #toast {
     position: fixed;
-    top: 2rem;
+    top: 5rem;
     left: 50%;
     transform: translateX(-50%);
+    z-index: 100; 
     background: #333;
     color: #fff;
     padding: 0.75rem 1.5rem;
@@ -22,11 +23,8 @@
    <% if (typeof msg !== 'undefined' && msg) { %>
   <div id="toast"><%= msg %></div>
   <% } %>
+  <%- include('./navbar') %>
 
-  <!-- NAV -->
-  <a href="/allevents">All</a>
-  <a href="/career-events">Careers</a> |
-  <a href="/cca-events">CCAs</a>
 
   <h1>Career Opportunities</h1>
   <p>Personalised support, hands-on workshops, and networking to take charge of your journey.</p>
@@ -151,7 +149,7 @@
         <hr/>
 
         <!-- ADMIN PANEL -->
-        <% if (isCareerAdmin) { %>
+        <% if (user && user.role !== 'student') { %>
 
           <h2>Admin — Manage Career Events</h2>
 

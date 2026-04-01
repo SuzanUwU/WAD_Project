@@ -17,8 +17,16 @@
   
   <div class="warning">
     <strong>Only Super Admin can access this page</strong><br>
-    Creating admin A00X with scope permissions.
+    Creating admin A00X with admin type permissions.
   </div>
+
+  <% if (error) { %>
+  <div class="error"><%= error %></div>
+<% } %>
+
+<% if (success) { %>
+  <div style="color: green;"><%= success %></div>
+<% } %>
 
   <form method="POST" action="/superadmin/create-admin">
     <table>
@@ -33,11 +41,11 @@
       
       <tr><td>Scope:</td></tr>
       <tr><td>
-        <select name="scope" required>
+        <select name="admin_type" required>
           <option value="">Select Admin Scope</option>
           <option value="cca-admin">CCA Events</option>
           <option value="hack-admin">Hackathons</option>
-          <option value="ptjobs-admin">Part-time Jobs</option>
+          <option value="ptjob-admin">Part-time Jobs</option>
           <option value="career-admin">Career Events</option>
         </select>
       </td></tr>
