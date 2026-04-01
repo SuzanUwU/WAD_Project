@@ -14,6 +14,9 @@ const hackathonRoutes = require('./routes/hackathonRoutes');
 const superadminRoutes = require('./routes/superadminRoutes');
 const profileRoutes = require('./routes/profileRoutes')
 const careerRoutes = require('./routes/careerRoutes')
+const JobRoutes=require('./routes/jobRoutes')
+const ApplicationRoutes = require('./routes/applicationRoutes')
+
 
 // middleware
 const superadminController = require('./controllers/superadminController');
@@ -59,6 +62,9 @@ server.use('/hack-events', requireLogin, hackathonRoutes);
 server.use('/cca-events', requireLogin, ccaRoutes);
 server.use('/dashboard',requireLogin,profileRoutes);
 server.use('/career-events', requireLogin, careerRoutes);
+server.use('/events', requireLogin,JobRoutes);
+server.use('/events',requireLogin,ApplicationRoutes);
+
 
 // superadmin
 server.use('/superadmin', requireSuperAdmin, superadminRoutes);
