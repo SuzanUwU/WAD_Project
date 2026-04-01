@@ -6,7 +6,7 @@ const Event = require('../models/eventModel')
 
 exports.displayalljob = async (req, res) => {
     try {
-        const joblist = await Job.find();
+        const joblist = await Job.findjob;
         res.render('rowena/view-job', { joblist });
     } catch (error) {
         console.log(error);
@@ -56,7 +56,7 @@ exports.createNewJob = async (req, res) => {
             image: data.companylogo
         });
 
-        await Job.create({
+         const job = await Job.createJob({
             eventId: event._id,
             companyname: data.companyname,
             companylogo: data.companylogo,
@@ -96,12 +96,6 @@ exports.retrieveJob = async (req, res) => {
     try {
         const _id = req.query._id;
 
-        if (!_id) {
-            return res.render('rowena/update-job', {
-                found: null,
-                msg: 'No job id provided'
-            });
-        }
 
         const result = await Job.findById(_id);
 
@@ -134,13 +128,7 @@ exports.editJob = async (req, res) => {
         const id = req.body._id;
         const data = req.body;
 
-        if (!id) {
-            return res.render('rowena/update-job', {
-                found: null,
-                msg: 'No job id submitted'
-            });
-        }
-
+      
         findjob = await Job.findById(id);
 
         if (!findjob) {
@@ -150,6 +138,7 @@ exports.editJob = async (req, res) => {
             });
         }
 
+        // validation for dates 
         const startDate = new Date(data.startDate);
         const endDate = new Date(data.endDate);
         const hiringDate = new Date(data.hiringDate);
@@ -188,7 +177,7 @@ exports.editJob = async (req, res) => {
             }
         );
 
-        await Job.updateOne(
+        await Job.updateById(
             { _id: id },
             {
                 eventId: findjob.eventId,
@@ -232,7 +221,7 @@ exports.getDeleteJob = async (req, res) => {
             return res.send('Job not found');
         }
 
-        await Job.findByIdAndDelete(_id);
+        await Job.deleteById(_id);
 
         await Event.deleteById({ _id: jobtobedeleted.eventId });
         

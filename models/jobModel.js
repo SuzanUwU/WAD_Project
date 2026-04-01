@@ -19,6 +19,31 @@ jobSchema.index(
 
 const Job = mongoose.model('Job', jobSchema);
 
+
+exports.findJob = function (){
+  return Job.find()
+}
+
+
+exports.createJob = function (job){
+  return Job.create(job)
+}
+
+
+exports.findById = function(id) {
+  return Job.findOne({ _id: id });
+}
+
+
+exports.updateById = function(id, data) {
+  return Job.updateOne({_id:id}, data);
+}
+
+exports.deleteById = function(id) {
+  return Job.findByIdAndDelete(id);
+};
+
+
 exports.searchJob = function (keyword,salary) {
   let search = {} 
 
