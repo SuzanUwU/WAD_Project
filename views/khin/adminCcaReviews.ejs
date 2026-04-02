@@ -66,26 +66,13 @@ th {
 
 <body>
 
-<!-- HEADER -->
-<div class="header">
-    <img src="/images/smu1.webp" width="70">
-    <h2>Event Reviews</h2>
-
-    <div style="margin-left:auto; text-align:right;">
-
-        <% if (user) { %>
-            <div>
-                Logged in as <b><%= user.username %></b> (<%= user.role %>)
-            </div>
-
-            <a href="/logout">Logout</a>
-        <% } %>
-
-    </div>
-</div>
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
 
 <div class="container">
-
+    <div>
+        <a href="/cca-events/ccaAdmin">Back to Events</a>
+    </div>
 <div class="card">
 
 <!-- EVENT TITLE -->
@@ -123,10 +110,6 @@ th {
 <% } %>
 
 <br>
-
-<a href="/cca-events/ccaAdmin">
-    <button class="btn">Back to Events</button>
-</a>
 
 </div>
 
