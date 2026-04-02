@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View All Applicants</title>
+</head>
+<body>
+
+    <h1>Hi <%= user.username %><br>View All Applicants</h1>
+
+    <a href="/events/part-time-jobs">Back to Part Time Page</a>
+
+    <% if (applicants.length === 0) { %>
+        <p>There are no pending applications</p>
+    <% } else { %>
+        <table border="1">
+            <tr>
+                <th>Logo</th>
+                <th>Applicant Name</th>
+                <th>Company Name</th>
+                <th>Job Title</th>
+                <th>Status</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Modification</th>
+            </tr>
+
+            <% applicants.forEach(a => { %>
+                <tr>
+                    <td>
+                        <img src="<%= a.jobId.companylogo %>" width="100">
+                    </td>
+                    <td><%= a.userId.username %></td>
+                    <td><%= a.jobId.companyname %></td>
+                    <td><%= a.jobId.jobtitle %></td>
+                    <td><%= a.status %></td>
+                    <td><%= new Date(a.jobId.startDate).toLocaleDateString() %></td>
+                    <td><%= new Date(a.jobId.endDate).toLocaleDateString() %></td>
+                    <td>
+                        <a href="/events/part-time-jobs/accept/<%= a._id %>" onclick="return confirm('Accept this applicant?')">Accept</a>
+                        |
+                        <a href="/events/part-time-jobs/reject/<%= a._id %>" onclick="return confirm('Reject this applicant?')">Reject</a>
+                    </td>
+                </tr>
+            <% }) %>
+        </table>
+    <% } %>
+
+</body>
+</html>

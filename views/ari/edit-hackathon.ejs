@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Hackathon — <%= hackathon.name %></title>
+</head>
+<body>
+
+<h1>Edit Hackathon — <%= hackathon.name %></h1>
+<p><a href="/hack-events/hackathons">← Back to Listings</a></p>
+
+<%- include('hackathon-form', {
+  formAction:      '/hack-events/' + hackathon._id + '/edit',
+  hackathon:       hackathon,
+  schools:         schools,
+  preloadedMajors: preloadedMajors,
+  errors:          errors,
+  isEdit:          true
+}) %>
+
+</body>
+</html>

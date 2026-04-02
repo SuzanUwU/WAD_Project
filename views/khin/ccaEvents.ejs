@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CCA Events</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+}
+
+/* 🔥 NEW TOP BAR */
+.top-bar {
+    width: 80%;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* center button alignment */
+.top-center {
+    text-align: center;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-bar input,
+.search-bar select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.search-bar button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    background: black;
+    color: white;
+    cursor: pointer;
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #45a049;
+}
+
+.event-card {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    align-items: center;
+}
+
+.event-image {
+    width: 250px !important;
+    height: 150px !important;
+    overflow: hidden;
+    display: block !important;  
+}
+
+.event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-info h3 {
+    margin: 0 0 10px 0;
+}
+
+.event-info p {
+    margin: 4px 0;
+    color: #555;
+}
+
+.status-upcoming {
+    color: green;
+    font-weight: bold;
+}
+
+.status-ongoing {
+    color: orange;
+    font-weight: bold;
+}
+
+.status-past {
+    color: gray;
+    font-weight: bold;
+}
+
+.view-btn {
+    padding: 10px 16px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.registered-badge {
+    margin-left: 10px;
+    background: #e6f4ea;
+    color: #2e7d32;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.empty {
+    text-align: center;
+    color: #888;
+    margin-top: 40px;
+}
+
+@media (max-width: 768px) {
+
+    .event-card {
+        flex-direction: column;   
+        align-items: flex-start;
+    }
+
+    .event-image {
+        width: 100% !important;
+        height: 200px !important;
+    }
+
+    .event-card > div:last-child {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
+
+<!-- NEW TOP BAR (LEFT / CENTER / RIGHT) -->
+<div class="top-bar">
+
+    <!-- LEFT -->
+    <div>
+        <a href="/all-events" style="text-decoration:none; color:#007bff;">
+            Back to Main Events
+        </a>
+    </div>
+
+    <!-- CENTER -->
+    <div class="top-center">
+        <a href="/cca-events/my-cca-events" style="text-decoration:none; color:#236827;">
+            My Registered Events
+        </a>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+        <a href="/cca-events/notifications" style="text-decoration:none; color:#333;">
+            🔔 Notifications
+        </a>
+    </div>
+
+</div>
+
+<div class="container">
+
+<form method="GET" action="/cca-events/cca" class="search-bar">
+
+    <input type="text" name="search" placeholder="Search Event..." value="<%= search %>">
+
+    <select name="club">
+        <option value="All" <%= club==="All" ? "selected" : "" %>>All</option>
+        <option value="Sports" <%= club==="Sports" ? "selected" : "" %>>Sports</option>
+        <option value="Arts" <%= club==="Arts" ? "selected" : "" %>>Arts</option>
+        <option value="Academic" <%= club==="Academic" ? "selected" : "" %>>Academic</option>
+        <option value="Community" <%= club==="Community" ? "selected" : "" %>>Community</option>
+        <option value="Leadership" <%= club==="Leadership" ? "selected" : "" %>>Leadership</option>
+    </select>
+
+    <select name="status">
+        <option value="All" <%= status==="All" ? "selected" : "" %>>All Status</option>
+        <option value="Upcoming" <%= status==="Upcoming" ? "selected" : "" %>>Upcoming</option>
+        <option value="Ongoing" <%= status==="Ongoing" ? "selected" : "" %>>Ongoing</option>
+        <option value="Past" <%= status==="Past" ? "selected" : "" %>>Past</option>
+    </select>
+
+    <select name="sort">
+        <option value="default" <%= (!sort || sort==="default") ? "selected" : "" %>>Sort by</option>
+        <option value="newest" <%= sort==="newest" ? "selected" : "" %>>Newest First</option>
+        <option value="oldest" <%= sort==="oldest" ? "selected" : "" %>>Oldest First</option>
+    </select>
+
+    <button type="submit">Filter</button>
+
+    <a href="/cca-events/cca" style="margin-left:10px;">Clear</a>
+
+</form>
+
+<% if (!events || events.length === 0) { %>
+    <div class="empty">No CCA events found</div>
+<% } %>
+
+<% events.forEach((cca) => { %>
+  <% if (cca && cca.eventId) { %>
+  <% const event = cca.eventId; %>
+
+<div class="event-card">
+
+    <div class="event-image">
+    <% if (cca.image && cca.image.data) { %>
+
+        <% 
+        let imageBuffer;
+
+        if (cca.image.data.data) {
+            imageBuffer = Buffer.from(cca.image.data.data);
+        } else {
+            imageBuffer = cca.image.data;
+        }
+        %>
+
+        <img src="data:<%= cca.image.contentType %>;base64,<%= imageBuffer.toString('base64') %>">
+
+    <% } else { %>
+        <img src="/images/placeholder.jpg">
+    <% } %>
+    </div>
+
+    <div class="event-info">
+
+        <h3><%= event.title || "Untitled Event" %></h3>
+
+        <%
+            const today = new Date();
+            let eventDate = null;
+
+            if (cca.startDate) {
+                eventDate = new Date(cca.startDate);
+            } else if (event.date) {
+                eventDate = new Date(event.date);
+            }
+
+            let eventStatus = "N/A";
+            let statusClass = "";
+
+            if (eventDate && !isNaN(eventDate)) {
+                if (eventDate > today) {
+                    eventStatus = "Upcoming";
+                    statusClass = "status-upcoming";
+                } else if (eventDate.toDateString() === today.toDateString()) {
+                    eventStatus = "Ongoing";
+                    statusClass = "status-ongoing";
+                } else {
+                    eventStatus = "Past";
+                    statusClass = "status-past";
+                }
+            }
+        %>
+
+        <p><b>Date:</b>
+        <% if (cca.startDate && cca.endDate) { %>
+            <%= new Date(cca.startDate).toLocaleDateString('en-GB') %> - 
+            <%= new Date(cca.endDate).toLocaleDateString('en-GB') %>
+        <% } else if (eventDate) { %>
+            <%= eventDate.toLocaleDateString('en-GB') %>
+        <% } else { %>
+            N/A
+        <% } %>
+        </p>
+
+        <p><b>Location:</b> <%= event.location || "N/A" %></p>
+        <p><b>Club Type:</b> <%= cca.clubType || "N/A" %></p>
+        <p class="<%= statusClass %>"><b>Status:</b> <%= eventStatus %></p>
+
+        <!-- Notifications -->
+        <% if (cca.latestNoti) { %>
+
+        <p style="font-size:13px; color: red;">
+            
+            <% if (cca.latestNoti.field === "location") { %>
+            Location changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
+
+            <% } else if (cca.latestNoti.field === "capacity") { %>
+            Capacity changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
+
+            <% } else if (cca.latestNoti.field === "startDate") { %>
+            Start date changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
+
+            <% } else if (cca.latestNoti.field === "endDate") { %>
+            End date changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
+
+            <% } else { %>
+            Event updated
+            <% } %>
+
+        </p>
+
+        <% } %>
+
+    </div>
+
+    <div>
+        <!-- <% if (cca.registered) { %>
+            <span class="registered-badge">Registered</span>
+        <% } %> -->
+
+        <a class="view-btn" href="/cca-events/<%= cca.eventId._id %>">
+            View Details
+        </a>
+    </div>
+
+</div>
+
+  <% } %>
+<% }) %>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Hackathon</title>
+</head>
+<body>
+
+<h1>Create New Hackathon</h1>
+<p><a href="/hack-events/hackathons">← Back to Listings</a></p>
+
+<%- include('hackathon-form', {
+  formAction:      '/hack-events/new',
+  hackathon:       hackathon,
+  schools:         schools,
+  preloadedMajors: preloadedMajors,
+  errors:          errors,
+  isEdit:          false
+}) %>
+
+</body>
+</html>

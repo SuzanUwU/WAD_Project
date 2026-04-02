@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Events</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('../navbar') %>
+
+  <main class="main all-events-page">
+    <!-- SAVED EVENTS (My Saved Events) -->
+    <section id="saved-events">
+      <% if (locals.user && locals.mySavedEvents && mySavedEvents.length > 0) { %>
+        <div class="saved-events-banner">
+          <h2 class="saved-events-title">⭐ My Saved Events</h2>
+          <div class="saved-events-grid">
+            <% mySavedEvents.forEach(function(savedItem) { %>
+              <div class="saved-event-chip">
+                ✅ <%= savedItem.title %>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      <% } %>
+    </section>
+
+    <% function truncate(str, n) {
+      if (!str) return '';
+      const words = str.trim().split(/\s+/);
+      return words.length > n ? words.slice(0, n).join(' ') + '...' : str;
+    } %>
+
+    <!-- LATEST EVENTS SECTION (table) -->
+    <section id="latest-events">
+      <h1>Latest Events</h1>
+      <% const latestEvents = events.slice(0, 6); %>
+      <% if (latestEvents.length > 0) { %>
+        <table class="event-table latest-events-table" cellspacing="0">
+          <!-- ROW 1: Images -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td colspan="2" class="event-cell event-image-cell">
+                <% if (event.image && event.image.data) { %>
+                  <img
+                    src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
+                    alt="<%= event.title %>"
+                    class="event-table-image"
+                  >
+                <% } else { %>
+                  <div class="event-table-image-placeholder">No Image</div>
+                <% } %>
+              </td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 2: Titles -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td colspan="2" class="event-cell"><strong><%= event.title %></strong></td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 3: Organizers -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td colspan="2" style="width: 220px; word-wrap: break-word;">
+                <strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %> <br>
+                
+                <% 
+                  const orgName = event.organizer || 'Campus Events Team';
+                  let isSubbed = false;
+                  if (locals.mySubscribedOrgs) {
+                      isSubbed = mySubscribedOrgs.includes(orgName);
+                  }
+                %>
+                
+                <button onclick="toggleSubscribe('<%= orgName %>', this)" 
+                        style="margin-top: 5px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;
+                        background-color: <%= isSubbed ? '#ffcccc' : '#e6f2ff' %>;">
+                  <%= isSubbed ? 'Unsubscribe' : 'Subscribe' %>
+                </button>
+              </td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 4: Descriptions -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td colspan="2" class="event-cell"><%= truncate(event.description, 20) || 'No description available' %></td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 5: Date -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td class="event-cell event-label">Date:</td>
+              <td class="event-cell event-value">
+                <%= event.date ? new Date(event.date).toLocaleDateString('en-GB') : 'TBD' %>
+              </td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 6: Time -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td class="event-cell event-label">Time:</td>
+              <td class="event-cell event-value">
+                <%= event.date ? new Date(event.date).toLocaleTimeString('en-SG', {hour: '2-digit', minute: '2-digit'}) + ' - 18:00' : 'TBD' %>
+              </td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 7: Location -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td class="event-cell event-label">Location:</td>
+              <td class="event-cell event-value"><%= event.location || 'TBD' %></td>
+            <% }) %>
+          </tr>
+
+          <!-- ROW 8: Buttons -->
+          <tr>
+            <% latestEvents.forEach(function(event) { %>
+              <td class="event-cell">
+                <button type="button" class="btn btn-other" onclick="register('<%= event._id %>')">Register</button>
+              </td>
+              <td class="event-cell">
+                <% 
+                  let isSaved = false;
+                  if (locals.mySavedEvents && mySavedEvents.length > 0) {
+                    isSaved = mySavedEvents.some(savedItem => savedItem.eventId.toString() === event._id.toString());
+                  }
+                %>
+                <% if (isSaved) { %>
+                  <button type="button" class="btn btn-login" disabled>Saved ✓</button>
+                <% } else { %>
+                  <button type="button" class="btn btn-login" onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">Save</button>
+                <% } %>
+              </td>
+            <% }) %>
+          </tr>
+        </table>
+      <% } %>
+    </section>
+
+    <!-- ALL EVENTS SECTION (row-based table) -->
+    <section id="all-events">
+      <h1>All Events</h1>
+      <% const allEvents = events.slice(0); %>
+      <% if (allEvents.length > 0) { %>
+        <div class="table-wrapper">
+          <table class="event-table" cellspacing="0">
+            <thead>
+              <tr>
+                <th class="event-header">Event No.</th>
+                <th class="event-header">Event Poster</th>
+                <th class="event-header">Event Information</th>
+                <th class="event-header">See More</th>
+                <th class="event-header">Save</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% allEvents.forEach(function(event, index) { %>
+                <tr>
+                  <!-- Event No. -->
+                  <td class="event-cell event-number"><%= index + 1 %></td>
+
+                  <!-- Event Poster -->
+                  <td class="event-cell event-poster-cell">
+                    <% if (event.image && event.image.data) { %>
+                      <img
+                        src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
+                        alt="<%= event.title %>"
+                        class="event-table-image"
+                      >
+                    <% } else { %>
+                      <div class="event-table-image-placeholder">No Image</div>
+                    <% } %>
+                  </td>
+
+                  <!-- Event Info -->
+                  <td class="event-cell event-info">
+                    <div style="margin-bottom: 8px;"><strong>Event Name:</strong> <%= event.title %></div>
+                    
+                    <div style="margin-bottom: 8px;">
+                      <strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %><br>
+                      
+                      <% 
+                        const orgNameAll = event.organizer || 'Campus Events Team';
+                        let isSubbedAll = false;
+                        if (locals.mySubscribedOrgs) {
+                            isSubbedAll = mySubscribedOrgs.includes(orgNameAll);
+                        }
+                      %>
+                      <button onclick="toggleSubscribe('<%= orgNameAll %>', this)" 
+                              style="margin-top: 5px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer; font-size: 0.85em;
+                              background-color: <%= isSubbedAll ? '#ffcccc' : '#e6f2ff' %>;">
+                        <%= isSubbedAll ? 'Unsubscribe' : 'Subscribe' %>
+                      </button>
+                    </div>
+                    
+                    <div><strong>Description:</strong> <%= truncate(event.description, 20) || 'No description available' %></div>
+                  </td>
+
+                  <!-- See More -->
+                  <td class="event-cell">
+                    <a href="/events/<%= event._id %>" class="btn btn-other">See More</a>
+                  </td>
+
+                  <!-- Save -->
+                  <td class="event-cell">
+                    <% 
+                      let isSavedAll = false;
+                      if (locals.mySavedEvents && mySavedEvents.length > 0) {
+                        isSavedAll = mySavedEvents.some(savedItem => savedItem.eventId.toString() === event._id.toString());
+                      }
+                    %>
+                    <% if (isSavedAll) { %>
+                      <button type="button" class="btn btn-login" disabled>Saved ✓</button>
+                    <% } else { %>
+                      <button type="button" class="btn btn-login" onclick="saveEvent('<%= event._id %>', '<%= event.title %>', this)">Save</button>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </section>
+
+    <!-- EDIT EVENTS / ORGANIZERS (for admins only) -->
+    <% if (user && (user.role === 'admin' || user.role === 'superadmin')) { %>
+      <section id="edit-event">
+        <h3>Creating / Edit Events</h3>
+        <a href="/events/create" class="btn btn-other">Create New Event</a><br><br>
+        <a href="/events/editevent" class="btn btn-other">Edit Event Information</a>
+      </section>
+
+      <section id="edit-org">
+        <h3>Editing the Organizer Stuff</h3>
+        <a href="/events/addorg" class="btn btn-other">Add a New Organizer</a><br><br>
+        <a href="/events/removeorg" class="btn btn-other">Remove Organizer</a><br><br>
+        <a href="/events/updateorg" class="btn btn-other">Update Organizer Information</a>
+      </section>
+    <% } else if (user && user.role === 'student') { %>
+      <div class="student-notice">
+        <strong>👋 Student View</strong><br>
+        Contact admin for event/organizer management access.
+      </div>
+    <% } %>
+  </main>
+
+  <script>
+    async function saveEvent(eventId, eventTitle, button) {
+      try {
+        const originalText = button.textContent;
+        button.textContent = 'Saving...';
+        button.disabled = true;
+
+        const response = await fetch('/all-events/save-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventId: eventId, eventTitle: eventTitle })
+        });
+
+        if (response.ok) {
+          button.style.backgroundColor = '#a0b27a';
+          button.textContent = 'Saved ✓';
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          const result = await response.text();
+          alert('Could not save: ' + result);
+          button.textContent = originalText;
+          button.disabled = false;
+        }
+      } catch (err) {
+        console.error("Save Error:", err);
+        alert('Failed to connect to the server.');
+        button.textContent = 'Save';
+        button.disabled = false;
+      }
+    }
+
+    function register(eventId) {
+      alert('Registration feature coming soon for Event: ' + eventId);
+    }
+
+    async function toggleSubscribe(organizerName, button) {
+      try {
+          const originalText = button.textContent;
+          button.textContent = 'Wait...';
+          button.disabled = true;
+
+          const response = await fetch('/all-events/toggle-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ organizerName: organizerName })
+          });
+
+          if (response.ok) {
+              const result = await response.json();
+              
+              // Dynamically flip the button colors and text!
+              if (result.isSubscribed) {
+                  button.style.backgroundColor = '#ffcccc'; // light red
+                  button.textContent = 'Unsubscribe';
+              } else {
+                  button.style.backgroundColor = '#e6f2ff'; // light blue
+                  button.textContent = 'Subscribe';
+              }
+          } else {
+              alert('Failed to update subscription.');
+              button.textContent = originalText;
+          }
+      } catch (err) {
+          console.error("Subscription Error:", err);
+      } finally {
+          button.disabled = false;
+      }
+  }
+  </script>
+</body>
+</html>

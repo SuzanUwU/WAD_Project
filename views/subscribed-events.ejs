@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Subscribed Organizer Events</title>
+  <style>
+      body { font-family: sans-serif; padding: 20px; max-width: 1000px; margin: 0 auto; background-color: #f4f7f6; }
+      .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+      .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+      .event-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #ddd; }
+      .event-image { width: 100%; height: 200px; object-fit: cover; background-color: #eee; display: flex; align-items: center; justify-content: center; color: #888; }
+      .event-info { padding: 15px; }
+      .event-title { margin: 0 0 10px 0; color: #285789; font-size: 1.2em; }
+      .event-detail { margin: 5px 0; font-size: 0.9em; color: #555; }
+      .empty-state { text-align: center; color: #666; font-style: italic; padding: 40px; background: white; border-radius: 8px; }
+  </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Events by <%= username %>'s Organizers</h1>
+        <a href="/all-events" style="padding: 10px 15px; background: #285789; color: white; text-decoration: none; border-radius: 5px;">← Back to All Events</a>
+    </div>
+
+    <div class="event-grid">
+        <% if (events && events.length > 0) { %>
+            <% events.forEach(function(event) { %>
+                <div class="event-card">
+                    <% if (event.image && event.image.data) { %>
+                        <img class="event-image" src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>" alt="<%= event.title %>">
+                    <% } else { %>
+                        <div class="event-image">No Image Available</div>
+                    <% } %>
+                    
+                    <div class="event-info">
+                        <h3 class="event-title"><%= event.title %></h3>
+                        <p class="event-detail"><strong>🏢 Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></p>
+                        <p class="event-detail"><strong>📅 Date:</strong> <%= event.date ? new Date(event.date).toLocaleDateString('en-GB') : 'TBD' %></p>
+                        <a href="/events/<%= event._id %>" style="display: block; text-align: center; margin-top: 15px; padding: 8px; background-color: #eee; color: #333; text-decoration: none; border-radius: 4px;">View Details</a>
+                    </div>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <h2>No events right now!</h2>
+                <p>The organizers you are subscribed to haven't posted any upcoming events.</p>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>

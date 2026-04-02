@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Organizer</title>
+</head>
+<body>
+  <h1>Add a New Organizer</h1>
+  
+  <form method="POST" action="/events/addorg" enctype="multipart/form-data">
+    <p>
+      <label>Organizer Name:</label><br>
+      <input type="text" name="title" required style="width: 300px; padding: 8px;">
+    </p>
+    
+    <p>
+      <label>Category:</label><br>
+      <select name="category" required style="width: 300px; padding: 8px;">
+        <option value="">Select Category</option>
+        <option value="CCA">CCA</option>
+        <option value="Hackathon">Hackathon</option>
+        <option value="Career">Career</option>
+        <option value="Part Time Jobs">Part Time Jobs</option>
+      </select>
+    </p>
+    
+    <p>
+      <label>Description:</label><br>
+      <textarea name="description" rows="4" cols="50" style="padding: 8px;"></textarea>
+    </p>
+    
+    <p>
+      <label>Organizer Logo (Optional):</label><br>
+      <input type="file" name="eventImage" accept="image/*">
+    </p>
+    
+    <p>
+      <input type="submit" value="Add Organizer" style="background: #2196F3; color: white; padding: 10px 20px; border: none;">
+      <a href="/events" style="margin-left: 20px; color: #666;">Cancel</a>
+    </p>
+  </form>
+</body>
+</html>

@@ -1,65 +1,31 @@
-// const express = require('express');
-// const User = require('../models/User');
-// const router = express.Router();
+const express = require('express');
+const User = require('../models/user-model');
+const authController = require('../controllers/authController'); 
+const settingsController = require('../controllers/usersettingsController');
+const router = express.Router();
 
-// // Signup GET
-// router.get('/signup', (req, res) => {
-//   res.render('signup', { error: null });
-// });
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
-// // Signup POST
-// router.post('/signup', async (req, res) => {
-//   try {
-//     const { username, email, password } = req.body;
-    
-//     // Check if user exists
-//     const existingUser = await User.findOne({ 
-//       $or: [{ username }, { email }] 
-//     });
-    
-//     if (existingUser) {
-//       return res.render('signup', { 
-//         error: 'Username or email already exists' 
-//       });
-//     }
-    
-//     // Create user
-//     const user = new User({ username, email, password });
-//     await user.save();
-    
-//     req.session.user = { id: user._id, username: user.username };
-//     res.redirect('/events');
-//   } catch (err) {
-//     res.render('signup', { error: 'Signup failed' });
-//   }
-// });
+router.post('/signup', upload.none(), authController.signup);
+router.post('/login', authController.login);
 
-// // Login GET
-// router.get('/login', (req, res) => {
-//   res.render('login', { error: null });
-// });
+router.get('/signup', authController.renderSignup);
+router.get('/login', authController.renderLogin);
 
-// // Login POST
-// router.post('/login', async (req, res) => {
-//   try {
-//     const { username, password } = req.body;
-//     const user = await User.findOne({ username });
-    
-//     if (!user || !(await user.comparePassword(password))) {
-//       return res.render('login', { error: 'Invalid credentials' });
-//     }
-    
-//     req.session.user = { id: user._id, username: user.username };
-//     res.redirect('/events');
-//   } catch (err) {
-//     res.render('login', { error: 'Login failed' });
-//   }
-// });
+router.get('/usersettings', settingsController.renderSettings);
 
-// // Logout
-// router.get('/logout', (req, res) => {
-//   req.session.destroy();
-//   res.redirect('/events');
-// });
+router.post('/usersettings/profile', settingsController.updateProfile);
+router.post('/usersettings/password', settingsController.updatePassword);
+router.post('/usersettings/delete', settingsController.deleteAccount);
 
-// module.exports = router;
+router.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+    }
+    res.redirect('/all-events');
+  });
+});
+
+module.exports = router;

@@ -1,216 +1,238 @@
-const mongoose = require("mongoose");
-const Event = require("../models/Event");
-const RSVP = require("../models/RSVP");
+const CCA    = require("../models/CCA");
+const Review = require("../models/CCAReview");
+const RSVP   = require("../models/rsvpModel");
+const CCANotification = require("../models/CCANotification");
 
-
-// CCA Events List
+// ================= CCA EVENTS LIST =================
 exports.getCCAEvents = async (req, res) => {
   try {
-    let ccaEvents = await Event.find({ category: "CCA" });
+    const search = req.query.search || "";
+    const club   = req.query.club   || "All";
+    const status = req.query.status || "All";
+    const sort   = req.query.sort   || "default";
 
-    const search = req.query.search;
-    const club = req.query.club;
+    const query = {};
+    if (club !== "All") query.clubType = club;
 
-    if (search) {
-      ccaEvents = ccaEvents.filter(event =>
-        event.title.toLowerCase().includes(search.toLowerCase())
+    const ccas   = await CCA.find(query).populate("eventId");
+    const userId = req.session.user?.userId;
+    const today  = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let registeredEventIds = [];
+    if (userId) {
+      const rsvps = await RSVP.getUserRSVP(userId);
+      registeredEventIds = rsvps.map(r => r.event.toString()); // Event _id strings
+    }
+
+    const CCANotification = require("../models/CCANotification");
+
+    let notifications = [];
+    if (userId) {
+      notifications = await CCANotification.find({ userId })
+        .sort({ createdAt: -1 });
+    }
+
+    const filtered = ccas.map(cca => {
+      const event = cca.eventId;
+      if (!event) return null;
+
+      if (!event.title.toLowerCase().includes(search.toLowerCase())) return null;
+
+      const start = cca.startDate ? new Date(cca.startDate) : new Date(event.startDate);
+      const end   = cca.endDate   ? new Date(cca.endDate)   : new Date(event.endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      let eventStatus = "N/A";
+      if (!isNaN(start)) {
+        if (today < start)                       eventStatus = "Upcoming";
+        else if (today >= start && today <= end) eventStatus = "Ongoing";
+        else                                     eventStatus = "Past";
+      }
+
+      if (status !== "All" && eventStatus !== status) return null;
+
+      const registered = registeredEventIds.includes(event._id.toString()); // ← Event _id
+
+      // find latest notification for THIS event
+      const latestNoti = notifications.find(n =>
+        n.eventId?.toString() === event._id.toString()
       );
-    }
 
-    if (club && club !== "All") {
-      ccaEvents = ccaEvents.filter(event =>
-        event.clubType === club
-      );
-    }
-
-    res.render("ccaEvents", {
-      events: ccaEvents,
-      search: search || "",
-      club: club || "All"
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.send("Error loading CCA events");
-  }
-};
-
-
-
-// Event Detail Page
-exports.getEventDetail = async (req, res) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.send("Invalid event ID");
-    }
-
-    const eventId = new mongoose.Types.ObjectId(req.params.id);
-
-    const event = await Event.findById(eventId);
-
-    if (!event) {
-      return res.send("Event not found");
-    }
-
-    const { studentId } = req.query; // 🔥 FIXED
-
-    const registration = await RSVP.findOne({ eventId, studentId });
-
-    res.render("eventDetail", {
-      event,
-      registered: registration ? true : false
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.send("Error loading event detail");
-  }
-};
-
-
-
-// Show Registration Form
-exports.showRegisterForm = async (req, res) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.send("Invalid event ID");
-    }
-
-    const eventId = new mongoose.Types.ObjectId(req.params.id);
-
-    const event = await Event.findById(eventId);
-
-    if (!event) {
-      return res.send("Event not found");
-    }
-
-    const { studentId } = req.query; // 🔥 FIXED
-
-    const registration = await RSVP.findOne({ eventId, studentId });
-
-    res.render("registerEvent", {
-      event,
-      registered: registration ? true : false
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.send("Error loading registration form");
-  }
-};
-
-
-
-// Register Event
-exports.registerEvent = async (req, res) => {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.send("Invalid event ID");
-    }
-
-    const eventId = new mongoose.Types.ObjectId(req.params.id);
-    const { name, studentId, email } = req.body;
-
-    const existing = await RSVP.findOne({ eventId, studentId });
-
-    if (existing) {
-      return res.redirect("/events/my-events");
-    }
-
-    const newRegistration = new RSVP({
-      eventId,
-      name,
-      studentId,
-      email,
-      rsvp: false
-    });
-
-    await newRegistration.save();
-
-    res.render("registrationSuccess", {
-      name,
-      studentId,
-      email
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.send("Error registering event");
-  }
-};
-
-
-
-// My Registered Events Page
-exports.getMyEvents = async (req, res) => {
-  try {
-    const registrations = await RSVP.find().populate("eventId");
-
-    const myEvents = registrations.map(reg => {
-      return reg.eventId ? {
-        ...reg.eventId.toObject(),
-        rsvp: reg.rsvp
-      } : null;
+      return { 
+        ...cca.toObject(), 
+        registered, 
+        eventDate: start, 
+        eventStatus,
+        latestNoti 
+      };
+      
     }).filter(Boolean);
 
-    res.render("myEvents", { events: myEvents });
+    filtered.sort((a, b) => {
+      const dA = a.eventDate || new Date(0);
+      const dB = b.eventDate || new Date(0);
+      if (sort === "newest") return dB - dA;
+      if (sort === "oldest") return dA - dB;
+      return 0;
+    });
 
+    res.render("khin/ccaEvents", { events: filtered, search, club, status, sort, user: req.session.user });
   } catch (err) {
-    console.error(err);
-    res.send("Error loading my events");
+    res.status(500).send(err.message);
   }
 };
 
 
+// // ================= REGISTER EVENT =================
+// // Delegates to joinRsvp — just redirect to the shared RSVP join route
+// exports.registerEvent = async (req, res) => {
+//   try {
+//     const cca = await CCA.findOne({ eventId: req.params.id });
+//     if (!cca) return res.status(404).send("Event not found");
+//     // req.params.id is already the Event _id — forward it to joinRsvp
+//     req.body.eventId = req.params.id;
+//     return require('./profileController').joinRsvp(req, res);
+//   } catch (err) {
+//     res.status(500).send(err.message);
+//   }
+// };
 
-// RSVP Confirmation
-exports.rsvpEvent = async (req, res) => {
+// ================= MY EVENTS =================
+exports.getMyEvents = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.send("Invalid event ID");
-    }
-
-    const eventId = new mongoose.Types.ObjectId(req.params.id);
-    const { studentId } = req.body; // 🔥 FIXED
-
-    const registration = await RSVP.findOne({ eventId, studentId });
-
-    if (registration) {
-      registration.rsvp = true;
-      await registration.save();
-    }
-
-    res.redirect("/events/my-events");
-
+    const userId = req.session.user?.userId;
+    const rsvps  = await RSVP.getUserRSVP(userId);
+    const eventIds = rsvps.map(r => r.event);
+    const ccas   = await CCA.find({ eventId: { $in: eventIds } }).populate("eventId");
+    res.render("khin/myCcaEvents", { events: ccas, user: req.session.user });
   } catch (err) {
-    console.error(err);
-    res.send("Error updating RSVP");
+    res.status(500).send(err.message);
+  }
+};
+
+// ================= EVENT DETAIL =================
+exports.getEventDetail = async (req, res) => {
+  try {
+    const cca = await CCA.findOne({ eventId: req.params.id });
+    if (!cca) return res.status(404).send("Event not found");
+
+    const event      = cca.eventId;
+    const userId     = req.session.user?.userId;
+    const editingReviewId = req.query.edit || null;
+
+    const rsvp           = userId ? await RSVP.isAlreadyRsvp(req.params.id, userId) : null;
+    const confirmedCount = await RSVP.getDocCount(req.params.id, 'confirmed');
+    const waitlistCount  = await RSVP.getDocCount(req.params.id, 'waitlist');
+
+    const reviews = await Review.find({ eventId: cca._id }).sort({ createdAt: -1 });
+    const hasReviewed = userId
+      ? !!(await Review.findOne({ eventId: cca._id, userId }))
+      : false;
+
+    // console.log(cca._id);
+    res.render("khin/ccaEventDetails", {
+      event,
+      cca,
+      registered:        rsvp?.status || null,
+      confirmedCount,
+      waitlistCount,
+      reviews,
+      hasReviewed,
+      user:         req.session.user,
+      editingReviewId,
+    });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+// ================= SUBMIT REVIEW =================
+exports.submitReview = async (req, res) => {
+  try {
+    if (!req.session.user) return res.redirect("/login");
+
+    const cca = await CCA.findOne({ eventId: req.params.id });
+    if (!cca) return res.status(404).send("Event not found");
+
+    await Review.create({
+      userId:  req.session.user.userId,
+      name:    req.session.user.username,
+      eventId: cca._id,
+      rating:  req.body.rating,
+      comment: req.body.comment,
+    });
+
+    res.redirect(`/cca-events/${req.params.id}`);
+  } catch (err) {
+    if (err.code === 11000) return res.send("You already reviewed this event");
+    res.status(500).send(err.message);
+  }
+};
+
+// ================= SHOW EDIT REVIEW FORM =================
+exports.showEditReviewForm = async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.reviewId);
+    if (!review) return res.status(404).send("Review not found");
+    if (review.userId !== req.session.user.userId) return res.status(403).send("Unauthorized");
+    res.render("khin/editReview", { review, user: req.session.user });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+// ================= UPDATE REVIEW =================
+exports.updateReview = async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.reviewId);
+    if (!review) return res.status(404).send("Review not found");
+    if (review.userId !== req.session.user.userId) return res.status(403).send("Unauthorized");
+
+    review.rating  = req.body.rating;
+    review.comment = req.body.comment;
+    await review.save();
+
+    const cca = await CCA.findById(review.eventId);
+    res.redirect(`/cca-events/${cca.eventId}`);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+// ================= DELETE REVIEW =================
+exports.deleteReview = async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.reviewId);
+    if (!review) return res.status(404).send("Review not found");
+    if (review.userId !== req.session.user.userId) return res.status(403).send("Unauthorized");
+
+    const cca = await CCA.findById(review.eventId);
+    await Review.findByIdAndDelete(req.params.reviewId);
+    res.redirect(`/cca-events/${cca.eventId}`);
+  } catch (err) {
+    res.status(500).send(err.message);
   }
 };
 
 
-
-// Cancel RSVP
-exports.cancelRsvp = async (req, res) => {
+// ================= VIEW NOTIFICATIONS =================
+exports.getNotifications = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.send("Invalid event ID");
-    }
+    const userId = req.session.user.userId;
 
-    const eventId = new mongoose.Types.ObjectId(req.params.id);
-    const { studentId } = req.body; // 🔥 FIXED
+    const notifications = await CCANotification.find({ userId })
+      .sort({ createdAt: -1 });
 
-    const registration = await RSVP.findOne({ eventId, studentId });
-
-    if (registration) {
-      registration.rsvp = false;
-      await registration.save();
-    }
-
-    res.redirect("/events/my-events");
+    // res.render("khin/ccaNoti", {
+    res.render("khin/ccaNoti", {
+      notifications,
+      user: req.session.user
+    });
 
   } catch (err) {
     console.error(err);
-    res.send("Error cancelling RSVP");
+    res.send("Error loading notifications");
   }
 };

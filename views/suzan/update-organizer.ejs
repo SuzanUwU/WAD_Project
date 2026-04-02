@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Update Organizer</title>
+  <style>
+    .success { color: green; background: #d4edda; padding: 10px; margin: 10px 0; border-radius: 5px; }
+    .error { color: #721c24; background: #f8d7da; padding: 10px; margin: 10px 0; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Update Organizer</h1>
+  
+  <form method="POST" action="/events/updateorg" enctype="multipart/form-data">
+    <p>
+        <label>Organizer ID:</label><br>
+        <select name="organizerId" required style="width: 300px; padding: 8px;" 
+                onchange="loadOrganizerDetails(this.value)" 
+                data-organizers='<%= JSON.stringify(organizers) %>'>
+            <option value="">Select Organizer to Update</option>
+            <% organizers.forEach(org => { %>
+            <option value="<%= org.organizerId %>"><%= org.organizerId %> (<%= org.organizerName %>)</option>
+            <% }) %>
+        </select>
+    </p>
+    
+    <p>
+      <label>New Name:</label><br>
+      <input type="text" name="organizerName" id="orgName" style="width: 400px; padding: 8px;" placeholder="Facebook → Meta">
+    </p>
+    
+    <p>
+      <label>Category:</label><br>
+      <input type="text" name="category" id="orgCategory" style="width: 400px; padding: 8px;" placeholder="Social Media">
+    </p>
+    
+    <p>
+      <label>Description:</label><br>
+      <textarea name="description" id="orgDesc" rows="3" cols="50" style="width: 400px; padding: 8px;" placeholder="New description..."></textarea>
+    </p>
+    
+    <p>
+      <label>New Logo (optional):</label><br>
+      <input type="file" name="logo" accept="image/*">
+    </p>
+    
+    <p>
+      <input type="submit" value="✏️ Update Organizer" 
+             style="background: #2196F3; color: white; padding: 12px 24px; border: none; border-radius: 5px; font-size: 16px;">
+      <a href="/events" style="margin-left: 20px; color: #666;">Cancel</a>
+    </p>
+  </form>
+
+  <script>
+    function loadOrganizerDetails(orgId) {
+        // Get organizers from data attribute (SAFE!)
+        const select = document.querySelector('select[name="organizerId"]');
+        const organizers = JSON.parse(select.getAttribute('data-organizers'));
+        
+        const org = organizers.find(o => o.organizerId === orgId);
+        if (org) {
+        document.getElementById('orgName').value = org.organizerName;
+        document.getElementById('orgCategory').value = org.category || '';
+        document.getElementById('orgDesc').value = org.description || '';
+        }
+    }
+    </script>
+</body>
+</html>

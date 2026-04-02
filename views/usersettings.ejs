@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Account Settings</title>
+  <style>
+      body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+      .container { border: 1px solid #ddd; padding: 30px; border-radius: 8px; margin-bottom: 20px; }
+      .form-group { margin-bottom: 15px; }
+      label { display: block; margin-bottom: 5px; font-weight: bold; }
+      input { width: 100%; box-sizing: border-box; padding: 12px; border: 1px solid #ddd; border-radius: 6px; }
+      .btn { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; color: white; font-weight: bold;}
+      .btn-primary { background-color: rgb(108, 147, 231); }
+      .btn-success { background-color: rgb(103, 164, 103); }
+      .btn-danger { background-color: rgb(220, 53, 69); }
+  </style>
+</head>
+<body>
+    <h1>Account Settings</h1>
+    <p><a href="/all-events">← Back to Dashboard</a></p>
+
+    <% if (locals.error) { %>
+        <p style="color: red; background: #ffe6e6; padding: 10px; border-radius: 4px; border: 1px solid red;">
+            <strong><%= error %></strong>
+        </p>
+    <% } %>
+    <% if (locals.success) { %>
+        <p style="color: green; background: #e6ffe6; padding: 10px; border-radius: 4px; border: 1px solid green;">
+            <strong><%= success %></strong>
+        </p>
+    <% } %>
+
+    <div class="container">
+        <h2>Update Profile</h2>
+        <form method="POST" action="/usersettings/profile">
+            <div class="form-group">
+                <label>Username:</label>
+                <input type="text" name="username" value="<%= locals.user ? user.username : '' %>" required>
+            </div>
+            <div class="form-group">
+                <label>Email (SMU Student Email Only):</label>
+                <input type="email" name="email" value="<%= locals.user ? user.email : '' %>" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Profile Changes</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>Change Password</h2>
+        <form method="POST" action="/usersettings/password">
+            <div class="form-group">
+                <label>Current Password:</label>
+                <input type="password" name="currentPassword" placeholder="Enter current password" required>
+            </div>
+            <div class="form-group">
+                <label>New Password:</label>
+                <input type="password" name="newPassword" placeholder="Enter new password" required>
+            </div>
+            <div class="form-group">
+                <label>Confirm New Password:</label>
+                <input type="password" name="confirmNewPassword" placeholder="Confirm new password" required>
+            </div>
+            <button type="submit" class="btn btn-success">Update Password</button>
+        </form>
+    </div>
+
+    <div class="container" style="border-color: #ffcccc; background-color: #fff9f9;">
+        <h2 style="color: #dc3545;">Danger Zone</h2>
+        <p>Once you delete your account, there is no going back. Please be certain.</p>
+        <form method="POST" action="/usersettings/delete" onsubmit="return confirm('Are you absolutely sure you want to permanently delete your account? This cannot be undone.');">
+            <button type="submit" class="btn btn-danger">Delete My Account</button>
+        </form>
+    </div>
+</body>
+</html>

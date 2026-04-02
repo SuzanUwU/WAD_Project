@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Dashboard</title>
+  <style>
+  #toast {
+    position: fixed;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+  <% if (typeof msg !== 'undefined' && msg) { %>
+  <div id="toast"><%= msg %></div>
+  <% } %>
+
+  <a href="/">← Home</a> |
+  <a href="/career-events">Careers</a>
+
+  <h1>My Dashboard</h1>
+  <hr/>
+
+  <%
+    const monthNames = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+    const dayNames   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    // calc next and prev month/year
+    let prevMonth = month - 1;
+    let prevYear  = year;
+    if (prevMonth < 0) { prevMonth = 11; prevYear--; }
+
+    let nextMonth = month + 1;
+    let nextYear  = year;
+    if (nextMonth > 11) { nextMonth = 0; nextYear++; }
+  %>
+
+  <table border="0">
+    <tr>
+      <td><a href="/dashboard?month=<%= prevMonth %>&year=<%= prevYear %>">← Prev</a></td>
+      <td align="center"><strong><%= monthNames[month] %> <%= year %></strong></td>
+      <td><a href="/dashboard?month=<%= nextMonth %>&year=<%= nextYear %>">Next →</a></td>
+    </tr>
+  </table>
+
+  <table border="1" cellpadding="6" cellspacing="0" width="100%">
+    <tr>
+      <% dayNames.forEach(d => { %>
+        <th width="14%"><%= d %></th>
+      <% }) %>
+    </tr>
+     <tr>
+    <% cells.forEach((day, index) => { %>
+      <% if (index > 0 && index % 7 === 0) { %>
+        </tr><tr>
+
+      <% } %>
+      <td height ="80">
+        <% if (day > 0) { %>
+
+          <strong><%= day %></strong>
+
+          <% if (dayMap[day]) { %>
+            <% dayMap[day].forEach(item => { %>
+                <br/>
+                <a href="/dashboard/rsvp?id=<%= item._id %>">
+                  <small>
+                    [<%= item.status %>] <%=eventMap[item.event].title %>
+                  </small>
+                </a>
+              <% }) %>
+          <% } %>
+        <% } %>
+      </td>
+
+    <% }) %>
+    </tr>
+  </table>
+
+  <hr/>
+
+  <h2>My RSVPs</h2>
+
+  <% if (allRsvps.length === 0) { %>
+    <p>You have no RSVPs yet. <a href="/">Browse campus events</a></p>
+  <% } else { %>
+    <table border="1" cellpadding="6" width="100%">
+      <tr>
+        <th>Event</th>
+        <th>organizer</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Note</th>
+        <th>Action</th>
+      </tr>
+      <% allRsvps.forEach(rsvp => { %>
+        <%
+          const ev = eventMap[rsvp.event.toString()];
+        %>
+        <% if (ev) { %>
+          <tr>
+            <td><a href="/career-events/detail?id=<%= ev._id %>"><%= ev.title %></a></td>
+            <td><%= ev.organizer %></td>
+            <td>
+              <% if (ev.startDate) { %>
+                <%= new Date(ev.startDate).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'short', year: 'numeric' }) %>
+              <% } else { %> — <% } %>
+            </td>
+            <td><%= rsvp.status %></td>
+            <td><%= rsvp.note || '—' %></td>
+            <td><a href="/dashboard/rsvp?id=<%= rsvp._id %>">View / Edit</a></td>
+          </tr>
+        <% } %>
+      <% }) %>
+    </table>
+  <% } %>
+<script>
+  const toast = document.getElementById('toast');
+  if (toast) setTimeout(() => toast.remove(), 3000);
+</script>
+</body>
+</html>

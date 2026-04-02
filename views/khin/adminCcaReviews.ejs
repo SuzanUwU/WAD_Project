@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Event Reviews</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+/* HEADER */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+/* CONTAINER */
+.container {
+    width: 80%;
+    margin: 30px auto;
+}
+
+/* CARD */
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #f0f0f0;
+}
+
+/* BUTTON */
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <img src="/images/smu1.webp" width="70">
+    <h2>Event Reviews</h2>
+
+    <div style="margin-left:auto; text-align:right;">
+
+        <% if (user) { %>
+            <div>
+                Logged in as <b><%= user.username %></b> (<%= user.role %>)
+            </div>
+
+            <a href="/logout">Logout</a>
+        <% } %>
+
+    </div>
+</div>
+
+<div class="container">
+
+<div class="card">
+
+<!-- EVENT TITLE -->
+<h2><%= event.title %></h2>
+
+<!-- TABLE -->
+<% if (!reviews || reviews.length === 0) { %>
+
+    <p>No reviews found for this event.</p>
+
+<% } else { %>
+
+<table>
+
+    <tr>
+        <th>User</th>
+        <th>Rating</th>
+        <th>Comment</th>
+        <th>Date</th>
+    </tr>
+
+    <% reviews.forEach(r => { %>
+
+        <tr>
+            <td><%= r.name %></td>
+            <td>⭐ <%= r.rating %></td>
+            <td><%= r.comment %></td>
+            <td><%= new Date(r.createdAt).toLocaleString() %></td>
+        </tr>
+
+    <% }) %>
+
+</table>
+
+<% } %>
+
+<br>
+
+<a href="/cca-events/ccaAdmin">
+    <button class="btn">Back to Events</button>
+</a>
+
+</div>
+
+</div>
+
+</body>
+</html>
