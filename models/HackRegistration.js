@@ -51,3 +51,7 @@ exports.createRegistration = function (data) {
 exports.deleteByHackathon = function (hackathonId) {
   return HackRegistration.deleteMany({ hackathonId });
 };
+//this is for rsvps. hackregistration will be stored while someone is on waitlist. it deletes when hackathon is deleted or they are removed from waitlist.
+exports.cancel = function (eventId,userId) {
+  return HackRegistration.deleteOne({ eventId,userId });
+}

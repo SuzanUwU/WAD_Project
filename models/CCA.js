@@ -13,10 +13,7 @@ const ccaSchema = new mongoose.Schema({
   startDate: Date,
   endDate: Date,
   location: String,
-  image: {
-    data: Buffer,
-    contentType: String
-  },
+  image: String,
   clubType: String,
   capacity: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
@@ -49,7 +46,7 @@ exports.createCCA = function(data) {
 
 // UPDATE
 exports.updateCCA = function(id, data) {
-  return CCA.findByIdAndUpdate(id, data, { new: true });
+  return CCA.findByIdAndUpdate(id, data, { returnDocument: 'after' });
 };
 
 // DELETE

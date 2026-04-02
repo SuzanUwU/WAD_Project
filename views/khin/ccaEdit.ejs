@@ -78,43 +78,31 @@ input, textarea, select {
 
 <body>
 
-<!-- HEADER -->
-<div class="header">
-    <img src="/images/smu1.webp" width="70">
-    <h1>Edit Event</h1>
-</div>
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
 
 <div class="container">
-
 <div class="card">
 
-<form action="/cca-events/ccaAdmin/<%= cca._id %>/edit" method="POST" enctype="multipart/form-data">
+<form action="/cca-events/ccaAdmin/<%= cca._id %>/edit" method="POST">
+
 <!-- IMAGE -->
 <div class="event-image">
-<% if (cca.image && cca.image.data) { %>
-
-    <% 
-      let imageBuffer;
-
-      if (cca.image.data.data) {
-        imageBuffer = Buffer.from(cca.image.data.data);
-      } else {
-        imageBuffer = cca.image.data;
-      }
-
-      const type = cca.image.contentType || "image/jpeg";
-    %>
-
-    <img src="data:<%= type %>;base64,<%= imageBuffer.toString('base64') %>">
-
-<% } else { %>
-    <img src="/images/placeholder.jpg">
-<% } %>
+    <img 
+        src="<%= cca.image || '/images/placeholder.jpg' %>" 
+        alt="<%= cca.title %>"
+        onerror="this.onerror=null; this.src='/images/placeholder.jpg';"
+    >
 </div>
 
 <div class="form-group">
-    <label>Change Image</label>
-    <input type="file" name="image">
+    <label>Image URL</label>
+    <input 
+        type="text" 
+        name="image" 
+        value="<%= cca.image || '' %>" 
+        placeholder="e.g. https://example.com/image.jpg"
+    />
 </div>
 
 <!-- TITLE -->
@@ -126,7 +114,7 @@ input, textarea, select {
 <!-- ORGANIZER -->
 <div class="form-group">
     <label>Organizer</label>
-    <input name="organizer" value="<%= event.organizer %>" required>
+    <input name="organizer" value="<%= cca.organizer %>" required>
 </div>
 
 <!-- START DATE -->
@@ -157,7 +145,7 @@ input, textarea, select {
     <input name="location" value="<%= cca.location %>" required>
 </div>
 
-<!-- CLUB TYPE (DROPDOWN FIXED) -->
+<!-- CLUB TYPE -->
 <div class="form-group">
     <label>Club Type</label>
     <select name="clubType" required>
@@ -193,7 +181,6 @@ input, textarea, select {
 <a href="/cca-events/ccaAdmin">← Back to Admin Events</a>
 
 </div>
-
 </div>
 
 </body>

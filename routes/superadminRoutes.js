@@ -2,14 +2,8 @@ const express = require('express');
 const router = express.Router();
 const superadminController = require('../controllers/superadminController');
 
-// ================= CREATE ADMIN =================
-
+// Create new admin
 router.get('/create-admin', superadminController.showCreateAdmin);
-
-router.post('/create-admin', superadminController.createAdmin);
-
-
-// ================= EXISTING ROUTES =================
 
 // List admins
 router.get('/admins-settings', superadminController.listAdmins);
@@ -18,7 +12,7 @@ router.get('/admins-settings', superadminController.listAdmins);
 router.get('/admins-settings/edit/:id', superadminController.editAdminGet);
 router.post('/admins-settings/edit/:id', superadminController.editAdminPost);
 
-// Delete admin (AJAX endpoint)
+// Delete admin
 router.post('/admins-settings/delete/:id', superadminController.deleteAdmin);
 
 module.exports = router;

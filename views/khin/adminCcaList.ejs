@@ -86,11 +86,18 @@ body {
     align-items: center;
 }
 
-.event-image img {
+.event-image {
     width: 250px;
     height: 150px;
-    object-fit: contain;
+    overflow: hidden;
     border-radius: 10px;
+    background: #eee;
+}
+
+.event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .event-info {
@@ -119,28 +126,27 @@ body {
 
 <body>
 
-<div class="header">
-    <div class="header-left">
-        <img src="/images/smu1.webp" width="60">
-        <h2>CCA Admin Panel</h2>
-    </div>
-
-    <div style="margin-left:auto; text-align:right;">
-        <% if (user) { %>
-            <div>
-                Logged in as <b><%= user.username %></b> (<%= user.role %>)
-            </div>
-            <a href="/logout">Logout</a>
-        <% } %>
-    </div>
-</div>
+<%- include('../navbar', { user: user }) %>
 
 <div class="container">
 
-<div class="top-bar">
-    <a href="/cca-events/ccaAdmin/create">
-        <button class="btn btn-primary">+ Create New Event</button>
-    </a>
+<div class="top-bar" style="display: flex; align-items: center; justify-content: space-between;">
+
+    <!-- LEFT: Back to user view -->
+    <div>
+        <a href="/cca-events/cca">← Back to Events</a>
+    </div>
+
+    <!-- CENTER: Create button -->
+    <div style="position: absolute; left: 50%; transform: translateX(-50%);">
+        <a href="/cca-events/ccaAdmin/create">
+            <button class="btn btn-primary">+ Create New Event</button>
+        </a>
+    </div>
+
+    <!-- RIGHT: empty (for spacing balance) -->
+    <div style="width: 120px;"></div>
+
 </div>
 
 <form method="GET" action="/cca-events/ccaAdmin" class="filter-bar">
@@ -171,6 +177,10 @@ body {
 
     <button type="submit">Filter</button>
 
+<button type="button" onclick="window.location='/cca-events/ccaAdmin'" style="background:#999;">
+    Clear
+</button>
+
 </form>
 
 <% if (!events || events.length === 0) { %>
@@ -182,11 +192,18 @@ body {
 <div class="event-card">
 
     <div class="event-image">
-        <% if (event.image && event.image.data) { %>
-            <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>">
+        <% if (event.image) { %>
+            <img 
+        src="<%= event.image && !event.image.startsWith('http') 
+                ? '/images/' + event.image 
+                : event.image %>" 
+        alt="<%= event.title %>"
+        style="width: 100%; height: 100%; object-fit: cover;"
+        onerror="this.onerror=null; this.src='/images/placeholder.jpg';"
+        >
         <% } else { %>
-            <img src="/images/default.png">
-        <% } %>
+            <img src="/images/placeholder.jpg">
+        <% } %> 
     </div>
 
     <div class="event-info">

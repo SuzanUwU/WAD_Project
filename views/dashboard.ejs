@@ -4,23 +4,22 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Dashboard</title>
-  <style>
-  #toast {
-  position: fixed;
-  top: 5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100; 
-  background: #333;
-  color: #fff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-}
-</style>
+  <link rel="stylesheet" href="/css/styles.css"/>
 </head>
 <body>
-  <% if (typeof msg !== 'undefined' && msg) { %>
+  <%
+  // Helper function to get /x/:id for detail page
+  const getDetailUrl = (category, eventId) => {
+      const routes = {
+          'CCA': '/cca-events',
+          'Hackathon': '/hack-events',
+          'Career': '/career-events',
+          'Part Time Jobs': '/part-time-jobs'
+      };
+      return `${routes[category]}/${eventId}`;
+  };
+
+   if (typeof msg !== 'undefined' && msg) { %>
   <div id="toast"><%= msg %></div>
   <% } %>
 
@@ -107,7 +106,7 @@
         %>
         <% if (ev) { %>
           <tr>
-            <td><a href="/career-events/detail?id=<%= ev._id %>"><%= ev.title %></a></td>
+            <td><a href="<%= getDetailUrl(ev.category, rsvp.event) %>" class="event-link"><%= ev.title %></a></td>
             <td><%= ev.organizer %></td>
             <td>
               <% if (ev.startDate) { %>

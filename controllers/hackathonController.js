@@ -20,8 +20,7 @@ exports.showHackathons = async (req, res) => {
       success: req.query.success || null,
       error:   req.query.error   || null,
     };
-
-    const filter = { category: 'Hackathons' };
+    const filter = { category: 'Hackathon' };
     if (query.school && query.school !== 'open')
       filter.eligibleSchools = { $in: [query.school, 'open'] };
     if (query.major && query.major !== 'open')
@@ -75,7 +74,7 @@ exports.showCreateForm = async (req, res) => {
 
 // POST /new — validate and save new hackathon
 exports.createHackathon = async (req, res) => {
-  const { title, name, description, location, eligibleSchools, eligibleMajors, teamSizeMin, teamSizeMax, capacity, startDate, endDate, registrationDeadline, status} = req.body;
+  const { title, name, description, location, eligibleSchools, eligibleMajors, teamSizeMin, teamSizeMax, capacity, startDate, endDate, registrationDeadline, status,image} = req.body;
   const errors = [];
   if (!title || title.trim() === '') errors.push('Title is required.');
   if (!name || name.trim() === '') errors.push('Name is required.');
@@ -110,7 +109,7 @@ exports.createHackathon = async (req, res) => {
   }
 
   try {    
-    const imageData = req.file ? { data: req.file.buffer, contentType: req.file.mimetype } : undefined;
+    
     const newEvent = await Event.create({ // Create Event doc first to get its _id
       title: title.trim(),
       organizer: name.trim(), // hackathon.name maps to Event.organizer
@@ -119,7 +118,8 @@ exports.createHackathon = async (req, res) => {
       startDate: start,
       endDate: end,
       location: location.trim(),
-      capacity: cap
+      capacity: cap,
+      image: image.trim()? image.trim():'placeholder.jpg'
     });
 
     // Create Hackathon doc with eventId reference
@@ -129,13 +129,13 @@ exports.createHackathon = async (req, res) => {
       name: name.trim(), 
       description: description.trim(),
       location: location.trim(),
-      category: 'Hackathons',
+      category: 'Hackathon',
       eligibleSchools: Array.isArray(eligibleSchools) ? eligibleSchools : [eligibleSchools],
       eligibleMajors:  Array.isArray(eligibleMajors)  ? eligibleMajors  : [eligibleMajors],
       teamSizeMin: min, teamSizeMax: max, capacity: cap,
       startDate: start, endDate: end, registrationDeadline: deadline,
       status,
-      ...(imageData && { image: imageData }),
+      image: image.trim()? image.trim():'placeholder.jpg'
     });
     res.redirect('/hack-events/hackathons?success=created');
 
@@ -169,7 +169,7 @@ exports.showEditForm = async (req, res) => {
 
 // POST /:id/edit — validate and update
 exports.updateHackathon = async (req, res) => {
-  const { title, name, description, location, eligibleSchools, eligibleMajors, teamSizeMin, teamSizeMax, capacity, startDate, endDate, registrationDeadline, status} = req.body;
+  const { title, name, description, location, eligibleSchools, eligibleMajors, teamSizeMin, teamSizeMax, capacity, startDate, endDate, registrationDeadline, status, image} = req.body;
   const errors = [];
   if (!title || title.trim() === '') errors.push('Title is required.');
   if (!name || name.trim() === '') errors.push('Name is required.');
@@ -214,16 +214,16 @@ exports.updateHackathon = async (req, res) => {
       eligibleMajors:  Array.isArray(eligibleMajors)  ? eligibleMajors  : [eligibleMajors],
       teamSizeMin: min, teamSizeMax: max, capacity: cap,
       startDate: start, endDate: end, registrationDeadline: deadline, status,
+      image: image.trim()? image.trim():'placeholder.jpg'
     };
-    if (req.file) updateData.image = { data: req.file.buffer, contentType: req.file.mimetype };
 
     await Hackathon.updateById(req.params.id, updateData);
     
     // Keep Event doc in sync if it exists
     if (hackathon.eventId) {
-      await Event.updateOne({ _id: hackathon.eventId }, {
+      await Event.updateById(hackathon.eventId , {
         title: title.trim(), organizer: name.trim(), description: description.trim(),
-        startDate: start, endDate: end, location: location.trim(), capacity: cap
+        startDate: start, endDate: end, location: location.trim(), capacity: cap, image: image.trim()? image.trim():'placeholder.jpg'
       });
     }
 
@@ -253,7 +253,7 @@ exports.deleteHackathon = async (req, res) => {
     // Delete linked Event doc and its RSVPs if they exist
     if (hackathon.eventId) {
       await RSVP.deleteByEventId(hackathon.eventId);
-      await Event.deleteById({ _id: hackathon.eventId });
+      await Event.deleteById( hackathon.eventId );
     }
     await Hackathon.deleteById(req.params.id);
     res.redirect('/hack-events/hackathons?success=deleted');

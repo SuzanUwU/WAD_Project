@@ -138,12 +138,12 @@ body {
 <div class="event-card">
 
     <!-- IMAGE -->
-    <div class="event-image">
-        <% if (event.image && event.image.data) { %>
-            <img src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>">
-        <% } else { %>
-            <img src="/images/default.png">
-        <% } %>
+    <% if (event.image) { %>
+        <img src="/images/<%= event.image%>">
+
+    <% } else { %>
+        <img src="/images/placeholder.jpg">
+    <% } %>
     </div>
 
     <!-- INFO -->

@@ -95,7 +95,8 @@ exports.createEvent = async (req, res) => {
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       location: req.body.location,
-      description: req.body.description
+      description: req.body.description,
+      image: req.body.image || "placeholder.jpg"
     });
 
     await CCAmodel.createCCA({
@@ -109,13 +110,7 @@ exports.createEvent = async (req, res) => {
       location: req.body.location,
       clubType: req.body.clubType,
       capacity: req.body.capacity || 0,
-
-      ...(req.file && {
-        image: {
-          data: req.file.buffer,
-          contentType: req.file.mimetype
-        }
-      })
+      image: req.body.image || "placeholder.jpg"
     });
 
     res.redirect("/cca-events/ccaAdmin");
@@ -125,7 +120,6 @@ exports.createEvent = async (req, res) => {
     res.send("Error creating event");
   }
 };
-
 
 // ================= EDIT FORM =================
 exports.showEditForm = async (req, res) => {
@@ -149,17 +143,21 @@ exports.showEditForm = async (req, res) => {
 exports.updateEvent = async (req, res) => {
   try {
     const cca = await CCAmodel.getCCAById(req.params.id);
-    if (!cca) return res.send("CCA event not found");
+
+    if (!cca || !cca.eventId) {
+      return res.send("CCA event not found properly");
+    }
 
     const oldEvent = cca.eventId;
+    const eventId = oldEvent._id;
 
-    const rsvps = await RSVP.getByEvent(cca.eventId._id);
+    const rsvps = await RSVP.getByEvent(eventId);
 
     const createNotifications = async (field, oldVal, newVal) => {
       for (let r of rsvps) {
         await NotificationModel.createNotification({
           userId: r.user,
-          eventId: cca.eventId._id,
+          eventId: eventId,
           eventTitle: oldEvent.title,
           field,
           oldValue: oldVal != null ? oldVal.toString() : "",
@@ -168,7 +166,8 @@ exports.updateEvent = async (req, res) => {
       }
     };
 
-    if (oldEvent.location !== req.body.location) {
+    // SAFE comparison
+    if ((oldEvent.location || "") !== (req.body.location || "")) {
       await createNotifications("location", oldEvent.location, req.body.location);
     }
 
@@ -176,15 +175,18 @@ exports.updateEvent = async (req, res) => {
       await createNotifications("capacity", cca.capacity, req.body.capacity);
     }
 
-    await Event.findByIdAndUpdate(cca.eventId._id, {
+    // (use updateById)
+    await Event.updateById(eventId, {
       title: req.body.title,
       organizer: req.body.organizer,
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       location: req.body.location,
-      description: req.body.description
+      description: req.body.description,
+      image: req.body.image || "placeholder.jpg"
     });
 
+    // removed multer
     await CCAmodel.updateCCA(req.params.id, {
       title: req.body.title,
       organizer: req.body.organizer,
@@ -194,38 +196,38 @@ exports.updateEvent = async (req, res) => {
       description: req.body.description,
       clubType: req.body.clubType,
       capacity: req.body.capacity || 0,
-
-      ...(req.file && {
-        image: {
-          data: req.file.buffer,
-          contentType: req.file.mimetype
-        }
-      })
+      image: req.body.image || "placeholder.jpg"
     });
 
     res.redirect("/cca-events/ccaAdmin");
 
   } catch (err) {
-    console.error(err);
+    console.error("UPDATE ERROR:", err);
     res.send("Error updating event");
   }
 };
-
 
 // ================= DELETE =================
 exports.deleteEvent = async (req, res) => {
   try {
     const cca = await CCAmodel.getCCAById(req.params.id);
 
-    await Event.findByIdAndDelete(cca.eventId._id);
+    if (!cca || !cca.eventId) {
+      return res.send("Event not found");
+    }
+
+    const eventId = cca.eventId._id;
+
+    await Event.deleteById(eventId);
+
     await CCAmodel.deleteCCA(req.params.id);
 
-    await RSVP.deleteByEventId(cca.eventId._id);
+    await RSVP.deleteByEventId(eventId);
 
     res.redirect("/cca-events/ccaAdmin");
 
   } catch (err) {
-    console.error(err);
+    console.error("DELETE ERROR:", err);
     res.send("Error deleting event");
   }
 };

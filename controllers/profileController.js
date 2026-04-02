@@ -115,17 +115,16 @@ exports.deleteRsvp = async (req, res) => {
     //delete if >24h away or there's a waitlist
     if (rsvp.status === 'confirmed') { //waitlist can be removed anytime
       const hoursUntilEvent = (new Date(event.startDate) - Date.now()) / (1000 * 60 * 60);//ms to h
-
+      console.log('Hours until event:', hoursUntilEvent);
       if (hoursUntilEvent < 24) {
         const waitlistCount = await RSVP.getDocCount(event._id, 'waitlist');
         if (waitlistCount === 0) {
-          console.log(waitlistCount, hoursUntilEvent)
           return res.redirect(`/dashboard?msg=Cannot+cancel+at+this+time`);
         }
       }
     }
     if (event.category === 'Hackathon') {
-      await hackRegistration.delete(event._id, rsvp.user);
+      await hackRegistration.cancel(event._id, rsvp.user);
     }
     await RSVP.cancel(rsvp._id);
     await promoteFromWaitlist(rsvp.event);
@@ -181,7 +180,7 @@ exports.replaceRsvp = async (req, res) => {
     await RSVP.cancel(oldRsvpId); // old event spot freed
     const oldEvent = await Event.findById(oldEventId);
     if (oldEvent.category === 'Hackathon') {
-      await hackRegistration.delete(oldEvent._id, userId);
+      await hackRegistration.cancel(oldEvent._id, userId);
     }
     await promoteFromWaitlist(req.body.oldEventId);
     await RSVP.join(req.body.newEventId, userId, 'confirmed'); // new event has space guaranteed from prev checks

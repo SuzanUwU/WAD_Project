@@ -17,7 +17,7 @@
       <td width="65%" style="border-right: 1px solid #ccc;">
 
         <% if (event.image) { %>
-          <img src="/uploads/<%= event.image %>" alt="<%= event.title %>" width="100%" style="max-height:200px; object-fit:cover;"/>
+          <img src="/images/<%= event.image %>" alt="<%= event.title %>" width="100%" style="max-height:200px; object-fit:cover;"/>
         <% } %>
        
         <p><small><%= event.type %> — <%= event.careerType || '' %></small></p>

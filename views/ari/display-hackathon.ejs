@@ -128,17 +128,17 @@
              </td>
             
             </td>
-
-            <!-- Banner image: show image if available, placeholder text if not -->
             <td>
-              <% if (h.image && h.image.data) { %>
-                <img src="data:<%= h.image.contentType %>;base64,<%= h.image.data.toString('base64') %>"
-                     alt="<%= h.name %> banner" width="100"/>
-              <% } else { %>
-                <em>No image</em>
-              <% } %>
+            <!-- Banner image: show image if available, placeholder text if not -->
+            <% if (h.image) { %>
+               <img src="/images/<%= h.image %>" 
+                alt="<%= h.title %>" 
+                style="max-width: 200px; max-height: 200px; object-fit: cover; border-radius: 4px;"
+                onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
+            <% } else { %>
+                <img src="/images/placeholder.jpg">
+            <% } %> 
             </td>
-
             <!-- Display school codes — join array into readable string -->
             <td>
               <% if (h.eligibleSchools.includes('open')) { %>
@@ -185,7 +185,7 @@
               <%= statusLabels[h.status] || h.status %>
               <% if (h.status === 'open') { %>
                 <br/>
-                <a href="/hack-events/<%= h._id %>/signup">
+                <a href="/hack-events/<%= h.eventId %>">
                   <button type="button">Sign Up</button>
                 </a>
               <% } %>

@@ -13,7 +13,7 @@ function clean(body) {
     careerType: body.careerType?.trim(),
     description: body.description?.trim() || undefined,
     location: body.location?.trim() || undefined,
-    image: body.image?.trim() || undefined,
+    image: body.image?.trim() || "default-cover.jpg",
     applyLink: body.applyLink?.trim() || undefined,
     sector: body.sector || undefined,
     salary: body.salary ? Number(body.salary) : undefined,
@@ -60,8 +60,6 @@ exports.displayCareers = async (req, res) => {
     const careerEvents = await Career.findWithFilter(filter);
     const rsvps = await RSVP.getUserRSVP(req.session.user.userId);
     const pinnedIDs = rsvps.map(r => r.event.toString());
-    const user = await User.findById(req.session.user.id);
-    // const isCareerAdmin = user?.admin_type === 'career-admin';
     res.render('career', {
       jobs: careerEvents.filter(e => e.careerType !== 'workshop'),
       workshops: careerEvents.filter(e => e.careerType === 'workshop'),
@@ -75,22 +73,22 @@ exports.displayCareers = async (req, res) => {
       dateFrom: dateFrom || '',
       dateTo: dateTo || '',
       q,
-      isCareerAdmin:true
+      user:req.session.user
     });
   } catch (error) {
     res.status(500).send(error.message)
   }
 };
 
-// GET /career-events/detail
+// GET /career-events/:id
 exports.careerDetail = async (req, res) => {
   try {
-    const event = await Career.findByEventId(req.query.id);
-    const registered = await RSVP.isAlreadyRsvp(req.query.id, req.session.user.userId);
+    console.log(req.params.id)
+    const event = await Career.findByEventId(req.params.id);
+    const registered = await RSVP.isAlreadyRsvp(req.params.id, req.session.user.userId);
     const confirmedCount = await RSVP.getDocCount(event.eventId,'confirmed');
     const waitlistCount = await RSVP.getDocCount(event.eventId,'waitlist');
-    console.log(event,confirmedCount,waitlistCount)
-    res.render('event-detail', { event, state: registered?.status, confirmedCount,waitlistCount });
+    res.render('event-detail', { event, state: registered?.status, confirmedCount, waitlistCount });
   } catch (error) {
     res.status(500).send(error.message)
   }

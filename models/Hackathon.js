@@ -4,7 +4,7 @@ const hackathonSchema = new mongoose.Schema({
   title: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   description: { type: String, required: true }, 
-  category: { type: String, required: true }, // "Hackathons"
+  category: { type: String, required: true }, // "Hackathon"
   location: { type: String, required: true },
   eligibleSchools: {type: Array, required: true}, // array of selected school codes e.g.[scis, soe, sob]
   eligibleMajors: {type: Array, required: true}, // array of selected majors from each school
@@ -47,3 +47,6 @@ exports.deleteById = function (id) {
   return Hackathon.findByIdAndDelete(id);
 };
  
+exports.findByEventId = function (eventId) {
+  return Hackathon.findOne({ eventId });
+};

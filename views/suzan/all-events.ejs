@@ -8,7 +8,16 @@
 </head>
 <body>
   <%- include('../navbar') %>
-
+  <%// Helper function to get /x/:id for detail page
+  const getDetailUrl = (category, eventId) => {
+      const routes = {
+          'CCA': '/cca-events',
+          'Hackathon': '/hack-events',
+          'Career': '/career-events',
+          'Part Time Jobs': '/part-time-jobs'
+      };
+      return `${routes[category]}/${eventId}`;
+  };%>
   <main class="main all-events-page">
     <!-- SAVED EVENTS (My Saved Events) -->
     <section id="saved-events">
@@ -42,12 +51,12 @@
           <tr>
             <% latestEvents.forEach(function(event) { %>
               <td colspan="2" class="event-cell event-image-cell">
-                <% if (event.image && event.image.data) { %>
+                <% if (event.image) { %>
                   <img
-                    src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
+                    src="/images/<%= event.image %>"
                     alt="<%= event.title %>"
-                    class="event-table-image"
-                  >
+                    class="event-table-image
+                    onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
                 <% } else { %>
                   <div class="event-table-image-placeholder">No Image</div>
                 <% } %>
@@ -81,7 +90,7 @@
             <% latestEvents.forEach(function(event) { %>
               <td class="event-cell event-label">Date:</td>
               <td class="event-cell event-value">
-                <%= event.date ? new Date(event.date).toLocaleDateString('en-GB') : 'TBD' %>
+              <%= event.startDate ? new Date(event.startDate).toLocaleDateString('en-GB') : 'TBD' %>
               </td>
             <% }) %>
           </tr>
@@ -91,7 +100,9 @@
             <% latestEvents.forEach(function(event) { %>
               <td class="event-cell event-label">Time:</td>
               <td class="event-cell event-value">
-                <%= event.date ? new Date(event.date).toLocaleTimeString('en-SG', {hour: '2-digit', minute: '2-digit'}) + ' - 18:00' : 'TBD' %>
+               <%= event.startDate? new Date(event.startDate).toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit' })
+                + ' — '
+                + (event.endDate? new Date(event.endDate).toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit' }): 'TBD'): 'TBD' %>
               </td>
             <% }) %>
           </tr>
@@ -108,7 +119,7 @@
           <tr>
             <% latestEvents.forEach(function(event) { %>
               <td class="event-cell">
-                <button type="button" class="btn btn-other" onclick="register('<%= event._id %>')">Register</button>
+                <a href="<%= getDetailUrl(event.category, event._id) %>" class="btn btn-other">See More</a>
               </td>
               <td class="event-cell">
                 <% 
@@ -153,12 +164,12 @@
 
                   <!-- Event Poster -->
                   <td class="event-cell event-poster-cell">
-                    <% if (event.image && event.image.data) { %>
+                    <% if (event.image) { %>
                       <img
-                        src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
+                        src="/images/<%= event.image %>"
                         alt="<%= event.title %>"
-                        class="event-table-image"
-                      >
+                        class="event-table-image
+                        onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
                     <% } else { %>
                       <div class="event-table-image-placeholder">No Image</div>
                     <% } %>
@@ -173,7 +184,7 @@
 
                   <!-- See More -->
                   <td class="event-cell">
-                    <a href="/events/<%= event._id %>" class="btn btn-other">See More</a>
+                    <a href="<%= getDetailUrl(event.category, event._id) %>" class="btn btn-other">See More</a>
                   </td>
 
                   <!-- Save -->

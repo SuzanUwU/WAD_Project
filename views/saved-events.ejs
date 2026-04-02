@@ -23,10 +23,10 @@
       <% if (events && events.length > 0) { %>
         <% events.forEach(function(event) { %>
           <div class="card event-card">
-            <% if (event.image && event.image.data) { %>
+            <% if (event.image) { %>
               <img
                 class="event-image"
-                src="data:<%= event.image.contentType %>;base64,<%= event.image.data.toString('base64') %>"
+                src="data:<%= event.image%>"
                 alt="<%= event.title %>"
               >
             <% } else { %>

@@ -18,15 +18,13 @@ function getSessionUser(req) {
   };
 }
 
-function datesOverlap(startA, endA, startB, endB) {
-  return startA <= endB && endA >= startB;
-}
 
-// GET /:id/signup
+// GET /:id   this is eventId not hackathonid
 exports.showSignupForm = async (req, res) => {
   try {
-    const hackathon = await Hackathon.findById(req.params.id);
+    const hackathon = await Hackathon.findByEventId(req.params.id);
     if (!hackathon) return res.status(404).send('Hackathon not found.');
+    console.log(hackathon);
     if (hackathon.status !== 'open')
       return res.status(403).send('Registration is not open for this hackathon.');
 
@@ -39,9 +37,11 @@ exports.showSignupForm = async (req, res) => {
   }
 };
 
-// POST /:id/signup
+// POST /:id this is eventid
 exports.registerAttendee = async (req, res) => {
-  const hackathonId = req.params.id;
+  const hackathon = await Hackathon.findByEventId(req.params.id);
+  if (!hackathon) return res.status(404).send('Hackathon not found.');
+  const hackathonId = hackathon._id.toString();
   const { userId, username, email, school, major, teamSize } = req.body;
 
   const toArray = v => !v ? [] : Array.isArray(v) ? v : [v];
@@ -49,10 +49,7 @@ exports.registerAttendee = async (req, res) => {
   const teammateIds    = toArray(req.body.teammateUserId).filter(u => u.trim() !== '');
   const parsedTeamSize = parseInt(teamSize) || 1;
   const errors = [];
-
-  const hackathon = await Hackathon.findById(hackathonId);
-  if (!hackathon) return res.status(404).send('Hackathon not found.');
-
+  
   // Check 1: Status
   if (hackathon.status !== 'open')
     errors.push('Registration is not currently open for this hackathon.');
@@ -62,21 +59,13 @@ exports.registerAttendee = async (req, res) => {
     errors.push('Your school is not eligible for this hackathon.');
   if (major && !hackathon.eligibleMajors.includes('open') && !hackathon.eligibleMajors.includes(major))
     errors.push('Your major is not eligible for this hackathon.');
-
-  // Check 3: Duplicate check
-  if (await HackRegistration.findDuplicate(hackathonId, userId))
-    errors.push('You are already registered for this hackathon.');
-
-  // Check 4: Scheduling conflict
-  const existingRegs = await HackRegistration.findByUser(userId);
-  if (existingRegs.length > 0) {
-    const existingHacks = await Hackathon.findManyByIds(existingRegs.map(r => r.hackathonId));
-    const conflicts = existingHacks.filter(h =>
-      h._id.toString() !== hackathonId &&
-      datesOverlap(hackathon.startDate, hackathon.endDate, h.startDate, h.endDate)
-    );
-    if (conflicts.length > 0)
-      errors.push(`This hackathon overlaps with: ${conflicts.map(h => h.name).join(', ')}.`);
+  
+  // Gate 3: Duplicate check
+  let state = await RSVP.isAlreadyRsvp(hackathon.eventId, userId);
+  console.log(state)
+  if (state) {
+    state = state.status === 'confirmed' ? 'registered' : 'waitlisted';
+    errors.push(`You are already ${state} for this hackathon.`);
   }
 
   // Check 5: Team size range
@@ -115,7 +104,7 @@ exports.registerAttendee = async (req, res) => {
 
   try {
 
-    const eventId = req.body.eventId || hackathon.eventId || null;
+    const eventId = req.params.id;
     await HackRegistration.createRegistration({
       hackathonId,
       eventId,
@@ -126,15 +115,8 @@ exports.registerAttendee = async (req, res) => {
       teamMembers: resolvedTeammates,
       teamSize:    parsedTeamSize,
     });
-    // Create RSVP entry so the registration appears in the db
-    if (eventId) {
-      await RSVP.join(eventId, userId, 'confirmed');
-    }
-
-    return res.render('ari/signup-hackathon', {
-      hackathon, currentUser: getSessionUser(req),
-      errors: [], success: 'You have successfully registered your team!', formData: {},
-    });
+    //pass to joinrsvp function to check for time conflict,waitlist/confirmation and update personal calendar
+    return require('../controllers/profileController').joinRsvp(req, res);
 
   } catch (err) {
     console.error('Error loading attendees:', err.message);
@@ -149,15 +131,19 @@ exports.registerAttendee = async (req, res) => {
   }
 };
 
-// GET /:id/attendees 
+// GET /:id/attendees param is hackathonid
 exports.showAttendees = async (req, res) => {
   try {
-    const [hackathon, schools, registrations] = await Promise.all([
+    const [hackathon, schools] = await Promise.all([
       Hackathon.findById(req.params.id),
-      School.find({}).sort({ displayName: 1 }),
-      HackRegistration.findByHackathon(req.params.id),
+      School.find({}).sort({ displayName: 1 })
     ]);
     if (!hackathon) return res.status(404).send('Hackathon not found.');
+
+    let registrations = await HackRegistration.findByHackathon(req.params.id);
+    let rsvps=await RSVP.getConfirmed(hackathon.eventId);//confirmed attendees
+    rsvps = rsvps.map(r => r.user);//retrieve confirmed grp leader
+    registrations = registrations.filter(reg => rsvps.includes(reg.userId));
 
     const schoolMap = {};
     const majorMap  = {};

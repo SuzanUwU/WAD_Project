@@ -11,8 +11,8 @@ const Event = require('../models/eventModel');
 const renderAllEvents = async (req, res) => {
     try {
         // 1. Fetch ALL the standard events for the main dashboard
-        const allEvents = await Event.find(); 
-        
+        const allEvents = await Event.retrieveAll(); 
+        const latestEvents = events.slice(0, 6)
         // 2. Set up an empty array for subscriptions just in case
         let mySubscriptions = [];
 
@@ -23,9 +23,7 @@ const renderAllEvents = async (req, res) => {
                 mySubscriptions = userSubDoc.events;
             }
         }
-        // do we use this one? help idk
-    // const events = await Event.retrieveAll().sort({ startDate: 1 });
-
+     
         // 4. Send BOTH arrays to the EJS page
         res.render('all-events', { 
             events: allEvents, 

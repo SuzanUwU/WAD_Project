@@ -2,9 +2,23 @@ const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 
 // Generate next admin ID (A001, A002...)
+// async function generateAdminId() {
+//   const count = await User.countDocuments({ role: 'admin' });
+//   return `A${(count + 1).toString().padStart(3, '0')}`;
+// }
+
 async function generateAdminId() {
-  const count = await User.countDocuments({ role: 'admin' });
-  return `A${(count + 1).toString().padStart(3, '0')}`;
+  const lastAdmin = await User.findOne({ role: 'admin' })
+    .sort({ userId: -1 }); // get highest Axxx
+
+  if (!lastAdmin) {
+    return "A001";
+  }
+
+  const lastNumber = parseInt(lastAdmin.userId.slice(1)); // remove "A"
+  const nextNumber = lastNumber + 1;
+
+  return `A${nextNumber.toString().padStart(3, '0')}`;
 }
 
 // khin - added

@@ -43,29 +43,10 @@
   </fieldset>
 
   <!-- BANNER IMAGE -->
-  <fieldset>
-    <legend>Banner Image</legend>
-
-    <% if (isEdit && hackathon.image && hackathon.image.data) { %>
-      <p>
-        <strong>Current Banner:</strong><br/>
-        <img src="data:<%= hackathon.image.contentType %>;base64,<%= hackathon.image.data.toString('base64') %>"
-             alt="Current banner" width="300"/><br/>
-        <small>Upload a new image below to replace it.</small>
-      </p>
-    <% } %>
-
-    <p>
-      <label for="bannerImage">
-        <%= isEdit ? 'Replace Banner Image:' : 'Upload Banner Image:' %>
-      </label><br/>
-      <input type="file" id="bannerImage" name="bannerImage"
-             accept="image/jpeg, image/png, image/webp, image/gif"/><br/><br/>
-      <small>Accepted: JPG, PNG, WEBP, GIF. Max size: 2MB.
-        <%= isEdit ? 'Leave blank to keep the current banner.' : '' %>
-      </small>
-    </p>
-  </fieldset>
+  <p>
+    <label for="image">Banner Image:</label><br/>
+    <input type="text" id="image" name="image" value="<%= hackathon.image || '' %>" placeholder="vivace.jpeg" />
+  </p>
 
   <!-- ELIGIBILITY -->
   <fieldset>

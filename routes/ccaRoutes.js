@@ -6,10 +6,6 @@ const ccaAdminController = require("../controllers/ccaAdminController");
 
 const { requireLogin, requireAdmin } = require("../middleware/auth");
 
-const multer = require("multer");
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-
 
 // ================= USER ROUTES =================
 
@@ -35,10 +31,10 @@ router.post("/reviews/:reviewId/delete", requireLogin, ccaController.deleteRevie
 router.get("/ccaAdmin", requireAdmin, ccaAdminController.getAllEvents);
 
 router.get("/ccaAdmin/create", requireAdmin, ccaAdminController.showCreateForm);
-router.post("/ccaAdmin/create", requireAdmin, upload.single("image"), ccaAdminController.createEvent);
+router.post("/ccaAdmin/create", requireAdmin, ccaAdminController.createEvent);
 
 router.get("/ccaAdmin/:id/edit", requireAdmin, ccaAdminController.showEditForm);
-router.post("/ccaAdmin/:id/edit", requireAdmin, upload.single("image"), ccaAdminController.updateEvent);
+router.post("/ccaAdmin/:id/edit", requireAdmin, ccaAdminController.updateEvent);
 
 router.post("/ccaAdmin/delete/:id", requireAdmin, ccaAdminController.deleteEvent);
 
