@@ -1,81 +1,99 @@
-// server.js
 const express = require("express");
 const dotenv = require('dotenv');
-dotenv.config({ path: './config.env' }); 
+dotenv.config({ path: './config.env' });
+
 const mongoose = require('mongoose');
-const path = require('path'); // ← ADD for views path
-const multer = require('multer');
+const path = require('path');
+const session = require('express-session');
 
 // routes
-const eventRoutes = require('./routes/eventRoutes');
+const alleventRoutes = require('./routes/alleventRoutes');
 const authRoutes = require('./routes/authRoutes');
+const ccaRoutes = require('./routes/ccaRoutes');
+const hackathonRoutes = require('./routes/hackathonRoutes');
+const superadminRoutes = require('./routes/superadminRoutes');
+const profileRoutes = require('./routes/profileRoutes')
+const careerRoutes = require('./routes/careerRoutes')
+const JobRoutes=require('./routes/jobRoutes')
+const ApplicationRoutes = require('./routes/applicationRoutes')
 
-// Import Event model for quick test (optional, remove after testing)
-const Event = require('./models/Event'); // ← ADD (assumes models/events.js exists)
+
+// middleware
+const superadminController = require('./controllers/superadminController');
+const { requireSuperAdmin, requireLogin } = require('./middleware/auth');
 
 const server = express();
 
-server.use('/', authRoutes);  // Before eventRoutes
-server.use('/events', eventRoutes);
-
-const ccaRoutes = require("./routes/ccaRoutes");
-server.use("/events", ccaRoutes);
-
-// server.use(express.static(path.join(__dirname, 'public'))); 
-// server.use(multer({ storage: multer.memoryStorage() }).any()); // image uploads
-server.use(express.urlencoded({ extended: true })); // for form posting
-server.use(express.json()); // express.json() is a middleware
+// ================= MIDDLEWARE =================
 server.use(express.static(path.join(__dirname, 'public')));
+server.use(express.urlencoded({ extended: true }));
+server.use(express.json());
 
-server.set("view engine", "ejs"); // Set EJS as the view engine for rendering dynamic HTML pages
-server.set('views', path.join(__dirname, 'views')); // ← ADD: explicit views path
+// SESSION
+server.use(session({
+  secret: process.env.SESSION_SECRET || 'keyboard-cat-secret-12345',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24,
+    secure: false
+  }
+}));
 
-// root routes
-// server.use('/', eventRoutes);
+// make user available in ALL EJS
+server.use((req, res, next) => {
+  res.locals.user = req.session?.user || null;
+  next();
+});
 
-// Specify the path to the environment variablef file 'config.env'
-dotenv.config({ path: './config.env' });
+// ================= VIEW ENGINE =================
+server.set("view engine", "ejs");
+server.set('views', path.join(__dirname, 'views'));
 
-// async function to connect to DB
+// ================= ROUTES =================
+server.use('/', authRoutes);
+
+// hackathon API (IMPORTANT: before login)
+server.get('/api/majors', require('./controllers/hackathonController').getMajorsBySchool);
+
+// protected routes
+server.use('/all-events', alleventRoutes);//landing page
+server.use('/hack-events', requireLogin, hackathonRoutes);
+server.use('/cca-events', requireLogin, ccaRoutes);
+server.use('/dashboard',requireLogin,profileRoutes);
+server.use('/career-events', requireLogin, careerRoutes);
+server.use('/events', requireLogin,JobRoutes);
+server.use('/events',requireLogin,ApplicationRoutes);
+
+
+// superadmin
+server.use('/superadmin', requireSuperAdmin, superadminRoutes);
+server.post('/superadmin/create-admin', requireSuperAdmin, superadminController.createAdmin);
+
+// homepage
+server.get('/', (req, res) => {
+  res.render('welcome', { user: req.session?.user || null });
+});
+
+// ================= DATABASE =================
 async function connectDB() {
   try {
-    // connecting to Database with our config.env file and DB is constant in config.env
     await mongoose.connect(process.env.DB);
     console.log("MongoDB connected successfully");
-
-    // 🧪 QUICK TEST: Check if events data exists (remove after confirming)
-    const testEvents = await Event.find();
-    console.log(`📊 Found ${testEvents.length} events in DB`);
-    if (testEvents.length > 0) {
-      console.log('✅ First event:', testEvents[0]);
-    } else {
-      console.log('⚠️  No events – add some data to "events" collection');
-    }
-
   } catch (error) {
     console.error("MongoDB connection failed:", error.message);
     process.exit(1);
   }
 }
 
+// ================= START SERVER =================
 function startServer() {
   const hostname = "localhost";
   const port = 8000;
 
-  // Start the server and listen on the specified hostname and port
   server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
-    console.log(`📱 Test: http://${hostname}:${port}/events`); // ← Better log
   });
 }
 
-// call connectDB first and when connection is ready we start the web server
 connectDB().then(startServer);
-
-// 🗑️ DELETE ALL BELOW HERE (old code):
-// wait right here //
-// Route to display main events page
-// server.get("/events", async (req, res) => { ... });
-// const hostname = "localhost";
-// const port = 8000;
-// server.listen(port, hostname, () => { ... });
