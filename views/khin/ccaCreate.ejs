@@ -101,26 +101,11 @@ input, textarea, select {
 
 <body>
 
-<!-- HEADER -->
-<div class="header">
-
-    <div class="header-left">
-        <img src="/images/smu1.webp" width="60">
-        <h2>Create a new event</h2>
-    </div>
-
-    <div>
-        Logged in as <b><%= user.username %></b> (<%= user.role %>)
-        <br>
-        <a href="/logout">Logout</a>
-    </div>
-
-</div>
+<%- include('../navbar', { user: user }) %>
 
 <div class="container">
 <div class="card">
 
-<!-- GLOBAL ERROR -->
 <% if (errors && Object.keys(errors).length > 0) { %>
   <div class="error-box">
     Please fix the errors below.
@@ -149,7 +134,7 @@ input, textarea, select {
 
 <!-- IMAGE -->
 <div class="form-group">
-    <label>Club Image (filename in /public/images)</label>
+    <label>Club Image</label>
     <input type="text" name="image" value="<%= formData?.image || '' %>" placeholder="e.g. smu.jpg">
 </div>
 
@@ -168,6 +153,16 @@ input, textarea, select {
     <input type="date" name="endDate" value="<%= formData?.endDate || '' %>">
     <% if (errors && errors.endDate) { %>
         <div class="error"><%= errors.endDate %></div>
+    <% } %>
+</div>
+
+<!-- REGISTRATION DEADLINE -->
+<div class="form-group">
+    <label>Registration Deadline</label>
+    <input type="date" name="deadline" value="<%= formData?.deadline || '' %>">
+
+    <% if (errors && errors.deadline) { %>
+        <div class="error"><%= errors.deadline %></div>
     <% } %>
 </div>
 

@@ -63,19 +63,7 @@ th {
 <body>
 
 <!-- HEADER -->
-<div class="header">
-    <img src="/images/smu1.webp" width="70">
-    <h2>Event Attendees</h2>
-
-    <div style="margin-left:auto; text-align:right;">
-        <% if (user) { %>
-            <div>
-                Logged in as <b><%= user.username %></b> (<%= user.role %>)
-            </div>
-            <a href="/logout">Logout</a>
-        <% } %>
-    </div>
-</div>
+<%- include('../navbar', { user: user }) %>
 
 <div class="container">
 

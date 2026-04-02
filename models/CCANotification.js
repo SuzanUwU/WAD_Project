@@ -1,16 +1,20 @@
 const mongoose = require("mongoose");
 
 const ccaNotificationSchema = new mongoose.Schema({
-  userId: String,
+  userId: { type: String },
+
   eventId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Event"
   },
-  eventTitle: String,
-  field: String,
-  oldValue: String,
-  newValue: String,
+
+  eventTitle: { type: String },
+  field: { type: String },
+  oldValue: { type: String },
+  newValue: { type: String },
+
   isRead: { type: Boolean, default: false },
+
   createdAt: { type: Date, default: Date.now }
 });
 

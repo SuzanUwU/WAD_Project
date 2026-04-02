@@ -1,17 +1,23 @@
 const mongoose = require("mongoose");
 
 const ccaReviewSchema = new mongoose.Schema({
-  userId: String,
-  name: String,
+  userId: { type: String },
+
+  name: { type: String },
+
   eventId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "CCA"
   },
-  rating: Number,
-  comment: String,
+
+  rating: { type: Number },
+
+  comment: { type: String },
+
   createdAt: { type: Date, default: Date.now }
 });
 
+// prevent duplicate reviews
 ccaReviewSchema.index({ userId: 1, eventId: 1 }, { unique: true });
 
 const CCAReview = mongoose.model("CCAReview", ccaReviewSchema);

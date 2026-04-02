@@ -126,6 +126,10 @@ body {
 <%
   const today = new Date().toISOString().split("T")[0];
   const endDate = cca.endDate ? new Date(cca.endDate).toISOString().split("T")[0] : null;
+
+  const deadline = cca.registrationDeadline 
+    ? new Date(cca.registrationDeadline).toISOString().split("T")[0] 
+    : null;
 %>
 
 <div style="margin-top:20px;">
@@ -150,9 +154,13 @@ body {
                 View My Registered Events
             </a>
 
+        <% } else if (deadline && deadline < today) { %>
+
+        <p style="color:red;"><b>Registration closed.</b></p>
+
         <% } else if (endDate && endDate < today) { %>
 
-            <p><b>Event ended. Registration closed.</b></p>
+        <p><b>Event ended.</b></p>
 
         <% } else { %>
 

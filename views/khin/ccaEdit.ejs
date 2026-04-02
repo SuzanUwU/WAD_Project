@@ -154,6 +154,22 @@ input, textarea, select {
     <% } %>
 </div>
 
+<!-- REGISTRATION DEADLINE -->
+<div class="form-group">
+    <label>Registration Deadline</label>
+    <input 
+        type="date" 
+        name="deadline" 
+        value="<%= cca.registrationDeadline 
+            ? new Date(cca.registrationDeadline).toISOString().split('T')[0] 
+            : '' %>"
+    >
+
+    <% if (errors && errors.deadline) { %>
+        <div class="error"><%= errors.deadline %></div>
+    <% } %>
+</div>
+
 <!-- LOCATION -->
 <div class="form-group">
     <label>Location</label>

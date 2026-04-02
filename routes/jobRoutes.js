@@ -5,27 +5,18 @@ const JobController = require('../controllers/ptController.js');
 const { requireLogin, requireAdmin } = require("../middleware/auth");
 
 
-// ================= USER ROUTES =================
+router.get('/part-time-jobs',JobController.displayalljob);
 
-// view jobs (students)
-router.get('/part-time-jobs', JobController.displayalljob);
+router.get('/part-time-jobs/create', requireAdmin,JobController.displayJobform);
+router.post('/part-time-jobs/create', requireAdmin,JobController.createNewJob);
+
+router.get('/part-time-jobs/update-job',requireAdmin, JobController.retrieveJob);
+router.post('/part-time-jobs/update-job',requireAdmin, JobController.editJob);
 
 
-// ================= ADMIN ROUTES =================
+router.get('/part-time-jobs/delete-job',requireAdmin, JobController.getDeleteJob);
 
-// admin dashboard (NEW)
-router.get('/admin', requireAdmin, JobController.displayalljob);
 
-// create job
-router.get('/admin/create', requireAdmin, JobController.displayJobform);
-router.post('/admin/create', requireAdmin, JobController.createNewJob);
-
-// update job
-router.get('/admin/update', requireAdmin, JobController.retrieveJob);
-router.post('/admin/update', requireAdmin, JobController.editJob);
-
-// delete job
-router.get('/admin/delete', requireAdmin, JobController.getDeleteJob);
 
 
 module.exports = router;

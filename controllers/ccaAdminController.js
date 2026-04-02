@@ -93,11 +93,11 @@ exports.createEvent = async (req, res) => {
 
     const errors = {};
 
-    if (!req.body.title) {
+    if (!req.body.title || req.body.title.trim() === "") {
       errors.title = "Title is required";
     }
 
-    if (!req.body.organizer) {
+    if (!req.body.organizer || req.body.organizer.trim() === "") {
       errors.organizer = "Organizer is required";
     }
 
@@ -121,11 +121,20 @@ exports.createEvent = async (req, res) => {
       errors.clubType = "Please select a club type";
     }
 
+    if (
+      req.body.deadline &&
+      !errors.deadline && 
+      req.body.startDate &&
+      new Date(req.body.deadline) > new Date(req.body.startDate)
+    ) {
+      errors.deadline = "Deadline must be before event start date";
+    }
+
     if (req.body.capacity && req.body.capacity < 1) {
       errors.capacity = "Capacity must be at least 1";
     }
 
-    // ❗ if got errors → render back
+    // if got errors → render back
     if (Object.keys(errors).length > 0) {
       return res.render("khin/ccaCreate", {
         user: req.session.user,
@@ -158,7 +167,8 @@ exports.createEvent = async (req, res) => {
       location: req.body.location,
       clubType: req.body.clubType,
       capacity: req.body.capacity || 0,
-      image: req.body.image || "placeholder.jpg"
+      image: req.body.image || "placeholder.jpg",
+      registrationDeadline: req.body.deadline || null
     });
 
     res.redirect("/cca-events/ccaAdmin");
@@ -202,11 +212,11 @@ exports.updateEvent = async (req, res) => {
     // ================= VALIDATION =================
     const errors = {};
 
-    if (!req.body.title) {
+    if (!req.body.title || req.body.title.trim() === "") {
       errors.title = "Title is required";
     }
 
-    if (!req.body.organizer) {
+    if (!req.body.organizer || req.body.organizer.trim() === "") {
       errors.organizer = "Organizer is required";
     }
 
@@ -219,11 +229,12 @@ exports.updateEvent = async (req, res) => {
     }
 
     if (
+      req.body.deadline &&
+      !errors.deadline && 
       req.body.startDate &&
-      req.body.endDate &&
-      new Date(req.body.endDate) < new Date(req.body.startDate)
+      new Date(req.body.deadline) > new Date(req.body.startDate)
     ) {
-      errors.endDate = "End date must be after start date";
+      errors.deadline = "Deadline must be before event start date";
     }
 
     if (!req.body.clubType) {
@@ -232,6 +243,14 @@ exports.updateEvent = async (req, res) => {
 
     if (req.body.capacity && req.body.capacity < 1) {
       errors.capacity = "Capacity must be at least 1";
+    }
+
+    if (
+      req.body.deadline &&
+      req.body.startDate &&
+      new Date(req.body.deadline) > new Date(req.body.startDate)
+    ) {
+      errors.deadline = "Deadline must be before event start date";
     }
 
     // ================= IF ERROR =================
@@ -300,7 +319,8 @@ exports.updateEvent = async (req, res) => {
       description: req.body.description,
       clubType: req.body.clubType,
       capacity: req.body.capacity || 0,
-      image: req.body.image ? req.body.image : cca.image
+      image: req.body.image ? req.body.image : cca.image,
+      registrationDeadline: req.body.deadline ? req.body.deadline : cca.registrationDeadline
     });
 
     res.redirect("/cca-events/ccaAdmin");
