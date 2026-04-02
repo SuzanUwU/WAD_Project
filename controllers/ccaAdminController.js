@@ -80,7 +80,9 @@ exports.getAllEvents = async (req, res) => {
 // ================= CREATE FORM =================
 exports.showCreateForm = (req, res) => {
   res.render("khin/ccaCreate", {
-    user: req.session.user
+    user: req.session.user,
+    errors: {},
+    formData: {} 
   });
 };
 
@@ -88,6 +90,51 @@ exports.showCreateForm = (req, res) => {
 // ================= CREATE =================
 exports.createEvent = async (req, res) => {
   try {
+
+    const errors = {};
+
+    if (!req.body.title) {
+      errors.title = "Title is required";
+    }
+
+    if (!req.body.organizer) {
+      errors.organizer = "Organizer is required";
+    }
+
+    if (!req.body.startDate) {
+      errors.startDate = "Start date is required";
+    }
+
+    if (!req.body.endDate) {
+      errors.endDate = "End date is required";
+    }
+
+    if (
+      req.body.startDate &&
+      req.body.endDate &&
+      new Date(req.body.endDate) < new Date(req.body.startDate)
+    ) {
+      errors.endDate = "End date must be after start date";
+    }
+
+    if (!req.body.clubType) {
+      errors.clubType = "Please select a club type";
+    }
+
+    if (req.body.capacity && req.body.capacity < 1) {
+      errors.capacity = "Capacity must be at least 1";
+    }
+
+    // ❗ if got errors → render back
+    if (Object.keys(errors).length > 0) {
+      return res.render("khin/ccaCreate", {
+        user: req.session.user,
+        errors,
+        formData: req.body   // keep user input
+      });
+    }
+
+    // CREATE EVENT
     const newEvent = await Event.create({
       title: req.body.title,
       organizer: req.body.organizer,
@@ -99,6 +146,7 @@ exports.createEvent = async (req, res) => {
       image: req.body.image || "placeholder.jpg"
     });
 
+    // CREATE CCA
     await CCAmodel.createCCA({
       eventId: newEvent._id,
       title: req.body.title,
@@ -121,6 +169,7 @@ exports.createEvent = async (req, res) => {
   }
 };
 
+
 // ================= EDIT FORM =================
 exports.showEditForm = async (req, res) => {
   try {
@@ -129,7 +178,8 @@ exports.showEditForm = async (req, res) => {
     res.render("khin/ccaEdit", {
       cca,
       event: cca.eventId,
-      user: req.session.user
+      user: req.session.user,
+      errors: {}
     });
 
   } catch (err) {
@@ -138,15 +188,69 @@ exports.showEditForm = async (req, res) => {
   }
 };
 
-
-// ================= UPDATE =================
+// =================  UPDATE CCA EVENT =================
 exports.updateEvent = async (req, res) => {
   try {
+
+    // get current event
     const cca = await CCAmodel.getCCAById(req.params.id);
 
     if (!cca || !cca.eventId) {
       return res.send("CCA event not found properly");
     }
+
+    // ================= VALIDATION =================
+    const errors = {};
+
+    if (!req.body.title) {
+      errors.title = "Title is required";
+    }
+
+    if (!req.body.organizer) {
+      errors.organizer = "Organizer is required";
+    }
+
+    if (!req.body.startDate) {
+      errors.startDate = "Start date is required";
+    }
+
+    if (!req.body.endDate) {
+      errors.endDate = "End date is required";
+    }
+
+    if (
+      req.body.startDate &&
+      req.body.endDate &&
+      new Date(req.body.endDate) < new Date(req.body.startDate)
+    ) {
+      errors.endDate = "End date must be after start date";
+    }
+
+    if (!req.body.clubType) {
+      errors.clubType = "Please select a club type";
+    }
+
+    if (req.body.capacity && req.body.capacity < 1) {
+      errors.capacity = "Capacity must be at least 1";
+    }
+
+    // ================= IF ERROR =================
+    if (Object.keys(errors).length > 0) {
+
+      const formData = {
+        ...cca.toObject(),
+        ...req.body
+      };
+
+      return res.render("khin/ccaEdit", {
+        cca: formData,
+        event: cca.eventId,
+        user: req.session.user,
+        errors
+      });
+    }
+
+    // ================= NORMAL UPDATE FLOW =================
 
     const oldEvent = cca.eventId;
     const eventId = oldEvent._id;
@@ -166,7 +270,7 @@ exports.updateEvent = async (req, res) => {
       }
     };
 
-    // SAFE comparison
+    // check changes
     if ((oldEvent.location || "") !== (req.body.location || "")) {
       await createNotifications("location", oldEvent.location, req.body.location);
     }
@@ -175,7 +279,7 @@ exports.updateEvent = async (req, res) => {
       await createNotifications("capacity", cca.capacity, req.body.capacity);
     }
 
-    // (use updateById)
+    // update Event
     await Event.updateById(eventId, {
       title: req.body.title,
       organizer: req.body.organizer,
@@ -183,10 +287,10 @@ exports.updateEvent = async (req, res) => {
       endDate: req.body.endDate,
       location: req.body.location,
       description: req.body.description,
-      image: req.body.image || "placeholder.jpg"
+      image: req.body.image ? req.body.image : cca.image
     });
 
-    // removed multer
+    // update CCA
     await CCAmodel.updateCCA(req.params.id, {
       title: req.body.title,
       organizer: req.body.organizer,
@@ -196,7 +300,7 @@ exports.updateEvent = async (req, res) => {
       description: req.body.description,
       clubType: req.body.clubType,
       capacity: req.body.capacity || 0,
-      image: req.body.image || "placeholder.jpg"
+      image: req.body.image ? req.body.image : cca.image
     });
 
     res.redirect("/cca-events/ccaAdmin");

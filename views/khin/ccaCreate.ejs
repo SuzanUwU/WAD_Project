@@ -58,6 +58,21 @@ input, textarea, select {
     border: 1px solid #ccc;
 }
 
+/* ERROR */
+.error {
+    color: red;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.error-box {
+    background: #ffe0e0;
+    color: #a00;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
 /* BUTTON */
 .btn {
     padding: 10px 16px;
@@ -103,63 +118,94 @@ input, textarea, select {
 </div>
 
 <div class="container">
-
 <div class="card">
 
-<form action="/cca-events/ccaAdmin/create" method="POST" enctype="multipart/form-data">
+<!-- GLOBAL ERROR -->
+<% if (errors && Object.keys(errors).length > 0) { %>
+  <div class="error-box">
+    Please fix the errors below.
+  </div>
+<% } %>
 
+<form action="/cca-events/ccaAdmin/create" method="POST">
+
+<!-- TITLE -->
 <div class="form-group">
     <label>Title</label>
-    <input type="text" name="title" required>
+    <input type="text" name="title" value="<%= formData?.title || '' %>">
+    <% if (errors && errors.title) { %>
+        <div class="error"><%= errors.title %></div>
+    <% } %>
 </div>
 
+<!-- ORGANIZER -->
 <div class="form-group">
     <label>Organizer</label>
-    <input type="text" name="organizer" required>
+    <input type="text" name="organizer" value="<%= formData?.organizer || '' %>">
+    <% if (errors && errors.organizer) { %>
+        <div class="error"><%= errors.organizer %></div>
+    <% } %>
 </div>
 
+<!-- IMAGE -->
 <div class="form-group">
-    <label>Club Image</label>
-    <input type="file" name="image" accept="image/*" required>
+    <label>Club Image (filename in /public/images)</label>
+    <input type="text" name="image" value="<%= formData?.image || '' %>" placeholder="e.g. smu.jpg">
 </div>
 
+<!-- START DATE -->
 <div class="form-group">
     <label>Start Date</label>
-    <input type="date" name="startDate" required>
+    <input type="date" name="startDate" value="<%= formData?.startDate || '' %>">
+    <% if (errors && errors.startDate) { %>
+        <div class="error"><%= errors.startDate %></div>
+    <% } %>
 </div>
 
+<!-- END DATE -->
 <div class="form-group">
     <label>End Date</label>
-    <input type="date" name="endDate" required>
+    <input type="date" name="endDate" value="<%= formData?.endDate || '' %>">
+    <% if (errors && errors.endDate) { %>
+        <div class="error"><%= errors.endDate %></div>
+    <% } %>
 </div>
 
+<!-- LOCATION -->
 <div class="form-group">
     <label>Location</label>
-    <input type="text" name="location" required>
+    <input type="text" name="location" value="<%= formData?.location || '' %>">
 </div>
 
+<!-- CLUB TYPE -->
 <div class="form-group">
     <label>Club Type</label>
-    <select name="clubType" required>
-        <option value="" disabled selected>-- Select Club Type --</option>
-        <option value="Sports">Sports</option>
-        <option value="Arts">Arts</option>
-        <option value="Academic">Academic</option>
-        <option value="Community">Community</option>
-        <option value="Leadership">Leadership</option>
+    <select name="clubType">
+        <option value="">-- Select Club Type --</option>
+        <option value="Sports" <%= formData?.clubType === "Sports" ? "selected" : "" %>>Sports</option>
+        <option value="Arts" <%= formData?.clubType === "Arts" ? "selected" : "" %>>Arts</option>
+        <option value="Academic" <%= formData?.clubType === "Academic" ? "selected" : "" %>>Academic</option>
+        <option value="Community" <%= formData?.clubType === "Community" ? "selected" : "" %>>Community</option>
+        <option value="Leadership" <%= formData?.clubType === "Leadership" ? "selected" : "" %>>Leadership</option>
     </select>
+    <% if (errors && errors.clubType) { %>
+        <div class="error"><%= errors.clubType %></div>
+    <% } %>
 </div>
 
-
-
+<!-- CAPACITY -->
 <div class="form-group">
     <label>Capacity</label>
-    <input type="number" name="capacity" min="0">
+    <input type="number" name="capacity" value="<%= formData?.capacity || '' %>" min="1">
+    <% if (errors && errors.capacity) { %>
+        <div class="error"><%= errors.capacity %></div>
+    <% } %>
 </div>
 
+<!-- DESCRIPTION -->
 <div class="form-group">
     <label>Description</label>
-    <textarea name="description" rows="4" required></textarea>
+    <textarea name="description"><%= formData?.description || '' %></textarea>
 </div>
 
 <button type="submit" class="btn btn-primary">
@@ -173,7 +219,6 @@ input, textarea, select {
 </a>
 
 </div>
-
 </div>
 
 </body>

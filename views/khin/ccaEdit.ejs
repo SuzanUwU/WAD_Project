@@ -11,23 +11,11 @@ body {
     margin: 0;
 }
 
-/* HEADER */
-.header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 20px;
-    background-color: white;
-    border-bottom: 1px solid #ddd;
-}
-
-/* CONTAINER */
 .container {
     width: 60%;
     margin: 30px auto;
 }
 
-/* CARD */
 .card {
     background: white;
     padding: 25px;
@@ -35,7 +23,6 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
 
-/* IMAGE */
 .event-image {
     text-align: center;
     margin-bottom: 15px;
@@ -48,9 +35,14 @@ body {
     border-radius: 10px;
 }
 
-/* FORM */
 .form-group {
     margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
 input, textarea, select {
@@ -60,7 +52,20 @@ input, textarea, select {
     border: 1px solid #ccc;
 }
 
-/* BUTTON */
+.error {
+    color: red;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+.error-box {
+    background: #ffe0e0;
+    color: #a00;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+}
+
 .btn {
     padding: 10px 16px;
     border-radius: 6px;
@@ -78,43 +83,49 @@ input, textarea, select {
 
 <body>
 
-<!-- NAVBAR -->
 <%- include('../navbar', { user: user }) %>
 
 <div class="container">
 <div class="card">
+
+<!-- GLOBAL ERROR BOX -->
+<% if (errors && Object.keys(errors).length > 0) { %>
+  <div class="error-box">
+    Please fix the errors below.
+  </div>
+<% } %>
 
 <form action="/cca-events/ccaAdmin/<%= cca._id %>/edit" method="POST">
 
 <!-- IMAGE -->
 <div class="event-image">
     <img 
-        src="<%= cca.image || '/images/placeholder.jpg' %>" 
-        alt="<%= cca.title %>"
+        src="/images/<%= cca.image || 'placeholder.jpg' %>" 
         onerror="this.onerror=null; this.src='/images/placeholder.jpg';"
     >
 </div>
 
 <div class="form-group">
-    <label>Image URL</label>
-    <input 
-        type="text" 
-        name="image" 
-        value="<%= cca.image || '' %>" 
-        placeholder="e.g. https://example.com/image.jpg"
-    />
+    <label>Image</label>
+    <input type="text" name="image" value="<%= cca.image || '' %>">
 </div>
 
 <!-- TITLE -->
 <div class="form-group">
     <label>Title</label>
-    <input name="title" value="<%= cca.title %>" required>
+    <input name="title" value="<%= cca.title %>">
+    <% if (errors && errors.title) { %>
+        <div class="error"><%= errors.title %></div>
+    <% } %>
 </div>
 
 <!-- ORGANIZER -->
 <div class="form-group">
     <label>Organizer</label>
-    <input name="organizer" value="<%= cca.organizer %>" required>
+    <input name="organizer" value="<%= cca.organizer %>">
+    <% if (errors && errors.organizer) { %>
+        <div class="error"><%= errors.organizer %></div>
+    <% } %>
 </div>
 
 <!-- START DATE -->
@@ -124,8 +135,10 @@ input, textarea, select {
         type="date" 
         name="startDate" 
         value="<%= event.startDate ? new Date(event.startDate).toISOString().split('T')[0] : '' %>"
-        required
     >
+    <% if (errors && errors.startDate) { %>
+        <div class="error"><%= errors.startDate %></div>
+    <% } %>
 </div>
 
 <!-- END DATE -->
@@ -135,20 +148,22 @@ input, textarea, select {
         type="date" 
         name="endDate" 
         value="<%= event.endDate ? new Date(event.endDate).toISOString().split('T')[0] : '' %>"
-        required
     >
+    <% if (errors && errors.endDate) { %>
+        <div class="error"><%= errors.endDate %></div>
+    <% } %>
 </div>
 
 <!-- LOCATION -->
 <div class="form-group">
     <label>Location</label>
-    <input name="location" value="<%= cca.location %>" required>
+    <input name="location" value="<%= cca.location %>">
 </div>
 
 <!-- CLUB TYPE -->
 <div class="form-group">
     <label>Club Type</label>
-    <select name="clubType" required>
+    <select name="clubType">
         <option value="">-- Select Club Type --</option>
         <option value="Sports" <%= cca.clubType === "Sports" ? "selected" : "" %>>Sports</option>
         <option value="Arts" <%= cca.clubType === "Arts" ? "selected" : "" %>>Arts</option>
@@ -156,18 +171,24 @@ input, textarea, select {
         <option value="Community" <%= cca.clubType === "Community" ? "selected" : "" %>>Community</option>
         <option value="Leadership" <%= cca.clubType === "Leadership" ? "selected" : "" %>>Leadership</option>
     </select>
+    <% if (errors && errors.clubType) { %>
+        <div class="error"><%= errors.clubType %></div>
+    <% } %>
 </div>
 
 <!-- CAPACITY -->
 <div class="form-group">
     <label>Capacity</label>
-    <input type="number" name="capacity" value="<%= cca.capacity %>">
+    <input type="number" name="capacity" value="<%= cca.capacity %>" min="1">
+    <% if (errors && errors.capacity) { %>
+        <div class="error"><%= errors.capacity %></div>
+    <% } %>
 </div>
 
 <!-- DESCRIPTION -->
 <div class="form-group">
     <label>Description</label>
-    <textarea name="description" rows="4" required><%= cca.description %></textarea>
+    <textarea name="description"><%= cca.description %></textarea>
 </div>
 
 <button type="submit" class="btn btn-primary">
@@ -177,7 +198,6 @@ input, textarea, select {
 </form>
 
 <br>
-
 <a href="/cca-events/ccaAdmin">← Back to Admin Events</a>
 
 </div>
