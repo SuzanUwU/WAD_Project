@@ -1,6 +1,7 @@
 
 const Job = require('../models/jobModel')
 const Event = require('../models/eventModel')
+
 //displays all job records 
 exports.displayalljob = async (req, res) => {
     try {

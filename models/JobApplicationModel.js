@@ -1,78 +1,84 @@
 const mongoose = require('mongoose');
 
-const jobApplicationSchema = new mongoose.Schema ({
+// Define the JobApplication schema
+const jobApplicationSchema = new mongoose.Schema({
     userid: {
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
-        required:true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-    jobid:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Job',
-        required:true 
+    jobid: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job',
+        required: true
     },
-    appliedDate:{
-        type:Date,
-        default:Date.now
-    }, status:{
-        type:String,
-        enum:['pending','accepted','rejected','completed'],
-        default:'pending'
+    appliedDate: {
+        type: Date,
+        default: Date.now
     },
-    jobreview:{
-        ratings:{
-            type:Number,
-            min:0,
-            max:5
+    status: {
+        type: String,
+        enum: ['pending', 'accepted', 'rejected', 'completed'],
+        default: 'pending'
+    },
+    jobreview: {
+        ratings: {
+            type: Number,
+            min: 0,
+            max: 5
         },
-        comments:{
-            type:String,
+        comments: {
+            type: String,
         }
     }
+});
+// ensures that no duplicated jobs records will be found
+jobApplicationSchema.index({ userid: 1, jobid: 1 }, { unique: true });
 
-    });
-
-jobApplicationSchema.index({userid:1,jobid:1}, {unique:true});
-
-module.exports = mongoose.model('JobApplication', jobApplicationSchema);
-
-
-// retrieve all applied applications 
-
-exports.displayall = function (){
-    return jobApplicationSchema.find()
-}
-
-//create new record 
-
-exports.createApplication = function (createApp){
-    return jobApplicationSchema.create(createApp)
-}
-// retrieve any duplicate records 
-
-exports.retrieveduplicates = function (userid,jobid){
-    return jobApplicationSchema.find({userid,jobid})
-}
-
-//retrieve application based on status 
-exports.findByStatus = function(userid, status) {
-    return jobApplicationSchema.find({ userid, status }).populate('jobid'); // match schema field
-}
+const JobApplication = mongoose.model('JobApplication', jobApplicationSchema);
 
 
-// delete job application 
+// display all jobs 
+exports.displayAll = function () {
+    return JobApplication.find(); 
+};
 
-exports.findByIdAndDelete = function(id) {
-    return jobApplicationSchema.findByIdAndDelete(id);
-}
+//create jobs 
+exports.createApplication = function (createApp) {
+    return JobApplication.create(createApp); 
+};
 
-// update status
-exports.updateStatus = function (id,status){
-    return jobApplicationSchema.findByIdandUpdate(id,{status:status})
-}
+//retrieve any duplicates 
+exports.retrieveduplicates = function (userid, jobid) {
+    return JobApplication.find({ userid, jobid }); 
+};
 
-exports.updateReview = function (id,review){
-    return jobApplicationSchema.findByIdandUpdate(id,{jobreview:review})
-}
+// retrieve individual's job 
+exports.findByStatus = function (userid, status) {
+    return JobApplication.find({ userid, status }).populate('jobid'); 
+};
+
+exports.retrieveApplicants = function () {
+    return JobApplication.find() .populate('userId') .populate('jobId');
+};
+
+
+
+
+exports.findByIdAndDelete = function (id) {
+    return JobApplication.findByIdAndDelete(id);
+};
+
+
+exports.updateStatus = function (id, status) {
+    return JobApplication.findByIdAndUpdate(id, { status: status }); 
+};
+
+
+exports.updateReview = function (id, review) {
+    return JobApplication.findByIdAndUpdate(id, {
+        jobreview: review
+    }); 
+};
 
 

@@ -3,130 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Your Applied Jobs</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 30px;
-        }
-        th, td {
-            border: 1px solid #333;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        img {
-            max-width: 100px;
-            height: auto;
-        }
-        h2 {
-            margin-top: 40px;
-        }
-    </style>
+    <title>View All Applied Applications</title>
 </head>
 <body>
 
-    <h1>Hi <%= user.username %>,</h1>
-    <h2>View Your Applied Jobs</h2>
+    <h1>Hi <%= user.username %> 
+        <br>View All your applied jobs</h1>
 
     <a href="/part-time-jobs">Back to Part Time Page</a>
 
-    <!-- Accepted Applications -->
-    <h2>Accepted Applications</h2>
-    <% if (accepted && accepted.length === 0) { %>
-        <p>No accepted applications available.</p>
+    <% if (records.length === 0) { %>
+        <p>There are no active applications</p>
     <% } else { %>
-        <table>
-            <thead>
-                <tr>
-                    <th>Logo</th>
-                    <th>Company Name</th>
-                    <th>Job Title</th>
-                    <th>Status</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Modification</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% accepted.forEach(r => { %>
-                    <tr>
-                        <td><img src="<%= r.jobid.companylogo %>" alt="Company Logo"></td>
-                        <td><%= r.jobid.companyname %></td>
-                        <td><%= r.jobid.jobtitle %></td>
-                        <td><%= r.status %></td>
-                        <td><%= new Date(r.jobid.startDate).toLocaleDateString() %></td>
-                        <td><%= new Date(r.jobid.endDate).toLocaleDateString() %></td>
-                    </tr>
-                <% }) %>
-            </tbody>
-        </table>
-    <% } %>
+        <table border="1">
+            <tr>
+                <th>Logo</th>
+                <th>Company Name</th>
+                <th>Job Title</th>
+                <th>Status</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Modification</th>
+            </tr>
 
-    <!-- Pending Applications -->
-    <h2>Pending Applications</h2>
-    <% if (pending && pending.length === 0) { %>
-        <p>No pending applications available.</p>
-    <% } else { %>
-        <table>
-            <thead>
+            <% records.forEach(r => { %>
                 <tr>
-                    <th>Logo</th>
-                    <th>Company Name</th>
-                    <th>Job Title</th>
-                    <th>Status</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>Modification</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% pending.forEach(r => { %>
-                    <tr>
-                        <td><img src="<%= r.jobid.companylogo %>" alt="Company Logo"></td>
-                        <td><%= r.jobid.companyname %></td>
-                        <td><%= r.jobid.jobtitle %></td>
-                        <td><%= r.status %></td>
-                        <td><%= new Date(r.jobid.startDate).toLocaleDateString() %></td>
-                        <td><%= new Date(r.jobid.endDate).toLocaleDateString() %></td>
-                        <td><a href="/part-time-jobs/cancel/<%= r._id %>" onclick="return confirm('Are you sure you want to cancel this application?')">Cancel</a></td>
-                    </tr>
-                <% }) %>
-            </tbody>
-        </table>
-    <% } %>
-
-    <!--rejected -->
-    <h2>Rejected Applications</h2>
-    <% if (rejected && rejected.length === 0) { %>
-        <p>No rejected applications available.</p>
-    <% } else { %>
-        <table>
-            <thead>
-                <tr>
-                    <th>Logo</th>
-                    <th>Company Name</th>
-                    <th>Job Title</th>
-                    <th>Status</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% rejected.forEach(r => { %>
-                    <tr>
-                        <td><img src="<%= r.jobid.companylogo %>" alt="Company Logo"></td>
-                        <td><%= r.jobid.companyname %></td>
-                        <td><%= r.jobid.jobtitle %></td>
-                        <td><%= r.status %></td>
-                        <td><%= new Date(r.jobid.startDate).toLocaleDateString() %></td>
-                        <td><%= new Date(r.jobid.endDate).toLocaleDateString() %></td>
-                    </tr>
-                <% }) %>
-            </tbody>
+                     <td><img src="<%=r.jobId.companylogo ? '/images/' + job.companylogo : '/images/placeholder.png' %>"
+                        style="width:50px; height:50px; object-fit:cover;"></td>
+                    <td><%= r.jobId.companyname %></td>
+                    <td><%= r.jobId.jobtitle %></td>
+                    <td><%= r.status %></td>
+                    <td><%= new Date(r.jobId.startDate).toLocaleDateString() %></td>
+                    <td><%= new Date(r.jobId.endDate).toLocaleDateString() %></td>
+                     <td><a href="/part-time-jobs/cancel/<%= r._id %>"onclick="return confirm('Are you sure you want to cancel this application?')">Cancel </a> </td>
+                    
+            <% }) %>
         </table>
     <% } %>
 
