@@ -57,7 +57,7 @@ exports.retrieveAppliedJobs = async (req, res) => {
     const userId = req.session.userId || req.session.user?.id;
 
     try {
-        // Use the `findByStatus` method to get pending applications
+
         const appliedrecords = await JobApplication.findByStatus(userId, 'pending');
 
         const user = req.session.user;
@@ -72,7 +72,6 @@ exports.retrieveAppliedJobs = async (req, res) => {
     }
 };
 
-// Retrieve all applicants
 exports.retrieveAllApplicants = async (req, res) => {
     try {
         // Use the `find` method to get all applicants
@@ -86,6 +85,12 @@ exports.retrieveAllApplicants = async (req, res) => {
         console.log(error);
         res.send('Unable to retrieve applicants');
     }
+
+
+
+
+
+
 };
 
 // User interface to delete application
