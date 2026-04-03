@@ -2,8 +2,14 @@
 <html>
 <head>
   <title>Account Settings</title>
+  
+  <link rel="stylesheet" href="/css/styles.css">
+  
   <style>
-      body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; }
+      body { font-family: sans-serif; margin: 0; padding-top: 60px; }
+      
+      .settings-wrapper { max-width: 600px; margin: 0 auto; padding: 20px; }
+      
       .container { border: 1px solid #ddd; padding: 30px; border-radius: 8px; margin-bottom: 20px; }
       .form-group { margin-bottom: 15px; }
       label { display: block; margin-bottom: 5px; font-weight: bold; }
@@ -12,63 +18,146 @@
       .btn-primary { background-color: rgb(108, 147, 231); }
       .btn-success { background-color: rgb(103, 164, 103); }
       .btn-danger { background-color: rgb(220, 53, 69); }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
+
 <body>
-    <h1>Account Settings</h1>
-    <p><a href="/all-events">← Back to Dashboard</a></p>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="logo">
+        <img src="/images/smu.png" width="70">
+      </a>
 
-    <% if (locals.error) { %>
-        <p style="color: red; background: #ffe6e6; padding: 10px; border-radius: 4px; border: 1px solid red;">
-            <strong><%= error %></strong>
-        </p>
-    <% } %>
-    <% if (locals.success) { %>
-        <p style="color: green; background: #e6ffe6; padding: 10px; border-radius: 4px; border: 1px solid green;">
-            <strong><%= success %></strong>
-        </p>
-    <% } %>
+      <div class="nav-center">
+        <a href="/all-events" class="nav-link">All Events</a>
+        <a href="/all-events/saved-events" class="nav-link">My Saved Events</a>
+        <a href="/all-events/subscribed-events" class="nav-link">Subscribed Organisers</a>
 
-    <div class="container">
-        <h2>Update Profile</h2>
-        <form method="POST" action="/usersettings/profile">
-            <div class="form-group">
-                <label>Username:</label>
-                <input type="text" name="username" value="<%= locals.user ? user.username : '' %>" required>
+        <div class="dropdown-container events-dropdown">
+          <div class="dropdown-trigger">
+            Events
+          </div>
+          <div class="dropdown-menu">
+            <a href="/cca-events/cca" class="dropdown-item">CCA Events</a>
+            <a href="/hack-events/hackathons" class="dropdown-item">Hackathon Events</a>
+            <a href="/events/part-time-jobs" class="dropdown-item">Part Time Jobs</a>
+            <a href="/career-events" class="dropdown-item">Career Events</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <% if (user) { %>
+          <div class="user-section">
+            <div class="user-avatar"><%= user.username.charAt(0).toUpperCase() %></div>
+            <div class="dropdown-container user-dropdown">
+              <div class="dropdown-trigger">
+                <%= user.username %>
+              </div>
+              <div class="dropdown-menu">
+                <a href="/usersettings" class="dropdown-item">Profile (<%= user.userId %>)</a>
+                <a href="/logout" class="dropdown-item">Logout</a>
+                <% if (user.role === 'superadmin') { %>
+                  <a href="/superadmin/admins-settings" class="dropdown-item">👑 Admin Settings</a>
+                <% } %>
+              </div>
             </div>
-            <div class="form-group">
-                <label>Email (SMU Student Email Only):</label>
-                <input type="email" name="email" value="<%= locals.user ? user.email : '' %>" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Save Profile Changes</button>
-        </form>
+          </div>
+        <% } else { %>
+          <a href="/login" class="nav-link">Login</a>
+        <% } %>
+      </div>
     </div>
+  </nav>
 
-    <div class="container">
-        <h2>Change Password</h2>
-        <form method="POST" action="/usersettings/password">
-            <div class="form-group">
-                <label>Current Password:</label>
-                <input type="password" name="currentPassword" placeholder="Enter current password" required>
-            </div>
-            <div class="form-group">
-                <label>New Password:</label>
-                <input type="password" name="newPassword" placeholder="Enter new password" required>
-            </div>
-            <div class="form-group">
-                <label>Confirm New Password:</label>
-                <input type="password" name="confirmNewPassword" placeholder="Confirm new password" required>
-            </div>
-            <button type="submit" class="btn btn-success">Update Password</button>
-        </form>
-    </div>
+  <div class="settings-wrapper">
+      <h1>Account Settings</h1>
+      <p><a href="/all-events">← Back to Dashboard</a></p>
 
-    <div class="container" style="border-color: #ffcccc; background-color: #fff9f9;">
-        <h2 style="color: #dc3545;">Danger Zone</h2>
-        <p>Once you delete your account, there is no going back. Please be certain.</p>
-        <form method="POST" action="/usersettings/delete" onsubmit="return confirm('Are you absolutely sure you want to permanently delete your account? This cannot be undone.');">
-            <button type="submit" class="btn btn-danger">Delete My Account</button>
-        </form>
-    </div>
+      <% if (locals.error) { %>
+          <p style="color: red; background: #ffe6e6; padding: 10px; border-radius: 4px; border: 1px solid red;">
+              <strong><%= error %></strong>
+          </p>
+      <% } %>
+      <% if (locals.success) { %>
+          <p style="color: green; background: #e6ffe6; padding: 10px; border-radius: 4px; border: 1px solid green;">
+              <strong><%= success %></strong>
+          </p>
+      <% } %>
+
+        <div class="container">
+            <h2>Update Profile</h2>
+            <form method="POST" action="/usersettings/profile" id="profileForm">
+                <div class="form-group">
+                    <label>Username:</label>
+                    <input type="text" name="username" id="usernameInput" value="<%= locals.user ? user.username : '' %>" required>
+                </div>
+                <div class="form-group">
+                    <label>Email (SMU Student Email Only):</label>
+                    <input type="email" name="email" id="emailInput" value="<%= locals.user ? user.email : '' %>" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="saveProfileBtn" disabled>Save Profile Changes</button>
+            </form>
+        </div>
+
+      <div class="container">
+          <h2>Change Password</h2>
+          <form method="POST" action="/usersettings/password">
+              <div class="form-group">
+                  <label>Current Password:</label>
+                  <input type="password" name="currentPassword" placeholder="Enter current password" required>
+              </div>
+              <div class="form-group">
+                  <label>New Password:</label>
+                  <input type="password" name="newPassword" placeholder="Enter new password" required>
+              </div>
+              <div class="form-group">
+                  <label>Confirm New Password:</label>
+                  <input type="password" name="confirmNewPassword" placeholder="Confirm new password" required>
+              </div>
+              <button type="submit" class="btn btn-success">Update Password</button>
+          </form>
+      </div>
+
+      <div class="container" style="border-color: #ffcccc; background-color: #fff9f9;">
+          <h2 style="color: #dc3545;">Danger Zone</h2>
+          <p>Once you delete your account, there is no going back. Please be certain.</p>
+          <form method="POST" action="/usersettings/delete" onsubmit="return confirm('Are you absolutely sure you want to permanently delete your account? This cannot be undone.');">
+              <button type="submit" class="btn btn-danger">Delete My Account</button>
+          </form>
+      </div>
+  </div>
+
+  
+    <script>
+        // 1. Grab the elements from the page
+        const usernameInput = document.getElementById('usernameInput');
+        const emailInput = document.getElementById('emailInput');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+
+        // 2. Save the exact text that was in the boxes when the page first loaded
+        const originalUsername = usernameInput.value;
+        const originalEmail = emailInput.value;
+
+        // 3. Create a function to check if anything has changed
+        function checkProfileChanges() {
+            const currentUsername = usernameInput.value;
+            const currentEmail = emailInput.value;
+
+            // If either box is different from the original, turn the button ON
+            if (currentUsername !== originalUsername || currentEmail !== originalEmail) {
+                saveProfileBtn.disabled = false;
+            } else {
+                // Otherwise, turn it OFF
+                saveProfileBtn.disabled = true;
+            }
+        }
+
+        // 4. Tell the input boxes to run that check every time the user types a letter
+        usernameInput.addEventListener('input', checkProfileChanges);
+        emailInput.addEventListener('input', checkProfileChanges);
+    </script>
 </body>
 </html>

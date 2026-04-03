@@ -1,7 +1,9 @@
 // middleware/auth.js - Login/Role checks ONLY
 const requireLogin = (req, res, next) => {
-  if (req.session?.user) return next();
-  res.redirect('/');
+    // 1. Check if the user's session exists
+    if (req.session && req.session.user) {
+        return next();
+    } else { return res.redirect('/login');}
 };
 
 const requireAdmin = (req, res, next) => {

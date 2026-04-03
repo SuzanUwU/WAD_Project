@@ -1,42 +1,10 @@
 const User = require('../models/user-model');
-const bcrypt = require('bcryptjs');
 const School = require('../models/school-model');
 
-// Email validation for SMU students only (public signup)
 const studentEmailRegex = /^[a-z0-9._-]+\.\d{4}@([a-z0-9-]+\.)*smu\.edu\.sg$/i;
-const adminEmailRegex = /^[^.]+\.\d{4}@admin\.smu\.edu\.sg$/i;
 
 function isValidStudentEmail(email) {
     return studentEmailRegex.test(email);
-}
-
-// Generate sequential userId and fill gaps (S001, S002...)
-async function generateStudentId() {
-    // 1. Fetch all existing student userIds from the database
-    // We use .select() to only grab the ID field to save memory, and .lean() to make it faster
-    const students = await User.find({ role: 'student' }).select('userId').lean();
-
-    // 2. Extract the numbers from the IDs and sort them from lowest to highest
-    // e.g., ['S003', 'S001'] becomes [1, 3]
-    const existingNumbers = students
-        .map(user => parseInt(user.userId.replace('S', ''), 10))
-        .filter(num => !isNaN(num))
-        .sort((a, b) => a - b);
-
-    // 3. Loop through to find the lowest available gap
-    let nextIdNumber = 1;
-    for (let i = 0; i < existingNumbers.length; i++) {
-        if (existingNumbers[i] === nextIdNumber) {
-            // The number is taken, move to the next one
-            nextIdNumber++;
-        } else if (existingNumbers[i] > nextIdNumber) {
-            // We found a gap! Break out of the loop early.
-            break;
-        }
-    }
-
-    // 4. Format the number back into the 'S001' string format
-    return `S${nextIdNumber.toString().padStart(3, '0')}`;
 }
 
 // GET PAGES
@@ -57,73 +25,44 @@ const renderLogin = (req, res) => {
 // POST /signup
 const signup = async (req, res) => {
     try {
-        const { username, email, password, school, major, cfmpassword} = req.body;
-        console.log("Raw input:", req.body);
-
+        const { username, email, password, school, major, cfmpassword } = req.body;
+        
         const cleanUsername = username?.trim();
         const cleanEmail = email?.trim().toLowerCase();
         const cleanSchool = school?.trim();
         const cleanMajor = major?.trim();
 
-        //Password match
-        if (password != cfmpassword) {
-            return res.render('signup', { error: 'Password does not match, try again.', username, email});
-        }
-        
-        // Validate SMU student email
-        if (!isValidStudentEmail(cleanEmail)) {
-            const schools = await School.find().sort({ displayName: 1 });
-            return res.render('signup', {
-                error: 'Only SMU student emails (@*.smu.edu.sg) can register here.',
-                schools, 
-                username, email 
-            });
-        }
+        const renderError = async (errorMessage) => {
+            const schools = await School.find().sort({ displayName: 1 }).catch(() => []);
+            return res.render('signup', { error: errorMessage, schools, username, email });
+        };
 
-        if (!cleanSchool) {
-            const schools = await School.find().sort({ displayName: 1 });
-            return res.render('signup', { error: 'Please select your school.', schools });
-        }
+        if (password !== cfmpassword) return renderError('Password does not match, try again.');
+        if (!isValidStudentEmail(cleanEmail)) return renderError('Only SMU student emails (@*.smu.edu.sg) can register here.');
+        if (!cleanSchool) return renderError('Please select your school.');
+        if (!cleanMajor) return renderError('Please select your major.');
 
         const schoolDoc = await School.findOne({ code: cleanSchool });
-        if (!schoolDoc) {
-            const schools = await School.find().sort({ displayName: 1 });
-            return res.render('signup', { error: 'Selected school is invalid.', schools });
-        }
-
-        if (!cleanMajor) {
-            const schools = await School.find().sort({ displayName: 1 });
-            return res.render('signup', { error: 'Please select your major.', schools });
-        }
-
+        if (!schoolDoc) return renderError('Selected school is invalid.');
+        
         const majorExists = schoolDoc.majors.some(m => m.code === cleanMajor);
-        if (!majorExists) {
-            const schools = await School.find().sort({ displayName: 1 });
-            return res.render('signup', { error: 'Selected major is invalid for your school.', schools });
-        }
+        if (!majorExists) return renderError('Selected major is invalid for your school.');
 
         const existingUser = await User.findOne({
             $or: [{ username: cleanUsername }, { email: cleanEmail }]
         });
-        if (existingUser) {
-            // return res.render('signup', { 
-            //     error: 'Username or email already exists', username, email 
-            // });
-            const schools = await School.find().sort({ displayName: 1 }); // ← was missing
-            return res.render('signup', { error: 'Username or email already exists.', username, email, schools });
-        }
+        if (existingUser) return renderError('Username or email already exists.');
 
-        const userId         = await generateStudentId();
-        const hashedPassword = await bcrypt.hash(password, 10);
-
+        const userId = await User.generateNextStudentId(); 
+        
         const newUser = new User({
             userId,
             username: cleanUsername,
-            email:    cleanEmail,
-            password: hashedPassword,
-            school:   cleanSchool,
-            major:    cleanMajor,
-            role:     'student'
+            email: cleanEmail,
+            password: password, 
+            school: cleanSchool,
+            major: cleanMajor,
+            role: 'student'
         });
 
         await newUser.save();
@@ -146,23 +85,15 @@ const signup = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log('Login attempt:', email);
+        const cleanEmail = email?.trim().toLowerCase();
 
-        const user = await User.findOne({ email: email?.trim().toLowerCase() });
+        const user = await User.authenticateUser(cleanEmail, password);
+        
         if (!user) {
             return res.render('login', { 
-                error: 'Email not found.', 
+                error: 'Invalid email or password.', 
                 success: null,
-                email
-            });
-        }
-        
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            return res.render('login', { 
-                error: 'Incorrect password.', 
-                success: null,
-                email
+                email: cleanEmail
             });
         }
 

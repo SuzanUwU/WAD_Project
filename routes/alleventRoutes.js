@@ -9,6 +9,8 @@ const Event = require('../models/eventModel');
 const SavedEvents = require('../models/SavedEvents');
 const savedEventController = require('../controllers/savedeventsController');
 const Organizer = require('../models/Organizer');
+const subscribedOrgController = require('../controllers/subscribedOrgController');
+const SubscribedOrg = require('../models/subscribed-org-model');
 
 // configure multer
 const upload = require('multer')({ storage: multer.memoryStorage() });
@@ -21,6 +23,7 @@ router.get('/', async (req, res) => {
     
     // 2. Set up an empty array just in case they aren't logged in
     let mySavedEvents = [];
+    let mySubscribedOrgs = [];
 
     // 3. If they ARE logged in, fetch their specific saved list
     if (req.session && req.session.user) {
@@ -28,17 +31,21 @@ router.get('/', async (req, res) => {
       if (savedDoc) {
         mySavedEvents = savedDoc.events; // Grab the array of saved events
       }
+
+      const subDoc = await SubscribedOrg.findOne({ userId: req.session.user.userId });
+      if (subDoc) mySubscribedOrgs = subDoc.subscribedOrganizers;
     }
 
     // 4. Pass BOTH the events and mySavedEvents to the EJS page
     res.render('suzan/all-events', { 
         events: events, 
-        mySavedEvents: mySavedEvents 
+        mySavedEvents: mySavedEvents,
+        mySubscribedOrgs: mySubscribedOrgs 
     });
     
   } catch (err) {
     console.error("Error loading events page:", err);
-    res.render('suzan/all-events', { events: [], mySavedEvents: [] });
+    res.render('suzan/all-events', { events: [], mySavedEvents: [], mySubscribedOrgs: [] });
   }
 });
 
@@ -155,6 +162,10 @@ router.get('/saved/:userId', async (req, res) => {
     res.json({ savedEvents: [], totalSaved: 0 });
   }
 });
+
+router.post('/toggle-subscription', subscribedOrgController.toggleSubscription);
+router.get('/subscribed-events', subscribedOrgController.viewSubscribedEvents);
+
 
 // ------------- EDIT EVENT -------------
 

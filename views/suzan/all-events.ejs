@@ -65,7 +65,23 @@
           <!-- ROW 3: Organizers -->
           <tr>
             <% latestEvents.forEach(function(event) { %>
-              <td colspan="2" class="event-cell"><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></td>
+              <td colspan="2" style="width: 220px; word-wrap: break-word;">
+                <strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %> <br>
+                
+                <% 
+                  const orgName = event.organizer || 'Campus Events Team';
+                  let isSubbed = false;
+                  if (locals.mySubscribedOrgs) {
+                      isSubbed = mySubscribedOrgs.includes(orgName);
+                  }
+                %>
+                
+                <button onclick="toggleSubscribe('<%= orgName %>', this)" 
+                        style="margin-top: 5px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;
+                        background-color: <%= isSubbed ? '#ffcccc' : '#e6f2ff' %>;">
+                  <%= isSubbed ? 'Unsubscribe' : 'Subscribe' %>
+                </button>
+              </td>
             <% }) %>
           </tr>
 
@@ -166,8 +182,25 @@
 
                   <!-- Event Info -->
                   <td class="event-cell event-info">
-                    <div><strong>Event Name:</strong> <%= event.title %></div>
-                    <div><strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %></div>
+                    <div style="margin-bottom: 8px;"><strong>Event Name:</strong> <%= event.title %></div>
+                    
+                    <div style="margin-bottom: 8px;">
+                      <strong>Organizer:</strong> <%= event.organizer || 'Campus Events Team' %><br>
+                      
+                      <% 
+                        const orgNameAll = event.organizer || 'Campus Events Team';
+                        let isSubbedAll = false;
+                        if (locals.mySubscribedOrgs) {
+                            isSubbedAll = mySubscribedOrgs.includes(orgNameAll);
+                        }
+                      %>
+                      <button onclick="toggleSubscribe('<%= orgNameAll %>', this)" 
+                              style="margin-top: 5px; padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer; font-size: 0.85em;
+                              background-color: <%= isSubbedAll ? '#ffcccc' : '#e6f2ff' %>;">
+                        <%= isSubbedAll ? 'Unsubscribe' : 'Subscribe' %>
+                      </button>
+                    </div>
+                    
                     <div><strong>Description:</strong> <%= truncate(event.description, 20) || 'No description available' %></div>
                   </td>
 
@@ -254,6 +287,40 @@
     function register(eventId) {
       alert('Registration feature coming soon for Event: ' + eventId);
     }
+
+    async function toggleSubscribe(organizerName, button) {
+      try {
+          const originalText = button.textContent;
+          button.textContent = 'Wait...';
+          button.disabled = true;
+
+          const response = await fetch('/all-events/toggle-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ organizerName: organizerName })
+          });
+
+          if (response.ok) {
+              const result = await response.json();
+              
+              // Dynamically flip the button colors and text!
+              if (result.isSubscribed) {
+                  button.style.backgroundColor = '#ffcccc'; // light red
+                  button.textContent = 'Unsubscribe';
+              } else {
+                  button.style.backgroundColor = '#e6f2ff'; // light blue
+                  button.textContent = 'Subscribe';
+              }
+          } else {
+              alert('Failed to update subscription.');
+              button.textContent = originalText;
+          }
+      } catch (err) {
+          console.error("Subscription Error:", err);
+      } finally {
+          button.disabled = false;
+      }
+  }
   </script>
 </body>
 </html>

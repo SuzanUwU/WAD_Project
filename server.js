@@ -57,7 +57,7 @@ server.use('/', authRoutes);
 server.get('/api/majors', require('./controllers/hackathonController').getMajorsBySchool);
 
 // protected routes
-server.use('/all-events', alleventRoutes);//landing page
+server.use('/all-events', requireLogin , alleventRoutes);//landing page
 server.use('/hack-events', requireLogin, hackathonRoutes);
 server.use('/cca-events', requireLogin, ccaRoutes);
 server.use('/dashboard',requireLogin,profileRoutes);
