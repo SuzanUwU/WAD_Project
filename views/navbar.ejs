@@ -1,0 +1,84 @@
+<!-- Link your shared styles -->
+<link rel="stylesheet" href="/css/styles.css">
+
+<nav class="navbar">
+  <div class="nav-container">
+    <!-- Logo (left) -->
+    <a href="/" class="logo">
+      <img src="/images/smu.png" width="70">
+    </a>
+
+    <!-- Links (center) -->
+    <div class="nav-center">
+      <a href="/all-events" class="nav-link">All Events</a>
+      <a href="/all-events/saved-events" class="nav-link">My Saved Events</a>
+
+      <!-- Events dropdown -->
+      <div class="dropdown-container events-dropdown">
+        <div class="dropdown-trigger">
+          Events
+        </div>
+        <div class="dropdown-menu">
+          <a href="/cca-events/cca" class="dropdown-item">CCA Events</a>
+          <a href="/hack-events/hackathons" class="dropdown-item">Hackathon Events</a>
+          <a href="/events/part-time-jobs" class="dropdown-item">Part Time Jobs</a>
+          <a href="/career-events" class="dropdown-item">Career Events</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- User section (right) -->
+    <div class="nav-right">
+      <% if (user) { %>
+        <div class="user-section">
+          <div class="user-avatar"><%= user.username.charAt(0).toUpperCase() %></div>
+          <div class="dropdown-container user-dropdown">
+            <div class="dropdown-trigger">
+              <%= user.username %>
+            </div>
+            <div class="dropdown-menu">
+              <a href="/usersettings" class="dropdown-item">Profile (<%= user.userId %>)</a>
+
+              <!-- ADMIN PANEL (ROBUST VERSION) -->
+              <% 
+                const type = user.admin_type ? user.admin_type.trim().toLowerCase() : "";
+              %>
+
+              <% if (user.role === 'admin') { %>
+
+                <% if (type.includes('cca')) { %>
+                  <a href="/cca-events/ccaAdmin" class="dropdown-item">⚙ Manage CCA Events</a>
+                <% } %>
+
+                <!-- need to add yujia, ari, rownea routes to admin pages  -->
+
+                <% if (type.includes('career')) { %>
+                  <a href="/career-events/admin" class="dropdown-item">⚙ Manage Career Events</a>
+                <% } %>
+
+                <% if (type.includes('hack')) { %>
+                  <a href="/hack-events/admin" class="dropdown-item">⚙ Manage Hackathons</a>
+                <% } %>
+
+                <% if (type.includes('ptjob')) { %>
+                  <a href="/events/admin" class="dropdown-item">⚙ Manage Part-Time Jobs</a>
+                <% } %>
+
+              <% } %>
+              <!-- END ADMIN PANEL -->
+
+              <% if (user.role === 'superadmin') { %>
+                <a href="/superadmin/admins-settings" class="dropdown-item">👑 Admin Settings</a>
+              <% } %>
+
+              <a href="/logout" class="dropdown-item">Logout</a>
+
+            </div>
+          </div>
+        </div>
+      <% } else { %>
+        <a href="/login" class="nav-link">Login</a>
+      <% } %>
+    </div>
+  </div>
+</nav>

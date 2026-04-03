@@ -1,0 +1,36 @@
+<h1 style="text-align: center;">Edit Events</h1>
+
+<table border="1" cellpadding="6" cellspacing="0"
+       style="border-collapse: collapse; margin: 20px auto; width: 45%;">
+  <thead>
+    <tr>
+      <th>Event Name</th>
+      <th>Event Organizer</th>
+      <th>Event Category</th>
+      <th>Edit Event</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (events.length === 0) { %>
+      <tr>
+        <td colspan="4">No events found.</td>
+      </tr>
+    <% } else { %>
+      <% events.forEach(function(event) { %>
+        <tr>
+            <td><%= event.title %></td>
+            <td><%= event.organizer || 'No organizer set' %></td>
+            <td><%= event.category %></td>
+            <td style="text-align: center;">
+            <a href="/events/edit/<%= event._id %>"
+                style="display: inline-block; padding: 4px 10px; background: #4da3ff; color: #fff; text-decoration: none; border-radius: 4px;">
+                Edit
+            </a>
+            </td>
+        </tr>
+        <% }) %>
+    <% } %>
+  </tbody>
+</table>
+
+<a href="/events">← Back to Events</a>

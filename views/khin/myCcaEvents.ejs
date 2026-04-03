@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>My Registered Events</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #45a049;
+}
+
+/* CONTAINER */
+.container {
+    width: 80%;
+    margin: 20px auto;
+}
+
+/* LINK */
+.top-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #007bff;
+}
+
+/* CARD */
+.event-card {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    align-items: center;
+}
+
+/* IMAGE */
+.event-image img {
+    width: 180px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+/* INFO */
+.event-info {
+    flex: 1;
+}
+
+.event-info h3 {
+    margin: 0 0 10px 0;
+}
+
+.event-info p {
+    margin: 4px 0;
+    color: #555;
+}
+
+/* BUTTON */
+.view-btn {
+    padding: 10px 16px;
+    background-color: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+
+    .event-card {
+        flex-direction: column;   
+        align-items: flex-start;
+    }
+
+    .event-image {
+        width: 100% !important;
+        height: 200px !important;
+    }
+
+    .event-card > div:last-child {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
+
+<!-- <div style="width:80%; margin: 20px auto;">
+    <a href="/cca-events/cca" class="top-link">
+        ← Back to CCA Events
+    </a>
+</div> --> 
+
+<div class="container">
+
+    <form action="/cca-events/cca" method="GET" style="margin-bottom:15px;">
+        <button type="submit" class="btn btn-primary">
+            Browse more CCA Events
+        </button>
+    </form>
+
+<% if (!events || events.length === 0) { %>
+
+<p>You have not registered for any events yet.</p>
+
+<a href="/cca-events/cca">
+    <button class="btn btn-primary">Browse CCA Events</button>
+</a>
+
+<% } else { %>
+
+<% events.forEach(event => { %>
+
+<div class="event-card">
+
+    <!-- IMAGE -->
+    <% if (event.image) { %>
+        <img src="/images/<%= event.image%>">
+
+    <% } else { %>
+        <img src="/images/placeholder.jpg">
+    <% } %>
+    </div>
+
+    <!-- INFO -->
+    <div class="event-info">
+
+        <h3><%= event.title %></h3>
+
+        <p>
+            <b>Date:</b>
+
+            <% if (event.startDate) { %>
+                <%= new Date(event.startDate).toDateString() %>
+
+                <% if (event.endDate) { %>
+                    to <%= new Date(event.endDate).toDateString() %>
+                <% } %>
+
+            <% } else { %>
+                N/A
+            <% } %>
+        </p>
+
+        <p><b>Location:</b> <%= event.location || "N/A" %></p>
+
+    </div>
+
+    <!-- ACTION -->
+    <div>
+
+        <a class="view-btn" href="/cca-events/<%= event.eventId._id %>">
+            View Details
+        </a>
+
+    </div>
+
+</div>
+
+<% }) %>
+
+<% } %>
+
+</div>
+
+</body>
+</html>

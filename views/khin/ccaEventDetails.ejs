@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>CCA Event Details</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+.container {
+    width: 70%;
+    margin: 30px auto;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.event-image {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.event-image img {
+    width: 300px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.event-title {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.details {
+    margin-top: 20px;
+}
+
+.detail-row {
+    margin-bottom: 10px;
+    color: #555;
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.review-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<%- include('../navbar', { user: user }) %>
+
+<div style="width:70%; margin: 20px auto;">
+    <a href="/cca-events/cca" style="text-decoration:none; color:#007bff;">
+        ← Back to CCA Events
+    </a>
+</div>
+
+<% const spotsRemaining = cca.capacity - confirmedCount; %>
+<% const isAdmin = user && user.role === "admin"; %>
+
+<div class="container">
+<div class="card">
+
+<!-- IMAGE -->
+  <div class="event-image">
+        <% if (cca.image) { %>
+            <img src="/images/<%= cca.image %>" 
+                alt="<%= cca.title %>" 
+                onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
+        <% } else { %>
+            <img src="/images/placeholder.jpg" alt="No image">
+        <% } %> 
+    </div>  
+
+<!-- TITLE -->
+<h2 class="event-title"><%= cca.title %></h2>
+
+<!-- DETAILS -->
+<div class="details">
+    <div class="detail-row"><b>Category:</b> <%= cca.category %></div>
+    <div class="detail-row"><b>Club Type:</b> <%= cca.clubType %></div>
+
+    <div class="detail-row">
+        <b>Date:</b>
+        <%= new Date(cca.startDate).toLocaleDateString('en-GB') %>
+        to
+        <%= new Date(cca.endDate).toLocaleDateString('en-GB') %>
+    </div>
+
+    <div class="detail-row"><b>Location:</b> <%= cca.location || "N/A" %></div>
+    <div class="detail-row"><b>Capacity:</b> <%= cca.capacity %></div>
+    <div class="detail-row"><b>Description:</b> <%= cca.description %></div>
+</div>
+
+<!-- REGISTRATION -->
+<%
+  const today = new Date().toISOString().split("T")[0];
+  const endDate = cca.endDate ? new Date(cca.endDate).toISOString().split("T")[0] : null;
+
+  const deadline = cca.registrationDeadline 
+    ? new Date(cca.registrationDeadline).toISOString().split("T")[0] 
+    : null;
+%>
+
+<div style="margin-top:20px;">
+
+    <% if (spotsRemaining > 0) { %>
+        <p><%= spotsRemaining %> spots remaining</p>
+    <% } else { %>
+        <p>Event full, <%= waitlistCount || 0 %> in queue</p>
+    <% } %>
+
+    <% if (!isAdmin) { %>
+
+        <% if (registered) { %>
+
+            <% if (registered === 'confirmed') { %>
+                <p style="color:green;"><b>You are registered.</b></p>
+            <% } else { %>
+                <p style="color:orange;"><b>You are on waitlist.</b></p>
+            <% } %>
+
+            <a href="/cca-events/my-cca-events" class="btn btn-primary">
+                View My Registered Events
+            </a>
+
+        <% } else if (deadline && deadline < today) { %>
+
+        <p style="color:red;"><b>Registration closed.</b></p>
+
+        <% } else if (endDate && endDate < today) { %>
+
+        <p><b>Event ended.</b></p>
+
+        <% } else { %>
+
+            <form method="POST" action="/dashboard/rsvp-join">
+                <input type="hidden" name="eventId" value="<%= cca.eventId._id %>"/>
+                <button type="submit">
+                    <%= spotsRemaining > 0 ? "Register" : "Join Waitlist" %>
+                </button>
+            </form>
+
+        <% } %>
+
+    <% } %>
+
+</div>
+
+</div>
+
+<!-- REVIEWS -->
+<h3 style="margin-top:30px;">Reviews</h3>
+
+<% if (!reviews || reviews.length === 0) { %>
+    <p>No reviews yet</p>
+<% } %>
+
+<% reviews.forEach(r => { %>
+<div class="review-card">
+    <b><%= r.name || r.userId %></b>
+    <span>Rating: <%= r.rating %>/5</span>
+    <p><%= r.comment %></p>
+</div>
+<% }) %>
+
+<!-- REVIEW FORM -->
+<div style="margin-top:20px;">
+
+<% if (!isAdmin && registered && endDate && endDate < today) { %>
+
+    <% if (!hasReviewed) { %>
+
+        <!-- ✅ FIXED HERE -->
+        <form action="/cca-events/<%= cca.eventId._id %>/cca-review" method="POST">
+
+            <select name="rating" required>
+                <option value="">Select rating</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+
+            <textarea name="comment"></textarea>
+
+            <button type="submit">Submit Review</button>
+        </form>
+
+    <% } else { %>
+        <p>You already reviewed</p>
+    <% } %>
+
+<% } else if (!registered && !isAdmin) { %>
+
+    <p>Only registered users can review</p>
+
+<% } else if (!isAdmin) { %>
+
+    <p>Review available after event ends</p>
+
+<% } %>
+
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View All Active Records</title>
+</head>
+<body>
+    <%- include('../navbar') %>
+    <h1>Hi <%= user.username %> 
+        <br>View All your active records</h1>
+
+    <a href="/events/part-time-jobs">Back to Part Time Page</a>
+
+    <% if (records.length === 0) { %>
+        <p>There are no active applications</p>
+    <% } else { %>
+        <table border="1">
+            <tr>
+                <th>Logo</th>
+                <th>Company Name</th>
+                <th>Job Title</th>
+                <th>Status</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Modification</th>
+            </tr>
+
+            <% records.forEach(r => { %>
+                <tr>
+                    <td>
+                        <img src="<%= r.jobId.companylogo %>" width="100">
+                    </td>
+                    <td><%= r.jobId.companyname %></td>
+                    <td><%= r.jobId.jobtitle %></td>
+                    <td><%= r.status %></td>
+                    <td><%= new Date(r.jobId.startDate).toLocaleDateString() %></td>
+                    <td><%= new Date(r.jobId.endDate).toLocaleDateString() %></td>
+                    <td><% if (new Date() >= new Date(r.jobId.endDate)) { %> <a href="/leave-review/<%= r.jobId._id %>">Leave a review</a>
+                        <% } %>
+</td>
+                    
+            <% }) %>
+        </table>
+    <% } %>
+
+</body>
+</html>

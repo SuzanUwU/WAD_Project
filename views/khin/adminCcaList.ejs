@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Events</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+}
+
+.top-bar {
+    margin-bottom: 20px;
+}
+
+/* FILTER BAR */
+.filter-bar {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-bar input,
+.filter-bar select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.filter-bar button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    background: black;
+    color: white;
+    cursor: pointer;
+}
+
+.btn {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-small {
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.btn-primary { background-color: #4CAF50; color: white; }
+.btn-warning { background-color: #ffc107; }
+.btn-danger { background-color: #dc3545; color: white; }
+.btn-info { background-color: #007bff; color: white; }
+
+.event-card {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    align-items: center;
+}
+
+.event-image {
+    width: 250px;
+    height: 150px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #eee;
+}
+
+.event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-info h3 {
+    margin: 0 0 10px 0;
+}
+
+.event-info p {
+    margin: 4px 0;
+    color: #555;
+}
+
+.status-upcoming { color: green; font-weight: bold; }
+.status-ongoing { color: orange; font-weight: bold; }
+.status-past { color: gray; font-weight: bold; }
+
+.actions button {
+    margin-right: 10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<%- include('../navbar', { user: user }) %>
+
+<div class="container">
+
+<div class="top-bar" style="display: flex; align-items: center; justify-content: space-between;">
+
+    <!-- LEFT: Back to user view -->
+    <div>
+        <a href="/cca-events/ccaAdmin">Back to Events</a>
+    </div>
+
+    <!-- CENTER: Create button -->
+    <div style="position: absolute; left: 50%; transform: translateX(-50%);">
+        <a href="/cca-events/ccaAdmin/create">
+            <button class="btn btn-primary">+ Create New Event</button>
+        </a>
+    </div>
+
+    <!-- RIGHT: empty (for spacing balance) -->
+    <div style="width: 120px;"></div>
+
+</div>
+
+<form method="GET" action="/cca-events/ccaAdmin" class="filter-bar">
+
+    <input type="text" name="search" placeholder="Search..." value="<%= search %>">
+
+    <select name="club">
+        <option value="All" <%= club==="All" ? "selected" : "" %>>All Clubs</option>
+        <option value="Sports" <%= club==="Sports" ? "selected" : "" %>>Sports</option>
+        <option value="Arts" <%= club==="Arts" ? "selected" : "" %>>Arts</option>
+        <option value="Academic" <%= club==="Academic" ? "selected" : "" %>>Academic</option>
+        <option value="Community" <%= club==="Community" ? "selected" : "" %>>Community</option>
+        <option value="Leadership" <%= club==="Leadership" ? "selected" : "" %>>Leadership</option>
+    </select>
+
+    <select name="status">
+        <option value="All" <%= status==="All" ? "selected" : "" %>>All Status</option>
+        <option value="Upcoming" <%= status==="Upcoming" ? "selected" : "" %>>Upcoming</option>
+        <option value="Ongoing" <%= status==="Ongoing" ? "selected" : "" %>>Ongoing</option>
+        <option value="Past" <%= status==="Past" ? "selected" : "" %>>Past</option>
+    </select>
+
+    <select name="sort">
+        <option value="default" <%= (!sort || sort==="default") ? "selected" : "" %>>Sort</option>
+        <option value="newest" <%= sort==="newest" ? "selected" : "" %>>Newest</option>
+        <option value="oldest" <%= sort==="oldest" ? "selected" : "" %>>Oldest</option>
+    </select>
+
+    <button type="submit">Filter</button>
+
+<button type="button" onclick="window.location='/cca-events/ccaAdmin'" style="background:#999;">
+    Clear
+</button>
+
+</form>
+
+<% if (!events || events.length === 0) { %>
+<p>No events found.</p>
+<% } %>
+
+<% events.forEach(event => { %>
+
+<div class="event-card">
+
+    <div class="event-image">
+        <% if (event.image) { %>
+            <img 
+        src="<%= event.image && !event.image.startsWith('http') 
+                ? '/images/' + event.image 
+                : event.image %>" 
+        alt="<%= event.title %>"
+        style="width: 100%; height: 100%; object-fit: cover;"
+        onerror="this.onerror=null; this.src='/images/placeholder.jpg';"
+        >
+        <% } else { %>
+            <img src="/images/placeholder.jpg">
+        <% } %> 
+    </div>
+
+    <div class="event-info">
+
+        <h3><%= event.title %></h3>
+
+        <!-- ✅ FIXED STATUS -->
+        <%
+            const today = new Date();
+            today.setHours(0,0,0,0);
+
+            let start = event.startDate ? new Date(event.startDate) : null;
+            let end = event.endDate ? new Date(event.endDate) : null;
+
+            if (start) start.setHours(0,0,0,0);
+            if (end) end.setHours(0,0,0,0);
+
+            let eventStatus = "N/A";
+            let statusClass = "";
+
+            if (start && end) {
+                if (today < start) {
+                    eventStatus = "Upcoming";
+                    statusClass = "status-upcoming";
+                } else if (today >= start && today <= end) {
+                    eventStatus = "Ongoing";
+                    statusClass = "status-ongoing";
+                } else {
+                    eventStatus = "Past";
+                    statusClass = "status-past";
+                }
+            }
+        %>
+
+        <p>
+            <b>Date:</b>
+            <% if (event.startDate) { %>
+                <%= new Date(event.startDate).toDateString() %>
+                <% if (event.endDate) { %>
+                    to <%= new Date(event.endDate).toDateString() %>
+                <% } %>
+            <% } else { %>
+                N/A
+            <% } %>
+        </p>
+
+        <p><b>Location:</b> <%= event.location || "N/A" %></p>
+
+        <p><b>Capacity:</b> <%= event.capacity || 0 %></p>
+        
+        <p><b>Club Type:</b> <%= event.clubType || "N/A" %></p>
+
+        <p><b>Organizer:</b> <%= event.organizer || "N/A" %></p>
+
+        <!-- <p>
+        <b>Description:</b> 
+        <%= event.description 
+            ? event.description.substring(0, 120) + "..." 
+            : "N/A" %>
+        </p> -->
+        
+        <p class="<%= statusClass %>">
+            <b>Status:</b> <%= eventStatus %>
+        </p>
+
+    </div>
+
+    <div class="actions">
+
+        <a href="/cca-events/<%= event.eventId._id %>">
+            <button class="btn btn-info btn-small">View</button>
+        </a>
+        
+        <a href="/cca-events/ccaAdmin/<%= event._id %>/edit">
+            <button class="btn btn-warning btn-small">&nbsp;Edit&nbsp;</button>
+        </a>
+
+        <form action="/cca-events/ccaAdmin/delete/<%= event._id %>" method="POST" style="display:inline;">
+            <button class="btn btn-danger btn-small" onclick="return confirm('Delete this event?')">
+                Delete
+            </button>
+        </form>
+
+        <a href="/cca-events/ccaAdmin/<%= event._id %>/attendees">
+            <button class="btn btn-primary btn-small">Attendees</button>
+        </a>
+
+        <a href="/cca-events/ccaAdmin/<%= event._id %>/reviews">
+            <button class="btn btn-info btn-small">Reviews</button>
+        </a>
+
+    </div>
+
+</div>
+
+<% }) %>
+
+</div>
+
+</body>
+</html>

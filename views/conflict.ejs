@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Scheduling Conflict</title>
+</head>
+<body>
+  <%- include('./navbar') %>
+  <a href="/career-events">← Back to listings</a>
+
+  <hr/>
+
+  <h2>Scheduling Conflict</h2>
+
+  <p>
+    You already have a confirmed event during this time:
+  </p>
+
+  <table border="0" cellpadding="6">
+    <tr>
+      <td><strong>Existing</strong></td>
+      <td>
+        <%= conflictingEvent.title %>
+        &nbsp;—&nbsp;
+        <%= new Date(conflictingEvent.startDate).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) %>
+        to
+        <%= new Date(conflictingEvent.endDate).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) %>
+      </td>
+    </tr>
+    <tr>
+      <td><strong>New</strong></td>
+      <td>
+        <%= newEvent.title %>
+        &nbsp;—&nbsp;
+        <%= new Date(newEvent.startDate).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) %>
+        to
+        <%= new Date(newEvent.endDate).toLocaleString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) %>
+      </td>
+    </tr>
+  </table>
+
+  <hr/>
+
+  <h4>What would you like to do?</h4>
+
+  <form method="post" action="/dashboard/rsvp-replace">
+    <input type="hidden" name="oldRsvpId"  value="<%= conflictRsvpId %>">
+    <input type="hidden" name="oldEventId" value="<%= conflictingEvent._id %>">
+    <input type="hidden" name="newEventId" value="<%= newEvent._id %>">
+    <button type="submit">
+      Drop "<%= conflictingEvent.title %>" and join "<%= newEvent.title %>"
+    </button>
+  </form>
+
+  <br/>
+
+  <form method="get" action="/dashboard">
+    <input type="hidden" name="msg" value="No changes made">
+    <input type="submit" value='Keep "<%= conflictingEvent.title %>"'> 
+  </form>
+
+</body>
+</html>

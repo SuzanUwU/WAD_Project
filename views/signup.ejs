@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - SMU Events</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <% include('navbar.ejs') %>
+
+  <main class="main signup-page">
+    <h1>SMU Student Sign Up</h1>
+
+    <% if (error) { %>
+      <div class="alert error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/signup">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          class="form-control"
+          placeholder="Your display name"
+          value="<%= locals.username || '' %>"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="profile">Profile picture (optional)</label>
+        <input
+          type="file"
+          id="profile"
+          name="profile"
+          class="form-control"
+          accept="image/*"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-control"
+          placeholder="name.year@school.smu.edu.sg"
+          autocomplete="email"
+          required
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="signup-school">School</label>
+        <select id="signup-school" name="school" class="form-control" required>
+          <option value="">--- Select your school ---</option>
+          <% schools.forEach(function(school) { %>
+            <option value="<%= school.code %>"><%= school.displayName %> — <%= school.fullName %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="signup-major">Major</label>
+        <select id="signup-major" name="major" class="form-control" required disabled>
+          <option value="">-- Select a school first --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-control"
+          placeholder="Choose a password"
+          autocomplete="new-password"
+          required
+          minlength="6"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="cfmpassword">Confirm Password</label>
+        <input
+          type="password"
+          id="cfmpassword"
+          name="cfmpassword"
+          class="form-control"
+          placeholder="Re-enter your password"
+          autocomplete="new-password"
+          required
+          minlength="6"
+        >
+      </div>
+
+      <div class="form-group">
+        <button type="submit" class="btn btn-login">Sign Up</button>
+      </div>
+    </form>
+
+    <p class="login-help">
+      Already have an account?
+      <a href="/login" class="btn btn-other">Login</a>
+    </p>
+  </main>
+
+  <script>
+    const schoolSelect = document.getElementById('signup-school');
+    const majorSelect = document.getElementById('signup-major');
+
+    schoolSelect.addEventListener('change', async function () {
+      const schoolCode = this.value;
+
+      majorSelect.innerHTML = '<option value="">-- Select your major --</option>';
+      majorSelect.disabled = true;
+
+      if (!schoolCode) return;
+
+      try {
+        const res = await fetch(`/api/majors?school=${schoolCode}`);
+        const majors = await res.json();
+
+        majors.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.code;
+          opt.textContent = m.name;
+          majorSelect.appendChild(opt);
+        });
+
+        majorSelect.disabled = false;
+      } catch (err) {
+        console.error('Failed to load majors:', err);
+      }
+    });
+
+    // Restore majors dropdown if page loads with school already selected
+    window.addEventListener('DOMContentLoaded', () => {
+      if (schoolSelect.value) {
+        schoolSelect.dispatchEvent(new Event('change'));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up — <%= hackathon.name %></title>
+</head>
+<body>
+  <%- include('../navbar') %>
+  <h1>Sign Up — <%= hackathon.name %></h1>
+  <p><small><%= hackathon.title %></small></p>
+  <p>
+    <strong>Dates:</strong>
+    <%= hackathon.startDate.toLocaleDateString('en-GB') %> –
+    <%= hackathon.endDate.toLocaleDateString('en-GB') %>
+    &nbsp;|&nbsp;
+    <strong>Team Size:</strong> <%= hackathon.teamSizeMin %>–<%= hackathon.teamSizeMax %> members
+  </p>
+  <p><a href="/hack-events/hackathons">← Back to Listings</a></p>
+
+  <!-- SUCCESS -->
+  <% if (success) { %>
+    <p><strong><%= success %></strong></p>
+  <% } else { %>
+
+  <!-- ERRORS -->
+  <% if (errors && errors.length > 0) { %>
+    <div>
+      <strong>Please fix the following:</strong>
+      <ul>
+        <% errors.forEach(e => { %><li><%= e %></li><% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <form method="POST" action="/hack-events/<%= hackathon.eventId %>">
+
+    <!-- YOUR DETAILS — auto-filled from session (read-only) -->
+    <fieldset>
+      <legend>Your Details (from your account)</legend>
+
+      <p>
+        <strong>Username:</strong> <%= currentUser.username %><br/>
+        <strong>Email:</strong> <%= currentUser.email %><br/>
+        <strong>School:</strong> <%= currentUser.schoolName %><br/>
+        <strong>Major:</strong> <%= currentUser.majorName %>
+      </p>
+
+      <!-- Hidden inputs pass session values to the server on submit -->
+      <input type="hidden" name="eventId"  value="<%= hackathon.eventId || '' %>"/>
+      <input type="hidden" name="userId"   value="<%= currentUser.userId %>"/>
+      <input type="hidden" name="username" value="<%= currentUser.username %>"/>
+      <input type="hidden" name="email"    value="<%= currentUser.email %>"/>
+      <input type="hidden" name="school"   value="<%= currentUser.school %>"/>
+      <input type="hidden" name="major"    value="<%= currentUser.major %>"/>
+
+      <!-- Eligibility note -->
+      <p><small>
+        <strong>Eligible schools:</strong>
+        <%= hackathon.eligibleSchools.includes('open') ? 'Open to All' : hackathon.eligibleSchools.join(', ').toUpperCase() %>
+        &nbsp;|&nbsp;
+        <strong>Eligible majors:</strong>
+        <%= hackathon.eligibleMajors.includes('open') ? 'Open to All' : hackathon.eligibleMajors.join(', ') %>
+      </small></p>
+    </fieldset>
+
+    <!-- TEAM SIZE -->
+    <fieldset>
+      <legend>Team Size</legend>
+      <p>
+        <label for="teamSize">
+          How many people in your team (including yourself)? *
+        </label><br/>
+        <%
+          // teamSizeMin is the minimum including the leader
+          // Generate options from min to max
+        %>
+        <select id="teamSize" name="teamSize" required>
+          <% for (let i = hackathon.teamSizeMin; i <= hackathon.teamSizeMax; i++) { %>
+            <option value="<%= i %>"
+              <%= (formData && parseInt(formData.teamSize) === i) ? 'selected' : '' %>>
+              <% if (i === 1) { %>Solo (just me)<% } else { %><%= i %> people<% } %>
+            </option>
+          <% } %>
+        </select>
+      </p>
+    </fieldset>
+
+    <!-- TEAMMATE EMAILS -->
+    <!-- Shown/hidden by JS based on team size selection -->
+    <fieldset id="teammates-fieldset" hidden>
+      <legend>Teammate Emails</legend>
+      <small>
+        Search each teammate by their SMU email, they must be registered students on this platform.
+        Only their userId and email will be recorded.
+      </small>
+      <% const maxTeammates = hackathon.teamSizeMax - 1;
+        for (let i = 0; i < maxTeammates; i++) { %>
+        <div class="teammate-row" id="teammate-row-<%= i %>" hidden>
+          <p>
+            <strong>Teammate <%= i + 1 %></strong><br/>
+
+            <label>Email:</label><br/>
+            <input type="email"
+                  id="teammateEmail<%= i %>"
+                  name="teammateEmail"
+                  size="36"
+                  placeholder="student@smu.edu.sg"
+                  value="<%= (formData && formData.teammateEmail && formData.teammateEmail[i]) || '' %>"/>
+            <button type="button" onclick="lookupTeammate('<%= i %>')">Search</button>
+            <br/>
+            <span id="teammate-feedback-<%= i %>"></span>
+
+            <br/>
+            <label>User ID (auto-filled after search):</label><br/>
+            <input type="text"
+                  id="teammateUserId<%= i %>"
+                  name="teammateUserId"
+                  size="20"
+                  readonly
+                  placeholder="—"
+                  value=""/>
+          </p>
+        </div>
+      <% } %>
+    </fieldset>
+
+    <p>
+      <button type="submit">Submit Registration</button>
+      &nbsp;
+      <a href="/hack-events/hackathons"><button type="button">Cancel</button></a>
+    </p>
+
+  </form>
+
+  <script>
+    const hackathonId  = '<%= hackathon._id %>';
+    const maxTeammates = '<%= hackathon.teamSizeMax - 1 %>';
+    const lookupPassed = {};
+
+    // lookupTeammate must be global so inline onclick="lookupTeammate(i)" can call it
+    async function lookupTeammate(i) {
+      const emailInput   = document.getElementById('teammateEmail' + i);
+      const userIdInput  = document.getElementById('teammateUserId' + i);
+      const feedbackSpan = document.getElementById('teammate-feedback-' + i);
+      const email        = emailInput.value.trim();
+
+      userIdInput.value        = '';
+      feedbackSpan.textContent = '';
+      feedbackSpan.style.color = '';
+      delete lookupPassed[i];
+
+      if (!email) {
+        feedbackSpan.textContent = 'Please enter an email before searching.';
+        feedbackSpan.style.color = 'red';
+        return;
+      }
+
+      feedbackSpan.textContent = 'Searching...';
+      feedbackSpan.style.color = 'gray';
+
+      try {
+        const res  = await fetch(`/hack-events/api/lookup-teammate?email=${encodeURIComponent(email)}&hackathonId=${hackathonId}`);
+        const data = await res.json();
+
+        feedbackSpan.textContent = data.message;
+
+        if (data.valid) {
+          feedbackSpan.style.color = 'green';
+          userIdInput.value        = data.userId;
+          lookupPassed[i]          = true;
+        } else {
+          feedbackSpan.style.color = 'red';
+        }
+      } catch (err) {
+        feedbackSpan.textContent = 'Search failed. Please try again.';
+        feedbackSpan.style.color = 'red';
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', function () {
+      const teamSizeSelect = document.getElementById('teamSize');
+      const teammatesFset  = document.getElementById('teammates-fieldset');
+
+      function updateTeammateInputs() {
+        const numTeammates   = parseInt(teamSizeSelect.value) - 1;
+        teammatesFset.hidden = numTeammates <= 0;
+
+        for (let i = 0; i < maxTeammates; i++) {
+          const row   = document.getElementById('teammate-row-' + i);
+          const email = document.getElementById('teammateEmail' + i);
+          const uid   = document.getElementById('teammateUserId' + i);
+
+          if (i < numTeammates) {
+            row.hidden     = false;
+            email.disabled = false;
+            email.required = true;
+            uid.disabled   = false;
+
+          } else {
+            row.hidden     = true;
+            email.required = false;
+            email.disabled = true; // disabled inputs are not submitted
+            email.value    = '';
+            uid.disabled   = true;
+            uid.value      = '';
+            document.getElementById('teammate-feedback-' + i).textContent = '';
+            delete lookupPassed[i];
+          }
+        }
+      }
+
+      teamSizeSelect.addEventListener('change', updateTeammateInputs);
+      updateTeammateInputs(); // Run once on load to set initial state
+
+      // Block submit if teammates haven't been validated
+      document.getElementById('signup-form').addEventListener('submit', function (e) {
+        const numTeammates = parseInt(teamSizeSelect.value) - 1;
+        for (let i = 0; i < numTeammates; i++) {
+          const emailVal = document.getElementById('teammateEmail' + i).value.trim();
+          const uidVal   = document.getElementById('teammateUserId' + i).value.trim();
+          if (!emailVal) {
+            e.preventDefault();
+            alert(`Please enter an email for Teammate ${i + 1}.`);
+            return;
+          }
+          if (!lookupPassed[i] || !uidVal) {
+            e.preventDefault();
+            alert(`Please search and validate Teammate ${i + 1}'s email before submitting.`);
+            return;
+          }
+        }
+      });
+
+    });
+  </script>
+
+  <% } %>
+</body>
+</html>

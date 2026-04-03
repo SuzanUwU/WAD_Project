@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Event Attendees</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+}
+
+/* HEADER */
+.header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+/* CONTAINER */
+.container {
+    width: 70%;
+    margin: 30px auto;
+}
+
+/* CARD */
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* TABLE */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #f0f0f0;
+}
+
+/* FOOTER */
+.footer {
+    margin-top: 20px;
+    font-weight: bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<%- include('../navbar', { user: user }) %>
+
+<div class="container">
+
+<div class="card">
+
+<h2><%= event ? event.title : "Event Attendees" %></h2>
+
+<br>
+
+<!-- ================= CONFIRMED ================= -->
+<h3>Confirmed Attendees</h3>
+
+<p>
+    Total Confirmed: 
+    <b><%= Math.min(confirmed.length, capacity || 0) %></b> / <%= capacity || 0 %>
+
+    <% if (capacity && confirmed.length >= capacity) { %>
+        <span style="color:red;"> (FULL)</span>
+    <% } %>
+</p>
+
+<% if (!confirmed || confirmed.length === 0) { %>
+    <p>No confirmed attendees yet.</p>
+<% } else { %>
+
+<table>
+<tr>
+<th>Name</th>
+<th>Email</th>
+</tr>
+
+<% confirmed.forEach(a => { %>
+<tr>
+<td><%= userMap[a.user]?.username || a.user %></td>
+<td><%= userMap[a.user]?.email || "N/A" %></td>
+</tr>
+<% }) %>
+
+</table>
+
+<% } %>
+
+<br>
+
+<!-- ================= WAITLIST ================= -->
+<h3 style="color:#888;">Waitlist</h3>
+
+<% if (!waitlist || waitlist.length === 0) { %>
+    <p>No one in waitlist.</p>
+<% } else { %>
+
+<table>
+<tr>
+<th>Position</th>
+<th>Name</th>
+<th>Email</th>
+<th>Status</th>
+</tr>
+
+<% waitlist.forEach((a, index) => { %>
+<tr>
+<td><%= index + 1 %></td>
+<td><%= userMap[a.user]?.username || a.user %></td>
+<td><%= userMap[a.user]?.email || "N/A" %></td>
+<td><%= a.status %></td>
+</tr>
+<% }) %>
+
+</table>
+
+<% } %>
+
+<!-- ================= FOOTER ================= -->
+<div class="footer">
+
+Confirmed: <%= Math.min(confirmed.length, capacity || 0) %> / <%= capacity || 0 %>
+
+<br>
+
+Waitlist: <%= waitlist.length %>
+
+</div>
+
+<br>
+
+<a href="/cca-events/ccaAdmin">Back to Admin Events</a>
+
+</div>
+
+</div>
+
+</body>
+</html>
