@@ -6,7 +6,6 @@ exports.applyJob = async (req, res) => {
     const jobId = req.params.id;
 
     try {
-    
         const findjob = await Job.findById(jobId);
         if (!findjob) {
             return res.send('Job could not be found');
@@ -16,11 +15,7 @@ exports.applyJob = async (req, res) => {
         const newEndDate = new Date(findjob.endDate);
 
     
-        // get all accepted jobs for this user
-        const acceptedApplications = await JobApplication.find({
-            userId: userId,
-            status: 'accepted'
-        }).populate('jobId');
+        const acceptedApplications = await JobApplication.findByStatus(userId, 'accepted');
 
         for (let app of acceptedApplications) {
             if (!app.jobId) {
@@ -30,13 +25,14 @@ exports.applyJob = async (req, res) => {
             const existingStartDate = new Date(app.jobId.startDate);
             const existingEndDate = new Date(app.jobId.endDate);
 
-
+            // Check if the job dates overlap
             if (newStartDate <= existingEndDate && newEndDate >= existingStartDate) {
-                return res.send('You cannot apply because the job dates overlap with a job that you are currently working for ');
+                return res.send('You cannot apply because the job dates overlap with a job that you are currently working for.');
             }
         }
 
-        await JobApplication.create({
+        // Use the `createApplication` method to create a new application
+        await JobApplication.createApplication({
             userId: userId,
             jobId: jobId,
             appliedDate: new Date(),
@@ -56,15 +52,14 @@ exports.applyJob = async (req, res) => {
     }
 };
 
-// retrieve jobs for user 
+// Retrieve jobs for the user
 exports.retrieveAppliedJobs = async (req, res) => {
     const userId = req.session.userId || req.session.user?.id;
 
     try {
-        
-     const appliedrecords = await JobApplication.find({
-          userId: userId, status: 'pending'}).populate('jobId');
-        
+
+        const appliedrecords = await JobApplication.findByStatus(userId, 'pending');
+
         const user = req.session.user;
         res.render('rowena/applied-job', {
             records: appliedrecords,
@@ -77,14 +72,10 @@ exports.retrieveAppliedJobs = async (req, res) => {
     }
 };
 
-
-// retrieve applicants 
-
 exports.retrieveAllApplicants = async (req, res) => {
     try {
-        const applicants = await JobApplication.find()
-            .populate('userId')
-            .populate('jobId');
+        // Use the `find` method to get all applicants
+        const applicants = await JobApplication.retrieveall()
 
         res.render('rowena/view-applicants', {
             applicants: applicants || [],
@@ -94,20 +85,15 @@ exports.retrieveAllApplicants = async (req, res) => {
         console.log(error);
         res.send('Unable to retrieve applicants');
     }
+
+
+
+
+
+
 };
 
-
-
-
-
-
-
-
-
-
-
-
-// user interface to delete application 
+// User interface to delete application
 exports.deleteApplication = async (req, res) => {
     try {
         await JobApplication.findByIdAndDelete(req.params.id);
@@ -118,39 +104,31 @@ exports.deleteApplication = async (req, res) => {
     }
 };
 
-
-// retrieve applications with accepted status 
-
+// Retrieve applications with accepted status
 exports.retrieveActiveJobs = async (req, res) => {
     const userId = req.session.userId || req.session.user?.id;
 
     try {
-        
-     const activerecords = await JobApplication.find({
-          userId: userId, status: 'accepted'}).populate('jobId');
-        
+        const activerecords = await JobApplication.findByStatus(userId, 'accepted');
+
         const user = req.session.user;
         res.render('rowena/active-jobs', {
-            records:activerecords,
+            records: activerecords,
             user: user
         });
 
     } catch (error) {
         console.log(error);
-        res.send('Error retrieving applied jobs');
+        res.send('Error retrieving active jobs');
     }
 };
 
-// ACCEPT APPLICANT 
-
-
+// Accept applicant
 exports.acceptApplicant = async (req, res) => {
-    const id = req.params.id;   // application _id
+    const id = req.params.id;  // application _id
 
     try {
-        await JobApplication.findByIdAndUpdate(id, {
-            status: 'accepted'
-        });
+        await JobApplication.updateStatus(id, 'accepted');
 
         res.redirect('/events/part-time-jobs/applicants');
     } catch (error) {
@@ -159,25 +137,17 @@ exports.acceptApplicant = async (req, res) => {
     }
 };
 
-
-
-
-
+// Reject applicant
 exports.rejectApplicant = async (req, res) => {
-    const id = req.params.id;   
+    const id = req.params.id;
 
     try {
-        await JobApplication.findByIdAndUpdate(id, {
-            status: 'rejected'
-        });
+        // Use the `updateStatus` method to change the application status to 'rejected'
+        await JobApplication.updateStatus(id, 'rejected');
 
-        res.redirect('/events/part-time-jobs/applicants');
+        res.redirect('/part-time-jobs/applicants');
     } catch (error) {
         console.log(error);
-        res.send('Failed to accept applicant');
+        res.send('Failed to reject applicant');
     }
 };
-
-
-
-

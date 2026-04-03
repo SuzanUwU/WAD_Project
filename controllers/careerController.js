@@ -13,7 +13,7 @@ function clean(body) {
     careerType: body.careerType?.trim(),
     description: body.description?.trim() || undefined,
     location: body.location?.trim() || undefined,
-    image: body.image?.trim() || "default-cover.jpg",
+    image: body.image?.trim(),
     applyLink: body.applyLink?.trim() || undefined,
     sector: body.sector || undefined,
     salary: body.salary ? Number(body.salary) : undefined,
@@ -26,6 +26,8 @@ function clean(body) {
 
 function validate(data) {
   const error = [];
+  if (!data.title) error.push('Title cannot be empty');
+  if (!data.organizer) error.push('Organizer cannot be empty');
   if (!data.description) error.push('Description cannot be empty');
   if (data.startDate && data.endDate && data.startDate > data.endDate) error.push('End date must be later than start date.');
   if (data.deadline && data.startDate && data.deadline >= data.startDate) error.push('Deadline must be before start date.');
@@ -60,7 +62,7 @@ exports.displayCareers = async (req, res) => {
     const careerEvents = await Career.findWithFilter(filter);
     const rsvps = await RSVP.getUserRSVP(req.session.user.userId);
     const pinnedIDs = rsvps.map(r => r.event.toString());
-    res.render('career', {
+    res.render('yujia/career', {
       jobs: careerEvents.filter(e => e.careerType !== 'workshop'),
       workshops: careerEvents.filter(e => e.careerType === 'workshop'),
       pinned: careerEvents.filter(e => pinnedIDs.includes(e.eventId.toString())),
@@ -88,7 +90,7 @@ exports.careerDetail = async (req, res) => {
     const registered = await RSVP.isAlreadyRsvp(req.params.id, req.session.user.userId);
     const confirmedCount = await RSVP.getDocCount(event.eventId,'confirmed');
     const waitlistCount = await RSVP.getDocCount(event.eventId,'waitlist');
-    res.render('event-detail', { event, state: registered?.status, confirmedCount, waitlistCount });
+    res.render('yujia/event-detail', { event, state: registered?.status, confirmedCount, waitlistCount });
   } catch (error) {
     res.status(500).send(error.message)
   }
@@ -98,7 +100,7 @@ exports.careerDetail = async (req, res) => {
 exports.showCareerForm = async (req, res) => {
   try {
     const event = req.query.id ? await Career.findById(req.query.id) : null;
-    res.render('career-form', {
+    res.render('yujia/career-form', {
       event,
       action: req.query.id ? '/career-events/career-update' : '/career-events/career-create',
       error: [],
@@ -118,7 +120,7 @@ exports.createCareer = async (req, res) => {
     
     if (error.length > 0) {
       console.log(error);
-      return res.render('career-form', { event: data, action: '/career-events/career-create', categories, sectors, error });
+      return res.render('yujia/career-form', { event: data, action: '/career-events/career-create', categories, sectors, error });
     }
     const event = await Event.create({
       title:       data.title,
@@ -146,7 +148,7 @@ exports.updateCareer = async (req, res) => {
     if (error.length > 0) {
       console.log(error);
       const event = await Career.findById(careerID);
-      return res.render('career-form', { event, action: '/career-events/career-update', categories, sectors, error });
+      return res.render('yujia/career-form', { event, action: '/career-events/career-update', categories, sectors, error });
     }
     const career = await Career.findById(careerID);
     await Career.updateById(careerID, data);

@@ -3,7 +3,7 @@ const HackRegistration = require('../models/HackRegistration');
 const RSVP = require('../models/rsvpModel');
 const User = require('../models/userModel');
 const School = require('../models/school-model');
-
+const profileController = require('../controllers/profileController');// for join rsvp
 // Helpers
 function getSessionUser(req) {
   const u = req.session?.user;
@@ -67,7 +67,7 @@ exports.registerAttendee = async (req, res) => {
     state = state.status === 'confirmed' ? 'registered' : 'waitlisted';
     errors.push(`You are already ${state} for this hackathon.`);
   }
-
+  console.log(state)
   // Check 5: Team size range
   if (parsedTeamSize < hackathon.teamSizeMin || parsedTeamSize > hackathon.teamSizeMax)
     errors.push(`Team size must be between ${hackathon.teamSizeMin} and ${hackathon.teamSizeMax}.`);
@@ -116,7 +116,8 @@ exports.registerAttendee = async (req, res) => {
       teamSize:    parsedTeamSize,
     });
     //pass to joinrsvp function to check for time conflict,waitlist/confirmation and update personal calendar
-    return require('../controllers/profileController').joinRsvp(req, res);
+    await profileController.joinRsvp(req, res);
+    return;
 
   } catch (err) {
     console.error('Error loading attendees:', err.message);
@@ -141,6 +142,7 @@ exports.showAttendees = async (req, res) => {
     if (!hackathon) return res.status(404).send('Hackathon not found.');
 
     let registrations = await HackRegistration.findByHackathon(req.params.id);
+    console.log(registrations)
     let rsvps=await RSVP.getConfirmed(hackathon.eventId);//confirmed attendees
     rsvps = rsvps.map(r => r.user);//retrieve confirmed grp leader
     registrations = registrations.filter(reg => rsvps.includes(reg.userId));

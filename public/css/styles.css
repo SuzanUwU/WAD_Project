@@ -15,11 +15,12 @@
   padding: 0;
 }
 
+
 body {
   font-family: Arial, sans-serif;
-  color: var(--text);
-  background: var(--background);
-  line-height: 1.5;
+  background-color: #f5f6fa;
+  margin: 0;
+  padding-top: 70px;
 }
 
 /* Navbar styles (using the old design system) */
@@ -28,7 +29,7 @@ body {
   top: 0;
   width: 100%;
   background: var(--primary);
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   z-index: 1000;
   padding: 0.75rem 1rem;
   font-family: Arial, sans-serif;
@@ -79,7 +80,7 @@ body {
 }
 
 .nav-link:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* User section */
@@ -121,7 +122,7 @@ body {
 }
 
 .dropdown-trigger:hover {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .dropdown-menu {
@@ -132,7 +133,7 @@ body {
   transform: translateX(-50%);
   background: white;
   min-width: 200px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   padding: 0;
@@ -179,11 +180,13 @@ body {
     flex-direction: column;
     gap: 1rem;
   }
+
   .nav-center {
     order: 3;
     flex-wrap: wrap;
     justify-content: center;
   }
+
   .nav-right {
     order: 2;
   }
@@ -261,7 +264,7 @@ body {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .card h3 {
@@ -312,7 +315,7 @@ body {
   padding: 20px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Reusable alerts (error / success) */
@@ -379,7 +382,7 @@ body {
   padding: 20px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Saved Events banner */
@@ -428,7 +431,8 @@ body {
 .event-table td {
   border-collapse: collapse;
   border: 1px solid #ccc;
-  padding: 10px 14px; /* space between border and text */
+  padding: 10px 14px;
+  /* space between border and text */
   font-family: Arial, sans-serif;
   font-size: 14px;
   line-height: 1.4;
@@ -509,7 +513,8 @@ body {
 
 /* Delete / danger button */
 .btn-danger {
-  background: #ad261d;      /* clear red for delete */
+  background: #ad261d;
+  /* clear red for delete */
   color: white;
 }
 
@@ -536,7 +541,7 @@ body {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: 1px solid #ddd;
 }
 
@@ -594,13 +599,14 @@ body {
   padding: 40px;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .event-actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;                /* space between buttons */
+  gap: 10px;
+  /* space between buttons */
   margin-top: 16px;
 }
 
@@ -619,4 +625,193 @@ body {
   font-size: 0.9rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   animation: slideDown 0.3s ease;
+}
+
+/* Calendar - fixed cell sizes */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.month-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.month-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.month-nav a {
+  text-decoration: none;
+  background: var(--secondary);
+  color: #1a1a1a;
+  padding: 0.25rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  transition: 0.2s;
+}
+
+.month-nav a:hover {
+  background: var(--accent);
+  color: white;
+}
+
+.calendar-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.calendar-table th {
+  padding: 0.5rem 0.2rem;
+  text-align: center;
+  font-weight: 500;
+  color: #6b6b6b;
+  border-bottom: 1px solid #eee;
+  width: 14.28%;
+}
+
+.calendar-table td {
+  border: 1px solid #f0f0f0;
+  padding: 0.3rem;
+  height: 80px;
+  width: 14.28%;
+  vertical-align: top;
+  background: white;
+  overflow: hidden;
+}
+
+.calendar-day-number {
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+  display: inline-block;
+  color: var(--text);
+}
+
+/* Stats grid */
+.stats-grid {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 0.5rem;
+  flex: 1;
+  min-width: 80px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #8a8f99;
+  letter-spacing: 0.5px;
+}
+
+.btn {
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #45a049;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* CONTAINER */
+.container {
+  width: 80%;
+  margin: 20px auto;
+}
+
+/* FILTER SECTION */
+.filter-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.filter-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 150px;
+}
+
+.filter-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Replace the sector-checkboxes section with this */
+.sector-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 5px;
+}
+
+.sector-checkboxes label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: normal;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }

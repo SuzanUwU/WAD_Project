@@ -10,6 +10,56 @@ const getSchools = () => School.find({}).sort({ displayName: 1 });
 const getPreloadedMajors = (schools) =>
   schools.flatMap(s => s.majors.map(m => ({ ...m.toObject(), schoolCode: s.code })));
 
+const validate = (data) => {
+  const { title, name, description, location, eligibleSchools, eligibleMajors, teamSizeMin, teamSizeMax, capacity, startDate, endDate, registrationDeadline, status, image} = data;
+  const errors = [];
+  if (!title || title.trim() === '') errors.push('Title is required.');
+  if (!name || name.trim() === '') errors.push('Name is required.');
+  if (!description || description.trim() === '') errors.push('Description is required.');
+  if (!location || location.trim() === '') errors.push('Location is required.');
+  if (!eligibleSchools || eligibleSchools.length === 0) errors.push('At least one eligible school must be selected.');
+  if (!eligibleMajors  || eligibleMajors.length  === 0) errors.push('At least one eligible major must be selected.');
+
+  const min = parseInt(teamSizeMin), max = parseInt(teamSizeMax);
+  if (isNaN(min) || min < 1) errors.push('Minimum team size must be at least 1.');
+  if (isNaN(max) || max < 1) errors.push('Maximum team size must be at least 1.');
+  if (!isNaN(min) && !isNaN(max) && min > max) errors.push('Minimum team size cannot be greater than maximum.');
+
+  const cap = parseInt(capacity);
+  if (isNaN(cap) || cap < 1) errors.push('Capacity must be at least 1.');
+
+  const start = new Date(startDate), end = new Date(endDate), deadline = new Date(registrationDeadline);
+  if (!startDate || isNaN(start)) errors.push('A valid start date is required.');
+  if (!endDate   || isNaN(end)) errors.push('A valid end date is required.');
+  if (!registrationDeadline || isNaN(deadline)) errors.push('A valid registration deadline is required.');
+  if (!isNaN(start) && !isNaN(end) && end <= start) errors.push('End date must be after start date.');
+  if (!isNaN(deadline) && !isNaN(start) && deadline >= start) errors.push('Registration deadline must be before the start date.');
+
+  const validStatuses = ['upcoming', 'open', 'closed', 'completed', 'cancelled'];
+  if (!status || !validStatuses.includes(status)) errors.push('A valid status must be selected.');
+  
+  return { 
+    errors, 
+    parsed: {
+      title: title?.trim() || '',
+      name: name?.trim() || '',
+      description: description?.trim() || '',
+      location: location?.trim() || '',
+      eligibleSchools: Array.isArray(eligibleSchools) ? eligibleSchools : [eligibleSchools],
+      eligibleMajors: Array.isArray(eligibleMajors) ? eligibleMajors : [eligibleMajors],
+      status,
+      image: image?.trim() || '', 
+      min,
+      max,
+      cap,
+      start,
+      end,
+      deadline
+    }
+  };
+}
+
+
 // GET /hackathons for display
 exports.showHackathons = async (req, res) => {
   try {
@@ -74,33 +124,7 @@ exports.showCreateForm = async (req, res) => {
 
 // POST /new — validate and save new hackathon
 exports.createHackathon = async (req, res) => {
-  const { title, name, description, location, eligibleSchools, eligibleMajors, teamSizeMin, teamSizeMax, capacity, startDate, endDate, registrationDeadline, status,image} = req.body;
-  const errors = [];
-  if (!title || title.trim() === '') errors.push('Title is required.');
-  if (!name || name.trim() === '') errors.push('Name is required.');
-  if (!description || description.trim() === '') errors.push('Description is required.');
-  if (!location || location.trim() === '') errors.push('Location is required.');
-  if (!eligibleSchools || eligibleSchools.length === 0) errors.push('At least one eligible school must be selected.');
-  if (!eligibleMajors  || eligibleMajors.length  === 0) errors.push('At least one eligible major must be selected.');
-
-  const min = parseInt(teamSizeMin), max = parseInt(teamSizeMax);
-  if (isNaN(min) || min < 1) errors.push('Minimum team size must be at least 1.');
-  if (isNaN(max) || max < 1) errors.push('Maximum team size must be at least 1.');
-  if (!isNaN(min) && !isNaN(max) && min > max) errors.push('Minimum team size cannot be greater than maximum.');
-
-  const cap = parseInt(capacity);
-  if (isNaN(cap) || cap < 1) errors.push('Capacity must be at least 1.');
-
-  const start = new Date(startDate), end = new Date(endDate), deadline = new Date(registrationDeadline);
-  if (!startDate || isNaN(start)) errors.push('A valid start date is required.');
-  if (!endDate   || isNaN(end)) errors.push('A valid end date is required.');
-  if (!registrationDeadline || isNaN(deadline)) errors.push('A valid registration deadline is required.');
-  if (!isNaN(start) && !isNaN(end) && end <= start) errors.push('End date must be after start date.');
-  if (!isNaN(deadline) && !isNaN(start) && deadline >= start) errors.push('Registration deadline must be before the start date.');
-
-  const validStatuses = ['upcoming', 'open', 'closed', 'completed', 'cancelled'];
-  if (!status || !validStatuses.includes(status)) errors.push('A valid status must be selected.');
-
+  const { errors, parsed } = validate(req.body);
   if (errors.length > 0) {
     const schools = await getSchools();
     return res.status(422).render('ari/create-hackathon', {
@@ -108,35 +132,39 @@ exports.createHackathon = async (req, res) => {
     });
   }
 
-  try {    
-    
-    const newEvent = await Event.create({ // Create Event doc first to get its _id
-      title: title.trim(),
-      organizer: name.trim(), // hackathon.name maps to Event.organizer
+  try {
+    const newEvent = await Event.create({
+      title: parsed.title,           
+      organizer: parsed.name,        
       category: 'Hackathon',
-      description: description.trim(),
-      startDate: start,
-      endDate: end,
-      location: location.trim(),
-      capacity: cap,
-      image: image.trim()? image.trim():'placeholder.jpg'
+      description: parsed.description, 
+      startDate: parsed.start,       
+      endDate: parsed.end,           
+      location: parsed.location,     
+      capacity: parsed.cap,          
+      image: parsed.image
     });
 
-    // Create Hackathon doc with eventId reference
+    // Create Hackathon doc with parsed values
     await Hackathon.createHackathon({
       eventId: newEvent._id,
-      title: title.trim(), 
-      name: name.trim(), 
-      description: description.trim(),
-      location: location.trim(),
+      title: parsed.title,
+      name: parsed.name,
+      description: parsed.description,
+      location: parsed.location,
       category: 'Hackathon',
-      eligibleSchools: Array.isArray(eligibleSchools) ? eligibleSchools : [eligibleSchools],
-      eligibleMajors:  Array.isArray(eligibleMajors)  ? eligibleMajors  : [eligibleMajors],
-      teamSizeMin: min, teamSizeMax: max, capacity: cap,
-      startDate: start, endDate: end, registrationDeadline: deadline,
-      status,
-      image: image.trim()? image.trim():'placeholder.jpg'
+      eligibleSchools: parsed.eligibleSchools,  
+      eligibleMajors: parsed.eligibleMajors,    
+      teamSizeMin: parsed.min,      
+      teamSizeMax: parsed.max,      
+      capacity: parsed.cap,         
+      startDate: parsed.start,
+      endDate: parsed.end,    
+      registrationDeadline: parsed.deadline,
+      status: parsed.status,
+      image: parsed.image
     });
+    
     res.redirect('/hack-events/hackathons?success=created');
 
   } catch (err) {
@@ -168,34 +196,9 @@ exports.showEditForm = async (req, res) => {
 };
 
 // POST /:id/edit — validate and update
+// POST /:id/edit — validate and update
 exports.updateHackathon = async (req, res) => {
-  const { title, name, description, location, eligibleSchools, eligibleMajors, teamSizeMin, teamSizeMax, capacity, startDate, endDate, registrationDeadline, status, image} = req.body;
-  const errors = [];
-  if (!title || title.trim() === '') errors.push('Title is required.');
-  if (!name || name.trim() === '') errors.push('Name is required.');
-  if (!description || description.trim() === '') errors.push('Description is required.');
-  if (!location || location.trim() === '') errors.push('Location is required.');
-  if (!eligibleSchools || eligibleSchools.length === 0) errors.push('At least one eligible school must be selected.');
-  if (!eligibleMajors  || eligibleMajors.length  === 0) errors.push('At least one eligible major must be selected.');
-
-  const min = parseInt(teamSizeMin), max = parseInt(teamSizeMax);
-  if (isNaN(min) || min < 1) errors.push('Minimum team size must be at least 1.');
-  if (isNaN(max) || max < 1) errors.push('Maximum team size must be at least 1.');
-  if (!isNaN(min) && !isNaN(max) && min > max) errors.push('Minimum team size cannot be greater than maximum.');
-
-  const cap = parseInt(capacity);
-  if (isNaN(cap) || cap < 1) errors.push('Capacity must be at least 1.');
-
-  const start = new Date(startDate), end = new Date(endDate), deadline = new Date(registrationDeadline);
-  if (!startDate || isNaN(start)) errors.push('A valid start date is required.');
-  if (!endDate   || isNaN(end)) errors.push('A valid end date is required.');
-  if (!registrationDeadline || isNaN(deadline)) errors.push('A valid registration deadline is required.');
-  if (!isNaN(start) && !isNaN(end) && end <= start) errors.push('End date must be after start date.');
-  if (!isNaN(deadline) && !isNaN(start) && deadline >= start) errors.push('Registration deadline must be before the start date.');
-
-  const validStatuses = ['upcoming', 'open', 'closed', 'completed', 'cancelled'];
-  if (!status || !validStatuses.includes(status)) errors.push('A valid status must be selected.');
-
+  const { errors, parsed } = validate(req.body);
   if (errors.length > 0) {
     const [hackathon, schools] = await Promise.all([Hackathon.findById(req.params.id), getSchools()]);
     return res.status(422).render('ari/edit-hackathon', {
@@ -209,28 +212,43 @@ exports.updateHackathon = async (req, res) => {
     if (!hackathon) return res.status(404).send('Hackathon not found.');
 
     const updateData = {
-      title: title.trim(), name: name.trim(), description: description.trim(), location: location.trim(),
-      eligibleSchools: Array.isArray(eligibleSchools) ? eligibleSchools : [eligibleSchools],
-      eligibleMajors:  Array.isArray(eligibleMajors)  ? eligibleMajors  : [eligibleMajors],
-      teamSizeMin: min, teamSizeMax: max, capacity: cap,
-      startDate: start, endDate: end, registrationDeadline: deadline, status,
-      image: image.trim()? image.trim():'placeholder.jpg'
+      title: parsed.title,
+      name: parsed.name,
+      description: parsed.description,
+      location: parsed.location,
+      category: 'Hackathon',
+      eligibleSchools: parsed.eligibleSchools,  
+      eligibleMajors: parsed.eligibleMajors,    
+      teamSizeMin: parsed.min,      
+      teamSizeMax: parsed.max,      
+      capacity: parsed.cap,         
+      startDate: parsed.start,
+      endDate: parsed.end,    
+      registrationDeadline: parsed.deadline,
+      status: parsed.status,
+      image: parsed.image
     };
 
     await Hackathon.updateById(req.params.id, updateData);
     
-    // Keep Event doc in sync if it exists
+    // Keep Event doc in sync (use existing hackathon.eventId)
     if (hackathon.eventId) {
-      await Event.updateById(hackathon.eventId , {
-        title: title.trim(), organizer: name.trim(), description: description.trim(),
-        startDate: start, endDate: end, location: location.trim(), capacity: cap, image: image.trim()? image.trim():'placeholder.jpg'
+      await Event.updateById(hackathon.eventId, {
+        title: parsed.title,           
+        organizer: parsed.name,        
+        category: 'Hackathon',
+        description: parsed.description, 
+        startDate: parsed.start,       
+        endDate: parsed.end,           
+        location: parsed.location,     
+        capacity: parsed.cap,          
+        image: parsed.image 
       });
     }
 
     res.redirect('/hack-events/hackathons?success=updated');
 
   } catch (err) {
-    // console.error('updateHackathon ERROR:', err);
     const isDup = err.code === 11000 && err.keyPattern?.title;
     const [hackathon, schools] = await Promise.all([Hackathon.findById(req.params.id), getSchools()]);
     return res.status(500).render('ari/edit-hackathon', {
@@ -240,7 +258,6 @@ exports.updateHackathon = async (req, res) => {
     });
   }
 };
-
 // POST /:id/delete — delete hackathon
 exports.deleteHackathon = async (req, res) => {
   try {

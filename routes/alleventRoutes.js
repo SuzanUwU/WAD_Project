@@ -8,14 +8,21 @@ const Event = require('../models/eventModel');
 const SavedEvents = require('../models/SavedEvents');
 const savedEventController = require('../controllers/savedeventsController');
 const Organizer = require('../models/Organizer');
-
+const Hackathon = require('../models/Hackathon')
 // router to get/read data about all events
 router.get('/', async (req, res) => {
   try {
-    // 1. Fetch all standard events
-    const events = await Event.retrieveAll().sort({ startDate : -1 }); 
-    
-    // 2. Set up an empty array just in case they aren't logged in
+   let events = await Event.retrieveAll().sort({ startDate: -1 });
+   const hackathons = await Hackathon.getByStatus('open');
+    const openHackathonIds =hackathons.map(h => h.eventId.toString());
+    events = events.filter(e => {
+      if (e.category !== "Hackathon") {
+        return true;
+      }
+      return openHackathonIds.includes(e._id.toString());
+    });
+    console.log(events)
+
     let mySavedEvents = [];
 
     // 3. If they ARE logged in, fetch their specific saved list

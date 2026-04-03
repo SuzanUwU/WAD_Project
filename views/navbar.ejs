@@ -11,12 +11,13 @@
     <!-- Links (center) -->
     <div class="nav-center">
       <a href="/all-events" class="nav-link">All Events</a>
-      <a href="/all-events/saved-events" class="nav-link">My Saved Events</a>
+      <a href="/dashboard" class="nav-link">My Dashboard</a>
+      <a href="/all-events/saved-events" class="nav-link">Saved Events</a>
 
       <!-- Events dropdown -->
       <div class="dropdown-container events-dropdown">
         <div class="dropdown-trigger">
-          Events
+          Explore
         </div>
         <div class="dropdown-menu">
           <a href="/cca-events/cca" class="dropdown-item">CCA Events</a>
@@ -53,15 +54,15 @@
                 <!-- need to add yujia, ari, rownea routes to admin pages  -->
 
                 <% if (type.includes('career')) { %>
-                  <a href="/career-events/admin" class="dropdown-item">⚙ Manage Career Events</a>
+                  <a href="/career-events#admin" class="dropdown-item">⚙ Manage Career Events</a>
                 <% } %>
 
                 <% if (type.includes('hack')) { %>
-                  <a href="/hack-events/admin" class="dropdown-item">⚙ Manage Hackathons</a>
+                  <a href="/hack-events/hackathons" class="dropdown-item">⚙ Manage Hackathons</a>
                 <% } %>
 
                 <% if (type.includes('ptjob')) { %>
-                  <a href="/events/admin" class="dropdown-item">⚙ Manage Part-Time Jobs</a>
+                  <a href="/part-time-jobs/create" class="dropdown-item">⚙ Manage Part-Time Jobs</a>
                 <% } %>
 
               <% } %>

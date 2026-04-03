@@ -4,43 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View All Applied Applications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3a5f;
+            margin: 20px 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        .link-bar {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .link-bar a {
+            color: #1e3a5f;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 6px;
+            background-color: #f4f7fb;
+            transition: background-color 0.3s;
+        }
+
+        .link-bar a:hover {
+            background-color: #1e3a5f;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #1e3a5f;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f5ff;
+        }
+
+        .cancel-btn {
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+
+        .cancel-btn:hover {
+            background-color: #e55347;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>Hi <%= user.username %> 
-        <br>View All your applied jobs</h1>
+    <div class="container">
+        <h1>Hi <%= user.username %>,<br> View All Your Applied Jobs</h1>
 
-    <a href="/events/part-time-jobs">Back to Part Time Page</a>
+        <div class="link-bar">
+            <a href="/part-time-jobs">Back to Part Time Jobs Page</a>
+        </div>
 
-    <% if (records.length === 0) { %>
-        <p>There are no active applications</p>
-    <% } else { %>
-        <table border="1">
-            <tr>
-                <th>Logo</th>
-                <th>Company Name</th>
-                <th>Job Title</th>
-                <th>Status</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Modification</th>
-            </tr>
+        <% if (records.length === 0) { %>
+            <p style="text-align: center; color: #555;">There are no active applications</p>
+        <% } else { %>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Logo</th>
+                        <th>Company Name</th>
+                        <th>Job Title</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Modification</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% records.forEach(r => { %>
+                        <tr>
+                            <!-- Company Logo Column -->
+                            <td>
+                                <img src="<%= r.jobId && r.jobId.companyLogo ? '/images/' + r.jobId.companyLogo : '/images/placeholder.png' %>"
+                                     style="width:50px; height:50px; object-fit: cover;">
+                            </td>
 
-            <% records.forEach(r => { %>
-                <tr>
-                    <td>
-                        <img src="<%= r.jobId.companylogo %>" width="100">
-                    </td>
-                    <td><%= r.jobId.companyname %></td>
-                    <td><%= r.jobId.jobtitle %></td>
-                    <td><%= r.status %></td>
-                    <td><%= new Date(r.jobId.startDate).toLocaleDateString() %></td>
-                    <td><%= new Date(r.jobId.endDate).toLocaleDateString() %></td>
-                     <td><a href="/events/part-time-jobs/cancel/<%= r._id %>"onclick="return confirm('Are you sure you want to cancel this application?')">Cancel </a> </td>
-                    
-            <% }) %>
-        </table>
-    <% } %>
+                            <!-- Company Name Column -->
+                            <td><%= r.jobId ? r.jobId.companyname : 'N/A' %></td>
+
+                            <!-- Job Title Column -->
+                            <td><%= r.jobId ? r.jobId.jobtitle : 'N/A' %></td>
+
+                            <!-- Status Column -->
+                            <td><span class="status"><%= r.status %></span></td>
+
+                       
+                            <td>
+                                <% if (r.jobId && r.jobId.startDate) { %>
+                                    <%= new Date(r.jobId.startDate).toLocaleDateString() %>
+                                <% } else { %>
+                                    N/A
+                                <% } %>
+                            </td>
+
+                          
+                            <td>
+                                <% if (r.jobId && r.jobId.endDate) { %>
+                                    <%= new Date(r.jobId.endDate).toLocaleDateString() %>
+                                <% } else { %>
+                                    N/A
+                                <% } %>
+                            </td>
+
+                           
+                                <a href="/part-time-jobs/cancel/<%= r._id %>" class="cancel-btn" 
+                                   onclick="return confirm('Are you sure you want to cancel this application?')">Cancel</a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } %>
+    </div>
 
 </body>
 </html>

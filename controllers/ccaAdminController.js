@@ -91,84 +91,117 @@ exports.showCreateForm = (req, res) => {
 exports.createEvent = async (req, res) => {
   try {
 
+    // ================= CLEAN DATA =================
+    const data = {
+      title: req.body.title?.trim(),
+      organizer: req.body.organizer?.trim(),
+      location: req.body.location?.trim(),
+      description: req.body.description?.trim(),
+      image: req.body.image?.trim(),
+      clubType: req.body.clubType,
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
+      deadline: req.body.deadline,
+      capacity: req.body.capacity
+    };
+
     const errors = {};
 
-    if (!req.body.title || req.body.title.trim() === "") {
+    // ================= VALIDATION =================
+
+    if (!data.title) {
       errors.title = "Title is required";
     }
 
-    if (!req.body.organizer || req.body.organizer.trim() === "") {
+    if (!data.organizer) {
       errors.organizer = "Organizer is required";
     }
 
-    if (!req.body.startDate) {
+    if (!data.startDate) {
       errors.startDate = "Start date is required";
     }
 
-    if (!req.body.endDate) {
+    if (!data.endDate) {
       errors.endDate = "End date is required";
     }
 
     if (
-      req.body.startDate &&
-      req.body.endDate &&
-      new Date(req.body.endDate) < new Date(req.body.startDate)
+      data.startDate &&
+      data.endDate &&
+      new Date(data.endDate) < new Date(data.startDate)
     ) {
       errors.endDate = "End date must be after start date";
     }
 
-    if (!req.body.clubType) {
+    if (!data.clubType) {
       errors.clubType = "Please select a club type";
     }
 
     if (
-      req.body.deadline &&
-      !errors.deadline && 
-      req.body.startDate &&
-      new Date(req.body.deadline) > new Date(req.body.startDate)
+      data.deadline &&
+      data.startDate &&
+      new Date(data.deadline) > new Date(data.startDate)
     ) {
       errors.deadline = "Deadline must be before event start date";
     }
 
-    if (req.body.capacity && req.body.capacity < 1) {
-      errors.capacity = "Capacity must be at least 1";
+    // LOCATION
+    if (!data.location) {
+      errors.location = "Location is required";
     }
 
-    // if got errors → render back
+    // DESCRIPTION
+    if (!data.description) {
+      errors.description = "Description is required";
+    }
+
+    // IMAGE (optional)
+    if (!data.image) {
+      data.image = "placeholder.jpg";
+    }
+
+    // CAPACITY
+    const capacityNum = Number(data.capacity);
+
+    if (!data.capacity || !Number.isInteger(capacityNum) || capacityNum < 1) {
+      errors.capacity = "Capacity must be a valid positive number";
+    }
+
+    // ================= STOP IF ERROR =================
     if (Object.keys(errors).length > 0) {
       return res.render("khin/ccaCreate", {
         user: req.session.user,
         errors,
-        formData: req.body   // keep user input
+        formData: req.body
       });
     }
 
-    // CREATE EVENT
+    // ================= CREATE EVENT =================
     const newEvent = await Event.create({
-      title: req.body.title,
-      organizer: req.body.organizer,
+      title: data.title,
+      organizer: data.organizer,
       category: "CCA",
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
-      location: req.body.location,
-      description: req.body.description,
-      image: req.body.image || "placeholder.jpg"
+      startDate: data.startDate,
+      endDate: data.endDate,
+      location: data.location,
+      description: data.description,
+      image: data.image
     });
 
-    // CREATE CCA
+    // ================= CREATE CCA =================
     await CCAmodel.createCCA({
       eventId: newEvent._id,
-      title: req.body.title,
-      organizer: req.body.organizer,
+      title: data.title,
+      organizer: data.organizer,
       category: "CCA",
-      description: req.body.description,
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
-      location: req.body.location,
-      clubType: req.body.clubType,
-      capacity: req.body.capacity || 0,
-      image: req.body.image || "placeholder.jpg",
-      registrationDeadline: req.body.deadline || null
+      description: data.description,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      location: data.location,
+      clubType: data.clubType,
+      capacity: Number(data.capacity),
+      image: data.image,
+      registrationDeadline: data.deadline || null
     });
 
     res.redirect("/cca-events/ccaAdmin");
@@ -202,60 +235,66 @@ exports.showEditForm = async (req, res) => {
 exports.updateEvent = async (req, res) => {
   try {
 
-    // get current event
     const cca = await CCAmodel.getCCAById(req.params.id);
 
     if (!cca || !cca.eventId) {
       return res.send("CCA event not found properly");
     }
 
-    // ================= VALIDATION =================
+    // ================= CLEAN DATA =================
+    const data = {
+      title: req.body.title?.trim(),
+      organizer: req.body.organizer?.trim(),
+      location: req.body.location?.trim(),
+      description: req.body.description?.trim(),
+      image: req.body.image?.trim(),
+      clubType: req.body.clubType,
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
+      deadline: req.body.deadline,
+      capacity: req.body.capacity
+    };
+
     const errors = {};
 
-    if (!req.body.title || req.body.title.trim() === "") {
-      errors.title = "Title is required";
-    }
+    // ================= VALIDATION =================
 
-    if (!req.body.organizer || req.body.organizer.trim() === "") {
-      errors.organizer = "Organizer is required";
-    }
+    if (!data.title) errors.title = "Title is required";
 
-    if (!req.body.startDate) {
-      errors.startDate = "Start date is required";
-    }
+    if (!data.organizer) errors.organizer = "Organizer is required";
 
-    if (!req.body.endDate) {
-      errors.endDate = "End date is required";
+    if (!data.location) errors.location = "Location is required";
+
+    if (!data.description) errors.description = "Description is required";
+
+    if (!data.startDate) errors.startDate = "Start date is required";
+
+    if (!data.endDate) errors.endDate = "End date is required";
+
+    if (
+      data.startDate &&
+      data.endDate &&
+      new Date(data.endDate) < new Date(data.startDate)
+    ) {
+      errors.endDate = "End date must be after start date";
     }
 
     if (
-      req.body.deadline &&
-      !errors.deadline && 
-      req.body.startDate &&
-      new Date(req.body.deadline) > new Date(req.body.startDate)
+      data.deadline &&
+      data.startDate &&
+      new Date(data.deadline) > new Date(data.startDate)
     ) {
       errors.deadline = "Deadline must be before event start date";
     }
 
-    if (!req.body.clubType) {
-      errors.clubType = "Please select a club type";
-    }
+    if (!data.clubType) errors.clubType = "Please select a club type";
 
-    if (req.body.capacity && req.body.capacity < 1) {
+    if (!data.capacity || isNaN(data.capacity) || Number(data.capacity) < 1) {
       errors.capacity = "Capacity must be at least 1";
-    }
-
-    if (
-      req.body.deadline &&
-      req.body.startDate &&
-      new Date(req.body.deadline) > new Date(req.body.startDate)
-    ) {
-      errors.deadline = "Deadline must be before event start date";
     }
 
     // ================= IF ERROR =================
     if (Object.keys(errors).length > 0) {
-
       const formData = {
         ...cca.toObject(),
         ...req.body
@@ -290,37 +329,37 @@ exports.updateEvent = async (req, res) => {
     };
 
     // check changes
-    if ((oldEvent.location || "") !== (req.body.location || "")) {
-      await createNotifications("location", oldEvent.location, req.body.location);
+    if ((oldEvent.location || "") !== (data.location || "")) {
+      await createNotifications("location", oldEvent.location, data.location);
     }
 
-    if (cca.capacity !== Number(req.body.capacity)) {
-      await createNotifications("capacity", cca.capacity, req.body.capacity);
+    if (cca.capacity !== Number(data.capacity)) {
+      await createNotifications("capacity", cca.capacity, data.capacity);
     }
 
     // update Event
     await Event.updateById(eventId, {
-      title: req.body.title,
-      organizer: req.body.organizer,
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
-      location: req.body.location,
-      description: req.body.description,
-      image: req.body.image ? req.body.image : cca.image
+      title: data.title,
+      organizer: data.organizer,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      location: data.location,
+      description: data.description,
+      image: data.image ? data.image : cca.image
     });
 
     // update CCA
     await CCAmodel.updateCCA(req.params.id, {
-      title: req.body.title,
-      organizer: req.body.organizer,
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
-      location: req.body.location,
-      description: req.body.description,
-      clubType: req.body.clubType,
-      capacity: req.body.capacity || 0,
-      image: req.body.image ? req.body.image : cca.image,
-      registrationDeadline: req.body.deadline ? req.body.deadline : cca.registrationDeadline
+      title: data.title,
+      organizer: data.organizer,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      location: data.location,
+      description: data.description,
+      clubType: data.clubType,
+      capacity: Number(data.capacity),
+      image: data.image ? data.image : cca.image,
+      registrationDeadline: data.deadline ? data.deadline : cca.registrationDeadline
     });
 
     res.redirect("/cca-events/ccaAdmin");

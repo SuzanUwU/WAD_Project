@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RSVP Detail</title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f6fa;
+      margin: 0;
+      padding-top: 70px;
+    }
+    .container {
+      width: 70%;
+      margin: 30px auto;
+    }
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .detail-row {
+      margin-bottom: 10px;
+      color: #555;
+    }
+    .btn {
+      padding: 10px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+      font-family: Arial, sans-serif;
+    }
+    .btn-primary {
+      background-color: #4CAF50;
+      color: white;
+    }
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    hr {
+      margin: 20px 0;
+      border: none;
+      border-top: 1px solid #eee;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .status-confirmed {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-waitlist {
+      background: #fff3cd;
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar') %>
+
+  <div class="container">
+    <div class="card">
+      <h1 style="margin-top:0; margin-bottom:5px;"><%= event.title %></h1>
+      <p style="color:#666; margin-top:0;">by <%= event.organizer %></p>
+
+      <hr/>
+
+      <div class="detail-row">
+        <strong>Status:</strong>
+        <% if (rsvp.status == 'waitlist') { %>
+          <span class="status-badge status-waitlist">Waitlist | You are #<%= position %> in the waitlist</span>
+        <% } else { %>
+          <span class="status-badge status-confirmed">Confirmed</span>
+        <% } %>
+      </div>
+
+      <% if (event.startDate) { %>
+        <div class="detail-row">
+          <strong>Date:</strong>
+          <%= new Date(event.startDate).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) %>
+          &nbsp;
+          <%= new Date(event.startDate).toLocaleTimeString('en-SG', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit' }) %>
+          —
+          <%= new Date(event.endDate).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) %>
+          &nbsp;
+          <%= new Date(event.endDate).toLocaleTimeString('en-SG', { timeZone: 'Asia/Singapore', hour: '2-digit', minute: '2-digit' }) %>
+        </div>
+      <% } %>
+      <% if (event.location) { %>
+        <div class="detail-row">
+          <strong>Location:</strong> <%= event.location %>
+        </div>
+      <% } %>
+
+      <div class="detail-row">
+        <strong>Joined:</strong> <%= new Date(rsvp.joinedAt).toLocaleDateString('en-SG', { timeZone: 'Asia/Singapore', day: 'numeric', month: 'short', year: 'numeric' }) %>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top:0;">My Note</h3>
+      <form method="POST" action="/dashboard/rsvp-update">
+        <textarea name="note" rows="4" cols="50"><%= rsvp.note || '' %></textarea>
+        <input type="hidden" name="rsvpId" value="<%= rsvp._id %>">
+        <br/>
+        <button type="submit" class="btn btn-primary" style="margin-top:10px;">Save Note</button>
+      </form>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">Cancel RSVP</h3>
+      <p>This will remove this event from your calendar.</p>
+      <form method="POST" action="/dashboard/rsvp-delete">
+        <input type="hidden" name="rsvpId" value="<%= rsvp._id %>">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to cancel this RSVP?')">
+          Cancel RSVP
+        </button>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>

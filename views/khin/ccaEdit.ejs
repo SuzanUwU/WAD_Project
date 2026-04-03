@@ -88,7 +88,7 @@ input, textarea, select {
 <div class="container">
 <div class="card">
 
-<!-- GLOBAL ERROR BOX -->
+<!-- GLOBAL ERROR -->
 <% if (errors && Object.keys(errors).length > 0) { %>
   <div class="error-box">
     Please fix the errors below.
@@ -113,8 +113,8 @@ input, textarea, select {
 <!-- TITLE -->
 <div class="form-group">
     <label>Title</label>
-    <input name="title" value="<%= cca.title %>">
-    <% if (errors && errors.title) { %>
+    <input name="title" required value="<%= cca.title || '' %>">
+    <% if (errors?.title) { %>
         <div class="error"><%= errors.title %></div>
     <% } %>
 </div>
@@ -122,8 +122,8 @@ input, textarea, select {
 <!-- ORGANIZER -->
 <div class="form-group">
     <label>Organizer</label>
-    <input name="organizer" value="<%= cca.organizer %>">
-    <% if (errors && errors.organizer) { %>
+    <input name="organizer" required value="<%= cca.organizer || '' %>">
+    <% if (errors?.organizer) { %>
         <div class="error"><%= errors.organizer %></div>
     <% } %>
 </div>
@@ -134,9 +134,10 @@ input, textarea, select {
     <input 
         type="date" 
         name="startDate" 
-        value="<%= event.startDate ? new Date(event.startDate).toISOString().split('T')[0] : '' %>"
+        required
+        value="<%= event && event.startDate ? new Date(event.startDate).toISOString().split('T')[0] : '' %>"
     >
-    <% if (errors && errors.startDate) { %>
+    <% if (errors?.startDate) { %>
         <div class="error"><%= errors.startDate %></div>
     <% } %>
 </div>
@@ -147,14 +148,15 @@ input, textarea, select {
     <input 
         type="date" 
         name="endDate" 
-        value="<%= event.endDate ? new Date(event.endDate).toISOString().split('T')[0] : '' %>"
+        required
+        value="<%= event && event.endDate ? new Date(event.endDate).toISOString().split('T')[0] : '' %>"
     >
-    <% if (errors && errors.endDate) { %>
+    <% if (errors?.endDate) { %>
         <div class="error"><%= errors.endDate %></div>
     <% } %>
 </div>
 
-<!-- REGISTRATION DEADLINE -->
+<!-- DEADLINE -->
 <div class="form-group">
     <label>Registration Deadline</label>
     <input 
@@ -164,8 +166,7 @@ input, textarea, select {
             ? new Date(cca.registrationDeadline).toISOString().split('T')[0] 
             : '' %>"
     >
-
-    <% if (errors && errors.deadline) { %>
+    <% if (errors?.deadline) { %>
         <div class="error"><%= errors.deadline %></div>
     <% } %>
 </div>
@@ -173,13 +174,21 @@ input, textarea, select {
 <!-- LOCATION -->
 <div class="form-group">
     <label>Location</label>
-    <input name="location" value="<%= cca.location %>">
+    <input 
+        name="location" 
+        required 
+        pattern=".*\S.*"
+        value="<%= cca.location || '' %>"
+    >
+    <% if (errors?.location) { %>
+        <div class="error"><%= errors.location %></div>
+    <% } %>
 </div>
 
 <!-- CLUB TYPE -->
 <div class="form-group">
     <label>Club Type</label>
-    <select name="clubType">
+    <select name="clubType" required>
         <option value="">-- Select Club Type --</option>
         <option value="Sports" <%= cca.clubType === "Sports" ? "selected" : "" %>>Sports</option>
         <option value="Arts" <%= cca.clubType === "Arts" ? "selected" : "" %>>Arts</option>
@@ -187,7 +196,7 @@ input, textarea, select {
         <option value="Community" <%= cca.clubType === "Community" ? "selected" : "" %>>Community</option>
         <option value="Leadership" <%= cca.clubType === "Leadership" ? "selected" : "" %>>Leadership</option>
     </select>
-    <% if (errors && errors.clubType) { %>
+    <% if (errors?.clubType) { %>
         <div class="error"><%= errors.clubType %></div>
     <% } %>
 </div>
@@ -195,8 +204,16 @@ input, textarea, select {
 <!-- CAPACITY -->
 <div class="form-group">
     <label>Capacity</label>
-    <input type="number" name="capacity" value="<%= cca.capacity %>" min="1">
-    <% if (errors && errors.capacity) { %>
+    <input 
+        type="number" 
+        name="capacity" 
+        required 
+        min="1"
+        step="1"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+        value="<%= cca.capacity || '' %>"
+    >
+    <% if (errors?.capacity) { %>
         <div class="error"><%= errors.capacity %></div>
     <% } %>
 </div>
@@ -204,7 +221,15 @@ input, textarea, select {
 <!-- DESCRIPTION -->
 <div class="form-group">
     <label>Description</label>
-    <textarea name="description"><%= cca.description %></textarea>
+    <textarea 
+        name="description" 
+        required 
+        pattern=".*\S.*"
+    ><%= cca.description || '' %></textarea>
+
+    <% if (errors?.description) { %>
+        <div class="error"><%= errors.description %></div>
+    <% } %>
 </div>
 
 <button type="submit" class="btn btn-primary">
@@ -214,7 +239,7 @@ input, textarea, select {
 </form>
 
 <br>
-<a href="/cca-events/ccaAdmin">← Back to Admin Events</a>
+<a href="/cca-events/ccaAdmin">Back to Admin Events</a>
 
 </div>
 </div>

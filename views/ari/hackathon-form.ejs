@@ -10,7 +10,7 @@
   </div>
 <% } %>
 
-<form method="POST" action="<%= formAction %>" enctype="multipart/form-data">
+<form method="POST" action="<%= formAction %>">
 
   <!-- BASIC INFO -->
   <fieldset>
@@ -245,19 +245,7 @@
     if (min > max)
       errors.push('Minimum team size cannot be greater than maximum.');
 
-    // Image validation — only if a file was selected
-    const fileInput = document.getElementById('bannerImage');
-    if (fileInput && fileInput.files.length > 0) {
-      const file            = fileInput.files[0];
-      const allowedTypes    = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-      const maxSizeBytes    = 2 * 1024 * 1024; // 2MB
-
-      if (!allowedTypes.includes(file.type))
-        errors.push('Banner image must be JPG, PNG, WEBP, or GIF.');
-      if (file.size > maxSizeBytes)
-        errors.push('Banner image must be 2MB or smaller.');
-    }
-
+  
     if (errors.length > 0) {
       e.preventDefault();
       alert('Please fix the following:\n\n' + errors.join('\n'));

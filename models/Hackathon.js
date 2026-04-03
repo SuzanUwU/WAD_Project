@@ -50,3 +50,7 @@ exports.deleteById = function (id) {
 exports.findByEventId = function (eventId) {
   return Hackathon.findOne({ eventId });
 };
+
+exports.getByStatus = function (state) {
+  return Hackathon.find({status:state});
+}
