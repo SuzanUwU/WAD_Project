@@ -117,9 +117,16 @@ body {
 .status-ongoing { color: orange; font-weight: bold; }
 .status-past { color: gray; font-weight: bold; }
 
-.actions button {
-    margin-right: 10px;
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
+
+.actions button {
+    margin: 0;
+}
+
 </style>
 
 </head>
@@ -192,6 +199,7 @@ body {
 <div class="event-card">
 
     <div class="event-image">
+<<<<<<< HEAD
         <% if (event.image) { %>
             <img 
         src="<%= event.image && !event.image.startsWith('http') 
@@ -204,13 +212,25 @@ body {
         <% } else { %>
             <img src="/images/placeholder.jpg">
         <% } %> 
+=======
+    <img 
+        src="<%= event.image && event.image.trim() !== '' 
+            ? '/images/' + event.image 
+            : '/images/placeholder.jpg' %>" 
+        alt="Event Image"
+        onerror="this.onerror=null; this.src='/images/placeholder.jpg';"
+        >
+>>>>>>> origin/friday-latest-khin-yujia
     </div>
 
     <div class="event-info">
 
         <h3><%= event.title %></h3>
 
+<<<<<<< HEAD
         <!-- ✅ FIXED STATUS -->
+=======
+>>>>>>> origin/friday-latest-khin-yujia
         <%
             const today = new Date();
             today.setHours(0,0,0,0);
@@ -278,7 +298,11 @@ body {
         </a>
         
         <a href="/cca-events/ccaAdmin/<%= event._id %>/edit">
+<<<<<<< HEAD
             <button class="btn btn-warning btn-small">&nbsp;Edit&nbsp;</button>
+=======
+            <button class="btn btn-warning btn-small">Edit</button>
+>>>>>>> origin/friday-latest-khin-yujia
         </a>
 
         <form action="/cca-events/ccaAdmin/delete/<%= event._id %>" method="POST" style="display:inline;">

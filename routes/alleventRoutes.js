@@ -1,7 +1,9 @@
 const express = require('express');
 
 const router = express.Router(); // sub application
+
 const eventController = require('../controllers/eventController');
+
 const Event = require('../models/eventModel');
 const SavedEvents = require('../models/SavedEvents');
 const savedEventController = require('../controllers/savedeventsController');

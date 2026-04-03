@@ -31,14 +31,12 @@ router.post('/:id/edit', hackathonController.updateHackathon);
 router.post('/:id/delete', hackathonController.deleteHackathon);
 
 // ----- Registration routes -----
-
 // GET  /hackathons/:id/attendees — view attendee list, hackathon id as param
 router.get('/:id/attendees', hackRegisterController.showAttendees);
 
 //these two use eventId in param
 // GET  /hackathons/:id   — show sign-up form
 router.get('/:id', hackRegisterController.showSignupForm);
-
 // POST /hackathons/:id   — submit sign-up with smart registration logic
 router.post('/:id', hackRegisterController.registerAttendee);
 

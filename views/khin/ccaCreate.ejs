@@ -1,29 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Create Event</title>
+<title>Create CCA vent</title>
 
 <style>
 body {
     font-family: Arial, sans-serif;
     background-color: #f5f6fa;
     margin: 0;
-}
-
-/* HEADER */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    background-color: white;
-    border-bottom: 1px solid #ddd;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 15px;
 }
 
 /* CONTAINER */
@@ -117,8 +101,13 @@ input, textarea, select {
 <!-- TITLE -->
 <div class="form-group">
     <label>Title</label>
+<<<<<<< HEAD
     <input type="text" name="title" value="<%= formData?.title || '' %>">
     <% if (errors && errors.title) { %>
+=======
+    <input type="text" name="title" required value="<%= formData?.title || '' %>">
+    <% if (errors?.title) { %>
+>>>>>>> origin/friday-latest-khin-yujia
         <div class="error"><%= errors.title %></div>
     <% } %>
 </div>
@@ -126,23 +115,37 @@ input, textarea, select {
 <!-- ORGANIZER -->
 <div class="form-group">
     <label>Organizer</label>
+<<<<<<< HEAD
     <input type="text" name="organizer" value="<%= formData?.organizer || '' %>">
     <% if (errors && errors.organizer) { %>
+=======
+    <input type="text" name="organizer" required value="<%= formData?.organizer || '' %>">
+    <% if (errors?.organizer) { %>
+>>>>>>> origin/friday-latest-khin-yujia
         <div class="error"><%= errors.organizer %></div>
     <% } %>
 </div>
 
 <!-- IMAGE -->
 <div class="form-group">
+<<<<<<< HEAD
     <label>Club Image</label>
+=======
+    <label>Club Image (optional)</label>
+>>>>>>> origin/friday-latest-khin-yujia
     <input type="text" name="image" value="<%= formData?.image || '' %>" placeholder="e.g. smu.jpg">
 </div>
 
 <!-- START DATE -->
 <div class="form-group">
     <label>Start Date</label>
+<<<<<<< HEAD
     <input type="date" name="startDate" value="<%= formData?.startDate || '' %>">
     <% if (errors && errors.startDate) { %>
+=======
+    <input type="date" name="startDate" required value="<%= formData?.startDate || '' %>">
+    <% if (errors?.startDate) { %>
+>>>>>>> origin/friday-latest-khin-yujia
         <div class="error"><%= errors.startDate %></div>
     <% } %>
 </div>
@@ -150,18 +153,31 @@ input, textarea, select {
 <!-- END DATE -->
 <div class="form-group">
     <label>End Date</label>
+<<<<<<< HEAD
     <input type="date" name="endDate" value="<%= formData?.endDate || '' %>">
     <% if (errors && errors.endDate) { %>
+=======
+    <input type="date" name="endDate" required value="<%= formData?.endDate || '' %>">
+    <% if (errors?.endDate) { %>
+>>>>>>> origin/friday-latest-khin-yujia
         <div class="error"><%= errors.endDate %></div>
     <% } %>
 </div>
 
+<<<<<<< HEAD
 <!-- REGISTRATION DEADLINE -->
 <div class="form-group">
     <label>Registration Deadline</label>
     <input type="date" name="deadline" value="<%= formData?.deadline || '' %>">
 
     <% if (errors && errors.deadline) { %>
+=======
+<!-- DEADLINE -->
+<div class="form-group">
+    <label>Registration Deadline</label>
+    <input type="date" name="deadline" value="<%= formData?.deadline || '' %>">
+    <% if (errors?.deadline) { %>
+>>>>>>> origin/friday-latest-khin-yujia
         <div class="error"><%= errors.deadline %></div>
     <% } %>
 </div>
@@ -169,13 +185,30 @@ input, textarea, select {
 <!-- LOCATION -->
 <div class="form-group">
     <label>Location</label>
+<<<<<<< HEAD
     <input type="text" name="location" value="<%= formData?.location || '' %>">
+=======
+    <input 
+        type="text" 
+        name="location" 
+        required 
+        placeholder="e.g. SMU Campus, Room 2-3"
+        value="<%= formData?.location || '' %>"
+    >
+    <% if (errors?.location) { %>
+        <div class="error"><%= errors.location %></div>
+    <% } %>
+>>>>>>> origin/friday-latest-khin-yujia
 </div>
 
 <!-- CLUB TYPE -->
 <div class="form-group">
     <label>Club Type</label>
+<<<<<<< HEAD
     <select name="clubType">
+=======
+    <select name="clubType" required>
+>>>>>>> origin/friday-latest-khin-yujia
         <option value="">-- Select Club Type --</option>
         <option value="Sports" <%= formData?.clubType === "Sports" ? "selected" : "" %>>Sports</option>
         <option value="Arts" <%= formData?.clubType === "Arts" ? "selected" : "" %>>Arts</option>
@@ -183,7 +216,11 @@ input, textarea, select {
         <option value="Community" <%= formData?.clubType === "Community" ? "selected" : "" %>>Community</option>
         <option value="Leadership" <%= formData?.clubType === "Leadership" ? "selected" : "" %>>Leadership</option>
     </select>
+<<<<<<< HEAD
     <% if (errors && errors.clubType) { %>
+=======
+    <% if (errors?.clubType) { %>
+>>>>>>> origin/friday-latest-khin-yujia
         <div class="error"><%= errors.clubType %></div>
     <% } %>
 </div>
@@ -191,8 +228,21 @@ input, textarea, select {
 <!-- CAPACITY -->
 <div class="form-group">
     <label>Capacity</label>
+<<<<<<< HEAD
     <input type="number" name="capacity" value="<%= formData?.capacity || '' %>" min="1">
     <% if (errors && errors.capacity) { %>
+=======
+    <input 
+        type="number" 
+        name="capacity" 
+        required 
+        min="1"
+        step="1"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+        value="<%= formData?.capacity || '' %>"
+    >
+    <% if (errors?.capacity) { %>
+>>>>>>> origin/friday-latest-khin-yujia
         <div class="error"><%= errors.capacity %></div>
     <% } %>
 </div>
@@ -200,7 +250,19 @@ input, textarea, select {
 <!-- DESCRIPTION -->
 <div class="form-group">
     <label>Description</label>
+<<<<<<< HEAD
     <textarea name="description"><%= formData?.description || '' %></textarea>
+=======
+    <textarea 
+        name="description" 
+        required 
+        placeholder="Describe your event..."
+    ><%= formData?.description || '' %></textarea>
+
+    <% if (errors?.description) { %>
+        <div class="error"><%= errors.description %></div>
+    <% } %>
+>>>>>>> origin/friday-latest-khin-yujia
 </div>
 
 <button type="submit" class="btn btn-primary">

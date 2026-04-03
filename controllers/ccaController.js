@@ -1,7 +1,7 @@
-const { getAllCCA, getCCAById, getCCAByEventId } = require("../models/CCA");
-const { getReviewsByEvent, createReview } = require("../models/CCAReview");
+const { getAllCCA, getCCAById, getCCAByEventId } = require("../models/ccaModel");
+const { getReviewsByEvent, createReview } = require("../models/ccaReviewModel");
 const RSVP = require("../models/rsvpModel");
-const { getUserNotifications } = require("../models/CCANotification");
+const { getUserNotifications } = require("../models/ccaNotificationModel");
 
 
 // ================= CCA EVENTS LIST =================
@@ -203,7 +203,7 @@ exports.getNotifications = async (req, res) => {
 // ================= SHOW EDIT REVIEW FORM =================
 exports.showEditReviewForm = async (req, res) => {
   try {
-    const Review = require("../models/CCAReview").CCAReview;
+    const Review = require("../models/ccaReviewModel").CCAReview;
 
     const review = await Review.findById(req.params.reviewId);
     if (!review) return res.status(404).send("Review not found");
@@ -223,7 +223,7 @@ exports.showEditReviewForm = async (req, res) => {
 // ================= UPDATE REVIEW =================
 exports.updateReview = async (req, res) => {
   try {
-    const Review = require("../models/CCAReview").CCAReview;
+    const Review = require("../models/ccaReviewModel").CCAReview;
 
     const review = await Review.findById(req.params.reviewId);
     if (!review) return res.status(404).send("Review not found");
@@ -248,7 +248,7 @@ exports.updateReview = async (req, res) => {
 // ================= DELETE REVIEW =================
 exports.deleteReview = async (req, res) => {
   try {
-    const Review = require("../models/CCAReview").CCAReview;
+    const Review = require("../models/ccaReviewModel").CCAReview;
 
     const review = await Review.findById(req.params.reviewId);
     if (!review) return res.status(404).send("Review not found");

@@ -29,14 +29,18 @@
             <% applicants.forEach(a => { %>
                 <tr>
                     <td>
-                        <img src="<%= a.jobId.companylogo %>" width="100">
+                        <% if (a.jobId && a.jobId.companylogo) { %>
+                            <img src="<%= a.jobId.companylogo %>" width="100">
+                        <% } else { %>
+                            <img src="default-logo.png" width="100"> <!-- Default logo if none exists -->
+                        <% } %>
                     </td>
-                    <td><%= a.userId.username %></td>
-                    <td><%= a.jobId.companyname %></td>
-                    <td><%= a.jobId.jobtitle %></td>
+                    <td><td><%= a.userId.username %></td>
+                    <td><%= a.jobId ? a.jobId.companyname : 'N/A' %></td> <!-- Handle null jobId -->
+                    <td><%= a.jobId ? a.jobId.jobtitle : 'N/A' %></td> <!-- Handle null jobId -->
                     <td><%= a.status %></td>
-                    <td><%= new Date(a.jobId.startDate).toLocaleDateString() %></td>
-                    <td><%= new Date(a.jobId.endDate).toLocaleDateString() %></td>
+                    <td><%= a.jobId ? new Date(a.jobId.startDate).toLocaleDateString() : 'N/A' %></td> <!-- Handle null jobId -->
+                    <td><%= a.jobId ? new Date(a.jobId.endDate).toLocaleDateString() : 'N/A' %></td> <!-- Handle null jobId -->
                     <td>
                         <a href="/events/part-time-jobs/accept/<%= a._id %>" onclick="return confirm('Accept this applicant?')">Accept</a>
                         |

@@ -116,7 +116,7 @@
     <% } %>
 
     <% if (found) { %>
-      <form action="/events/part-time-jobs/update-job" method="POST">
+      <form action="/part-time-jobs/update-job" method="POST">
         
         <input type="hidden" name="_id" value="<%= found._id %>">
 
@@ -142,8 +142,6 @@
               <textarea name="jobdescription" required><%= found.jobdescription %></textarea>
             </td>
           </tr>
-
-          <tr>
             <td class="label">Salary:</td>
             <td><input type="number" name="salary" value="<%= found.salary %>" required></td>
           </tr>

@@ -81,7 +81,7 @@ body {
 
 <div style="width:70%; margin: 20px auto;">
     <a href="/cca-events/cca" style="text-decoration:none; color:#007bff;">
-        ← Back to CCA Events
+        Back to CCA Events
     </a>
 </div>
 
@@ -120,6 +120,16 @@ body {
     <div class="detail-row"><b>Location:</b> <%= cca.location || "N/A" %></div>
     <div class="detail-row"><b>Capacity:</b> <%= cca.capacity %></div>
     <div class="detail-row"><b>Description:</b> <%= cca.description %></div>
+
+    <div class="detail-row">
+        <b>Registration Deadline:</b> 
+        <% if (cca.registrationDeadline) { %>
+            <%= new Date(cca.registrationDeadline).toLocaleDateString('en-GB') %>
+        <% } else { %>
+            N/A
+        <% } %>
+    </div>
+    
 </div>
 
 <!-- REGISTRATION -->

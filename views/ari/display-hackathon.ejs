@@ -29,9 +29,17 @@
     </p>
   <% } %>
 
+<<<<<<< HEAD
   <% if (user && user.role !== 'student') { %>
     <p><a href="/hack-events/new">+ Create New Hackathon</a> (Only for Super Admins and Hack Admins)</p>
     <br>
+=======
+  <p><a href="/all-events">← Back to Events Dashboard</a></p>
+  <br><br>
+  <% if (user && user.role !== 'student') { %>
+    <p><a href="/hack-events/new">+ Create New Hackathon</a></p>
+    <br><br>
+>>>>>>> origin/friday-latest-khin-yujia
   <% } %>
 
   <!--   FILTER SECTION      -->
@@ -128,6 +136,7 @@
               </td>
               <td>
               <!-- Banner image: show image if available, placeholder text if not -->
+<<<<<<< HEAD
               <% if (h.image) { %>
                 <img src="/images/<%= h.image %>" 
                   alt="<%= h.title %>" 
@@ -136,6 +145,11 @@
               <% } else { %>
                   <img src="/images/placeholder.jpg">
               <% } %> 
+=======
+              <img class = "event-image"  src="/images/<%= h.image || 'placeholder.jpg' %>" 
+              alt="<%= h.title %>"
+              onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
+>>>>>>> origin/friday-latest-khin-yujia
               </td>
               <!-- Display school codes — join array into readable string -->
               <td>
@@ -181,7 +195,11 @@
               %>
               <td>
                 <%= statusLabels[h.status] || h.status %>
+<<<<<<< HEAD
                 <% if (h.status === 'open') { %>
+=======
+                <% if (h.status === 'open' && user && user.role=='student') { %>
+>>>>>>> origin/friday-latest-khin-yujia
                   <br/>
                   <a href="/hack-events/<%= h.eventId %>">
                     <button type="button">Sign Up</button>
@@ -247,5 +265,11 @@
       if (schoolSelect.value) schoolSelect.dispatchEvent(new Event('change'));
     });
   </script>
+<<<<<<< HEAD
 </body>
 </html>
+=======
+
+  </body>
+  </html>
+>>>>>>> origin/friday-latest-khin-yujia

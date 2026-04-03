@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const School = require('./school-model');  // Import for validation
 
-// models/userModel.js - FULL MVC BUSINESS LOGIC
+// models/userModel.js
 const userSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true }, 
   username: { type: String, required: true, unique: true },
@@ -13,7 +12,7 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'admin', 'superadmin'],
     default: 'student'
   },
-  admin_type: {  
+  admin_type: {  // ✅ this is for the sub admins
     type: String,
     enum: ['cca-admin', 'hack-admin', 'ptjob-admin', 'career-admin'],
     required: function() { return this.role === 'admin'; }
@@ -22,12 +21,15 @@ const userSchema = new mongoose.Schema({
     data: Buffer,
     contentType: String
   },
+  // school:   { type: mongoose.Schema.Types.ObjectId, ref: "School" },
+  // Stored as school code string (e.g. "scis") so it can be compared directly
+  // against eligibleSchools arrays on Hackathon without a DB join
   school: { type: String, default: '' },
-  major:  { type: String, default: '' },
+  major:  { type: String, default: '' }, // major code e.g. "ba"
   createdAt: { type: Date, default: Date.now }
 });
 
-// ✅ EXISTING - Password comparison
+// Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

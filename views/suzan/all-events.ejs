@@ -52,15 +52,11 @@
           <tr>
             <% latestEvents.forEach(function(event) { %>
               <td colspan="2" class="event-cell event-image-cell">
-                <% if (event.image) { %>
-                  <img
-                    src="/images/<%= event.image %>"
-                    alt="<%= event.title %>"
-                    class="event-table-image
-                    onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
-                <% } else { %>
-                  <div class="event-table-image-placeholder">No Image</div>
-                <% } %>
+                <img 
+                  class="event-table-image" 
+                  src="/images/<%= event.image || 'placeholder.jpg' %>" 
+                  alt="<%= event.title %>"
+                  onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
               </td>
             <% }) %>
           </tr>
@@ -164,18 +160,11 @@
                   <td class="event-cell event-number"><%= index + 1 %></td>
 
                   <!-- Event Poster -->
-                  <td class="event-cell event-poster-cell">
-                    <% if (event.image) { %>
-                      <img
-                        src="/images/<%= event.image %>"
-                        alt="<%= event.title %>"
-                        class="event-table-image
-                        onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
-                    <% } else { %>
-                      <div class="event-table-image-placeholder">No Image</div>
-                    <% } %>
+                  <td colspan="2" class="event-cell event-image-cell">
+                    <img class="event-table-image" src="/images/<%= event.image || 'placeholder.jpg' %>" 
+                    alt="<%= event.title %>"
+                    onerror="this.onerror=null; this.src='/images/placeholder.jpg';">
                   </td>
-
                   <!-- Event Info -->
                   <td class="event-cell event-info">
                     <div><strong>Event Name:</strong> <%= event.title %></div>

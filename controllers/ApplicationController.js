@@ -57,9 +57,9 @@ exports.retrieveAppliedJobs = async (req, res) => {
 
     try {
         
-     const appliedrecords = await JobApplication.find({
-          userId: userId, status: 'pending'}).populate('jobId');
-        
+        const appliedrecords = await JobApplication.find({
+            userId: userId, status: 'pending'}).populate('jobId');
+
         const user = req.session.user;
         res.render('rowena/applied-job', {
             records: appliedrecords,
@@ -91,17 +91,6 @@ exports.retrieveAllApplicants = async (req, res) => {
     }
 };
 
-
-
-
-
-
-
-
-
-
-
-
 // user interface to delete application 
 exports.deleteApplication = async (req, res) => {
     try {
@@ -112,7 +101,6 @@ exports.deleteApplication = async (req, res) => {
         res.send('Unable to cancel application');
     }
 };
-
 
 // retrieve applications with accepted status 
 
@@ -138,7 +126,6 @@ exports.retrieveActiveJobs = async (req, res) => {
 
 // ACCEPT APPLICANT 
 
-
 exports.acceptApplicant = async (req, res) => {
     const id = req.params.id;   // application _id
 
@@ -153,10 +140,6 @@ exports.acceptApplicant = async (req, res) => {
         res.send('Failed to accept applicant');
     }
 };
-
-
-
-
 
 exports.rejectApplicant = async (req, res) => {
     const id = req.params.id;   

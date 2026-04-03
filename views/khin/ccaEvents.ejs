@@ -226,7 +226,7 @@ body {
 
     <button type="submit">Filter</button>
 
-<button type="button" onclick="window.location='/cca-events/ccaAdmin'" style="background:#999;">
+<button type="button" onclick="window.location='/cca-events/cca'" style="background:#999;">
     Clear
 </button>
 
@@ -299,31 +299,6 @@ body {
         <p><b>Location:</b> <%= event.location || "N/A" %></p>
         <p><b>Club Type:</b> <%= cca.clubType || "N/A" %></p>
         <p class="<%= statusClass %>"><b>Status:</b> <%= eventStatus %></p>
-
-        <!-- Notifications -->
-        <% if (cca.latestNoti) { %>
-
-        <p style="font-size:13px; color: red;">
-            
-            <% if (cca.latestNoti.field === "location") { %>
-            Location changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
-
-            <% } else if (cca.latestNoti.field === "capacity") { %>
-            Capacity changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
-
-            <% } else if (cca.latestNoti.field === "startDate") { %>
-            Start date changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
-
-            <% } else if (cca.latestNoti.field === "endDate") { %>
-            End date changed from <%= cca.latestNoti.oldValue %> to <%= cca.latestNoti.newValue %>
-
-            <% } else { %>
-            Event updated
-            <% } %>
-
-        </p>
-
-        <% } %>
 
     </div>
 

@@ -54,11 +54,14 @@ server.set('views', path.join(__dirname, 'views'));
 // ================= ROUTES =================
 server.use('/', authRoutes);
 
+<<<<<<< HEAD
 // for index.html to be the home page
 server.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+=======
+>>>>>>> origin/friday-latest-khin-yujia
 // hackathon API (IMPORTANT: before login)
 server.get('/api/majors', require('./controllers/hackathonController').getMajorsBySchool);
 

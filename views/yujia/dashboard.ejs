@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css"/>
+  <style>
+    .dashboard-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem 2rem 1rem;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.8rem;
+      font-weight: 500;
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .dashboard-header p {
+      color: #6c757d;
+      font-size: 0.85rem;
+    }
+
+    /* Card style */
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+
+    .event-badge {
+      background: #f3f6fc;
+      font-size: 0.65rem;
+      padding: 2px 4px;
+      border-radius: 8px;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-badge a {
+      text-decoration: none;
+      color: var(--primary);
+    }
+
+    .event-badge a:hover {
+      text-decoration: underline;
+    }
+
+    /* Two column layout */
+    .two-col {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .two-col > * {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* RSVP list */
+    .rsvp-list {
+      margin-top: 0;
+    }
+
+    .rsvp-item {
+      border-bottom: 1px solid #ececec;
+      padding: 0.8rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .rsvp-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .rsvp-title {
+      font-weight: 600;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 1rem;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rsvp-title:hover {
+      text-decoration: underline;
+    }
+
+    .rsvp-meta {
+      font-size: 0.85rem;
+      color: #6c757d;
+      margin-top: 0.2rem;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .rsvp-status {
+      background: #eef2fa;
+      padding: 0.15rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .btn-sm {
+      padding: 0.2rem 0.6rem;
+      font-size: 0.85rem;
+      border-radius: 16px;
+      background: transparent;
+      border: 1px solid var(--secondary);
+      text-decoration: none;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .btn-sm:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Full RSVP table */
+    .rsvp-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .rsvp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .rsvp-table th {
+      text-align: left;
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid #eaeef2;
+      font-weight: 500;
+      color: #4a5568;
+    }
+
+    .rsvp-table td {
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid #f3f5f8;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 1.5rem;
+      color: #8b8f9a;
+      font-size: 0.8rem;
+    }
+
+    hr {
+      margin: 0.75rem 0;
+      border: none;
+      border-top: 1px solid #eef2f5;
+    }
+
+    @media (max-width: 700px) {
+      .dashboard-container {
+        padding: 0 0.75rem 1rem 0.75rem;
+      }
+      .calendar-table td {
+        height: 65px;
+        padding: 0.2rem;
+      }
+      .event-badge {
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.2;
+      }
+      .rsvp-item {
+        flex-wrap: wrap;
+      }
+      .two-col {
+        flex-direction: column;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('../navbar') %>
+  <br>
+ <%
+  // Helper function to get /x/:id for detail page
+  const getDetailUrl = (category, eventId) => {
+      const routes = {
+          'CCA': '/cca-events',
+          'Hackathon': '/hack-events',
+          'Career': '/career-events',
+          'Part Time Jobs': '/part-time-jobs'
+      };
+      return `${routes[category]}/${eventId}`;
+  };%>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h1>Dashboard</h1>
+      <p>manage your campus events</p>
+    </div>
+
+    <%
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const dayNames   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+      let prevMonth = month - 1;
+      let prevYear  = year;
+      if (prevMonth < 0) { prevMonth = 11; prevYear--; }
+
+      let nextMonth = month + 1;
+      let nextYear  = year;
+      if (nextMonth > 11) { nextMonth = 0; nextYear++; }
+    %>
+
+    <!-- Calendar Card -->
+    <div class="card">
+      <div class="calendar-header">
+        <div class="month-title"><%= monthNames[month] %> <%= year %></div>
+        <div class="month-nav">
+          <a href="/dashboard?month=<%= prevMonth %>&year=<%= prevYear %>">← Prev</a>
+          <a href="/dashboard?month=<%= nextMonth %>&year=<%= nextYear %>">Next →</a>
+        </div>
+      </div>
+
+      <table class="calendar-table">
+        <thead>
+          <tr>
+            <% dayNames.forEach(d => { %>
+              <th><%= d %></th>
+            <% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <%
+            let cellCount = 0;
+            cells.forEach((day, index) => {
+              if (cellCount === 0) { %>
+                <tr>
+              <% }
+              cellCount++;
+          %>
+              <td>
+                <% if (day > 0) { %>
+                  <div class="calendar-day-number"><%= day %></div>
+                  <% if (dayMap[day]) { %>
+                    <% dayMap[day].forEach(item => { %>
+                      <div class="event-badge" title="<%= (eventMap[item.event] && eventMap[item.event].title) ? eventMap[item.event].title : 'Event' %>">
+                        <a href="/dashboard/rsvp?id=<%= item._id %>">
+                          [<%= item.status %>] <%= (eventMap[item.event] && eventMap[item.event].title) ? eventMap[item.event].title.substring(0, 18) : 'Event' %>
+                        </a>
+                      </div>
+                    <% }) %>
+                  <% } %>
+                <% } %>
+              </td>
+          <%
+              if (cellCount % 7 === 0 && index !== cells.length-1) { %>
+                </tr>
+              <% }
+            });
+            let remaining = (7 - (cellCount % 7)) % 7;
+            for(let i = 0; i < remaining; i++) { %>
+              <td></td>
+            <% }
+          %>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Stats and Recent RSVPs -->
+    <div class="two-col">
+      <!-- Stats Card -->
+      <div class="card">
+        <div class="card-title">Overview</div>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-value"><%= Object.keys(eventMap).length %></div>
+            <div class="stat-label">Events</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value"><%= allRsvps.length %></div>
+            <div class="stat-label">RSVPs</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">
+              <% 
+                let upcoming = 0;
+                const now = new Date();
+                allRsvps.forEach(rsvp => {
+                  const ev = eventMap[rsvp.event.toString()];
+                  if (ev && ev.startDate && new Date(ev.startDate) > now) upcoming++;
+                });
+              %>
+              <%= upcoming %>
+            </div>
+            <div class="stat-label">Upcoming</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent RSVPs Card -->
+      <div class="card">
+        <div class="card-title">Recent RSVPs</div>
+        <% if (allRsvps.length === 0) { %>
+          <div class="empty-state">No RSVPs yet. <a href="/" style="color: var(--accent);">Browse events </a></div>
+        <% } else { %>
+          <div class="rsvp-list">
+            <% allRsvps.slice(0, 3).forEach(rsvp => { 
+              const ev = eventMap[rsvp.event.toString()];
+              if (!ev) return;
+            %>
+              <div class="rsvp-item">
+                <div class="rsvp-info">
+                  <a href="<%= getDetailUrl(ev.category, rsvp.event) %>" class="rsvp-title" title="<%= ev.title %>"><%= ev.title %></a>
+                  <div class="rsvp-meta">
+                    <span><%= ev.organizer %></span>
+                    <span>
+                      <% if (ev.startDate) { %>
+                        <%= new Date(ev.startDate).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' }) %>
+                      <% } else { %> TBD <% } %>
+                    </span>
+                    <span class="rsvp-status"><%= rsvp.status %></span>
+                  </div>
+                </div>
+                <a href="/dashboard/rsvp?id=<%= rsvp._id %>" class="btn-sm">Edit</a>
+              </div>
+            <% }) %>
+            <% if (allRsvps.length > 3) { %>
+              <div style="font-size: 0.65rem; margin-top: 0.5rem; text-align: right; color: #6c757d;">
+                + <%= allRsvps.length - 3 %> more
+              </div>
+            <% } %>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- All RSVPs Table Card -->
+    <div class="card">
+      <div class="card-title">All My RSVPs</div>
+      <% if (allRsvps.length === 0) { %>
+        <div class="empty-state">No RSVPs yet. Start exploring events!</div>
+      <% } else { %>
+        <div class="rsvp-table-wrapper">
+          <table class="rsvp-table">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Organizer</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Note</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% allRsvps.forEach(rsvp => { 
+                const ev = eventMap[rsvp.event.toString()];
+                if (!ev) return;
+              %>
+                <tr>
+                  <td><a href="<%= getDetailUrl(ev.category, rsvp.event) %>" style="color: var(--primary); text-decoration: none; font-weight: 500;"><%= ev.title.length > 30 ? ev.title.substring(0, 27) + '...' : ev.title %></a></td>
+                  <td style="color: #4a5568;"><%= ev.organizer %></td>
+                  <td style="color: #4a5568;">
+                    <% if (ev.startDate) { %>
+                      <%= new Date(ev.startDate).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                    <% } else { %> — <% } %>
+                  </td>
+                  <td><span class="rsvp-status"><%= rsvp.status %></span></td>
+                  <td style="color: #6c757d; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="<%= rsvp.note || '—' %>"><%= rsvp.note || '—' %></td>
+                  <td><a href="/dashboard/rsvp?id=<%= rsvp._id %>" class="btn-sm">View</a></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <% if (typeof msg !== 'undefined' && msg) { %>
+    <div id="toast" style="position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; z-index: 1000;"><%= msg %></div>
+    <script>
+      const toast = document.getElementById('toast');
+      if (toast) setTimeout(() => toast.remove(), 3000);
+    </script>
+  <% } %>
+</body>
+</html>
