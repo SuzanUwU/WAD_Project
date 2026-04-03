@@ -12,20 +12,50 @@ const jobSchema = new mongoose.Schema({
     hiringDate: { type: Date, required: true }
 });
 
-jobSchema.index(
-    { companyname: 1, jobtitle: 1, startDate: 1 },
+// ensures no duplicated records for jobcreation
+
+jobSchema.index({ companyname: 1, jobtitle: 1, startDate: 1 },
     { unique: true }
 );
 
 const Job = mongoose.model('Job', jobSchema);
+
+exports.displayJob = function(){
+    return Job.find()
+}
+exports.createJob = function (createJob){
+    return Job.create(createJob)
+}
+
+
+exports.findById = function (id){
+    return Job.findById({_id:id})
+
+};
+
+
+
+exports.findByEventId = function(eventId) {
+  return Job.find({ eventId }).populate('eventId');
+}
+
+
+exports.updateById = function(id, data) {
+  return Job.updateOne({_id:id}, data);
+}
+
+exports.deletejob = function (id){ 
+    return Job.findByIdAndDelete({_id:id})
+}
+
 
 exports.searchJob = function (keyword,salary) {
   let search = {} 
 
   if(keyword){
     search.$or= [  //works for string values only 
-      { jobtitle: { $regex: keyword, $options: 'i' } },  // case insensitve
-      { company: { $regex: keyword, $options: 'i' } },
+      { companyname: { $regex: keyword, $options: 'i' } },  // case insensitve
+      { jobtitle: { $regex: keyword, $options: 'i' } },
       { jobdescription: { $regex: keyword, $options: 'i' } }
     ]
   }
@@ -35,4 +65,3 @@ exports.searchJob = function (keyword,salary) {
   return Job.find(search);
 }
 
-module.exports = Job;

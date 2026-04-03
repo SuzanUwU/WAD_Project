@@ -1,0 +1,27 @@
+<% if (record) { %>
+    <div class="job-card">
+        <div class="job-header">
+            <img src="<%= record.companylogo %>" alt="Company Logo">
+            <h2><%= record.jobtitle %> @ <%= record.companyname %></h2>
+        </div>
+        
+        <div class="job-details">
+            <p><strong>Description:</strong> <%= record.jobdescription %></p>
+            <p><strong>Capacity:</strong> <%= record.jobcapacity %></p>
+            <p><strong>Salary:</strong> $<%= record.salary %></p>
+            <p><strong>Start Date:</strong> <%= record.startDate ? new Date(record.startDate).toLocaleDateString() : 'N/A' %></p>
+            <p><strong>End Date:</strong> <%= record.endDate ? new Date(record.endDate).toLocaleDateString() : 'N/A' %></p>
+            <p><strong>Status:</strong> <%= new Date() > new Date(record.hiringDate) ? 'Expired' : 'Active' %></p>
+        </div>
+
+        <% if (new Date() <= new Date(record.hiringDate) && record.jobcapacity > 0 && user && user.role === 'student') { %>
+            <div class="apply-btn">
+                <form action="/part-time-jobs/apply/<%= record._id %>" method="POST">
+                    <button type="submit">Apply</button>
+                </form>
+            </div>
+        <% } %>
+    </div>
+<% } else { %>
+    <p><%= msg %></p>
+<% } %>

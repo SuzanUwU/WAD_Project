@@ -1,183 +1,126 @@
 const Job = require('../models/jobModel');
 const JobApplication = require('../models/JobApplicationModel');
 
+// Apply to a job
 exports.applyJob = async (req, res) => {
-    const userId = req.session.userId || req.session.user?.id;
+    const userId = req.session.userId;
     const jobId = req.params.id;
 
     try {
-    
-        const findjob = await Job.findById(jobId);
-        if (!findjob) {
-            return res.send('Job could not be found');
-        }
+        const findJob = await Job.findById(jobId);
+        if (!findJob)
+             return res.send('Job not found');
 
-        const newStartDate = new Date(findjob.startDate);
-        const newEndDate = new Date(findjob.endDate);
+        const startDate = new Date(findJob.startDate);
+        const endDate = new Date(findJob.endDate);
 
-    
-        // get all accepted jobs for this user
-        const acceptedApplications = await JobApplication.find({
-            userId: userId,
-            status: 'accepted'
-        }).populate('jobId');
-
-        for (let app of acceptedApplications) {
-            if (!app.jobId) {
-                continue;
-            }
-
-            const existingStartDate = new Date(app.jobId.startDate);
-            const existingEndDate = new Date(app.jobId.endDate);
-
-
-            if (newStartDate <= existingEndDate && newEndDate >= existingStartDate) {
-                return res.send('You cannot apply because the job dates overlap with a job that you are currently working for ');
+        // Check overlapping accepted jobs
+        const acceptedJobs = await JobApplication.findByStatus(userId, 'accepted');
+        for (const j of acceptedJobs) {
+            const existingStart = new Date(j.jobid.startDate);
+            const existingEnd = new Date(j.jobid.endDate);
+            if (startDate <= existingEnd && endDate >= existingStart) {
+                return  res.send('You cannot apply because the job dates overlap with a job you are currently working for');
             }
         }
 
-        await JobApplication.create({
-            userId: userId,
-            jobId: jobId,
-            appliedDate: new Date(),
-            status: 'pending'
-        });
-
-        return res.send('Application submitted successfully');
-
-    } catch (error) {
-        console.log(error);
-
-        if (error.code === 11000) {
+        
+        const duplicates = await JobApplication.retrieveduplicates(userId, jobId);
+        if (duplicates.length > 0) 
             return res.send('You have already applied for this job');
-        }
 
-        return res.send('Unable to apply for job');
+
+        await JobApplication.create
+        ({ userid: userId, jobid: jobId });
+        return res.send('Application successfully created');
+    } catch (error) {
+        console.error(error);
     }
 };
 
-// retrieve jobs for user 
-exports.retrieveAppliedJobs = async (req, res) => {
-    const userId = req.session.userId || req.session.user?.id;
+// Retrieve all applications for a user
+exports.retrieveAllApplication = async (req, res) => {
+    const userId = req.session.userId;
+    const user = req.session.user;
 
     try {
-        
-     const appliedrecords = await JobApplication.find({
-          userId: userId, status: 'pending'}).populate('jobId');
-        
-        const user = req.session.user;
-        res.render('rowena/applied-job', {
-            records: appliedrecords,
-            user: user
-        });
+        const accepted = await JobApplication.findByStatus(userId, 'accepted');
+        const rejected = await JobApplication.findByStatus(userId, 'rejected');
+        const pending = await JobApplication.findByStatus(userId, 'pending');
 
+        res.render('rowena/applied-job', { accepted, rejected, pending, user });
     } catch (error) {
-        console.log(error);
         res.send('Error retrieving applied jobs');
     }
 };
 
-
-// retrieve applicants 
-
-exports.retrieveAllApplicants = async (req, res) => {
+// Retrieve all job applications (admin view)
+exports.retrieveAllJobApplications = async (req, res) => {
     try {
-        const applicants = await JobApplication.find()
-            .populate('userId')
-            .populate('jobId');
-
-        res.render('rowena/view-applicants', {
-            applicants: applicants || [],
-            user: req.session.user || null
-        });
+        const applicationList = await JobApplication.displayall();
+        const user = req.session.user; 
+        res.render('rowena/view-applicants', { record: applicationList, user });
     } catch (error) {
-        console.log(error);
-        res.send('Unable to retrieve applicants');
+        res.send('Error retrieving job applications');
     }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-// user interface to delete application 
+// Delete an application
 exports.deleteApplication = async (req, res) => {
     try {
         await JobApplication.findByIdAndDelete(req.params.id);
-        res.redirect('/events/part-time-jobs/applied-job');
+        res.redirect('/part-time-jobs/applied-job');
     } catch (error) {
-        console.log(error);
         res.send('Unable to cancel application');
     }
 };
 
-
-// retrieve applications with accepted status 
-
-exports.retrieveActiveJobs = async (req, res) => {
-    const userId = req.session.userId || req.session.user?.id;
-
-    try {
-        
-     const activerecords = await JobApplication.find({
-          userId: userId, status: 'accepted'}).populate('jobId');
-        
-        const user = req.session.user;
-        res.render('rowena/active-jobs', {
-            records:activerecords,
-            user: user
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.send('Error retrieving applied jobs');
-    }
-};
-
-// ACCEPT APPLICANT 
-
-
+// Accept applicant
 exports.acceptApplicant = async (req, res) => {
-    const id = req.params.id;   // application _id
+    const applicationId = req.params.id;
 
     try {
-        await JobApplication.findByIdAndUpdate(id, {
-            status: 'accepted'
-        });
+        const application = await JobApplication.findById(applicationId);
+        if (!application) 
+            return res.send('Application not found');
 
-        res.redirect('/events/part-time-jobs/applicants');
+        const job = await Job.findById(application.jobid);
+        if (!job) 
+            return res.send('Job not found');
+
+        if (job.jobcapacity <= 0) 
+            return  res.send('Cannot accept applicant: job is full');
+
+        application.status = 'accepted';
+        await application.save();
+
+        job.jobcapacity -= 1;
+        await job.save();
+
+        res.redirect('/part-time-jobs/applicants');
     } catch (error) {
-        console.log(error);
-        res.send('Failed to accept applicant');
+        console.error(error);
+        res.status(500).send('Failed to accept applicant');
     }
 };
 
-
-
-
-
+// Reject applicant
 exports.rejectApplicant = async (req, res) => {
-    const id = req.params.id;   
-
     try {
-        await JobApplication.findByIdAndUpdate(id, {
-            status: 'rejected'
-        });
-
-        res.redirect('/events/part-time-jobs/applicants');
+        await JobApplication.findByIdAndUpdate(req.params.id, { status: 'rejected' });
+        res.redirect('/part-time-jobs/applicants');
     } catch (error) {
-        console.log(error);
-        res.send('Failed to accept applicant');
+        console.error(error);
+        res.send('Failed to reject applicant');
     }
 };
 
-
-
-
+exports.completeReview = async (req, res) => {
+    const id = req.params.id;
+    try {
+        res.send('Review completed (functionality to implement)');
+    } catch (error) {
+    
+        res.send('Failed to complete review');
+    }
+};
