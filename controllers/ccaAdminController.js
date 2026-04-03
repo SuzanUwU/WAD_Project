@@ -1,7 +1,7 @@
-const CCAmodel = require("../models/CCA");
+const CCAmodel = require("../models/ccaModel");
 const Event = require("../models/eventModel");
-const ReviewModel = require("../models/CCAReview");
-const NotificationModel = require("../models/CCANotification");
+const ReviewModel = require("../models/ccaReviewModel");
+const NotificationModel = require("../models/ccaNotificationModel");
 
 const RSVP = require("../models/rsvpModel");
 const User = require("../models/userModel");
