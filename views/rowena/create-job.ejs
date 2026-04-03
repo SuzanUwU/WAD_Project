@@ -119,11 +119,11 @@
       <div class="msg"><%= msg %></div>
     <% } %>
 
-    <% if ( output) { %>
+    <% if (output) { %>
       <div class="output"><%= output %></div>
     <% } %>
 
-    <form action="/part-time-jobs/create" method="POST">
+    <form id="jobForm" action="/part-time-jobs/create" method="POST">
       <table>
         <tr>
           <td class="label">Company Name:</td>
@@ -175,6 +175,24 @@
   </div>
 
   <a href="/part-time-jobs" class="back-link">Back to Job List</a>
+
+  <script>
+    document.getElementById("jobForm").addEventListener("submit", function(e) {
+      const inputs = this.querySelectorAll("input[type='text'], textarea");
+
+      for (let input of inputs) {
+        if (input.value.trim() === "") {
+          alert("Fields cannot be empty or just spaces!");
+          input.focus();
+          e.preventDefault();
+          return;
+        }
+
+        // trim before sending
+        input.value = input.value.trim();
+      }
+    });
+  </script>
 
 </body>
 </html>

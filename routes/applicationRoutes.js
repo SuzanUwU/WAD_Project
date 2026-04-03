@@ -1,16 +1,20 @@
+
 const express = require('express');
 const router = express.Router();
-const ApplicationController = require('../controllers/ApplicationController');
-const { requireLogin, requireAdmin } = require('../middleware/auth');
+const jobController = require('../controllers/ApplicationController');
+const {requireAdmin } = require("../middleware/auth" );
 
-router.post('/part-time-jobs/apply/:id', requireLogin, ApplicationController.applyJob);
 
-router.get('/part-time-jobs/applied-job', requireLogin, ApplicationController.retrieveAppliedJobs);
-router.get('/part-time-jobs/cancel/:id', requireLogin, ApplicationController.deleteApplication);
-router.get('/part-time-jobs/active-jobs', requireLogin, ApplicationController.retrieveActiveJobs);
+router.post('/apply/:id', jobController.applyJob);
+router.get('/applied-job', jobController.retrieveAppliedJobs);
 
-router.get('/part-time-jobs/applicants', requireAdmin, ApplicationController.retrieveAllApplicants);
-router.get('/part-time-jobs/accept/:id', requireAdmin, ApplicationController.acceptApplicant);
-router.get('/part-time-jobs/reject/:id', requireAdmin, ApplicationController.rejectApplicant);
+router.get('/applicants',requireAdmin, jobController.retrieveAllApplicants);
+router.get('/delete-application/:id', jobController.deleteApplication);
+
+router.get('/accept-applicant/:id',requireAdmin, jobController.acceptApplicant);
+
+// Reject applicant
+router.get('/reject-applicant/:id',requireAdmin, jobController.rejectApplicant);
+
 
 module.exports = router;

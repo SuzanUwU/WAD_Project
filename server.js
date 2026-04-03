@@ -54,6 +54,11 @@ server.set('views', path.join(__dirname, 'views'));
 // ================= ROUTES =================
 server.use('/', authRoutes);
 
+// for index.html to be the home page
+server.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // hackathon API (IMPORTANT: before login)
 server.get('/api/majors', require('./controllers/hackathonController').getMajorsBySchool);
 
@@ -65,8 +70,8 @@ server.use('/dashboard',requireLogin,profileRoutes);
 server.use('/career-events', requireLogin, careerRoutes);
 
 // part-time jobs
-server.use('/events', requireLogin,JobRoutes);
-server.use('/events',requireLogin,ApplicationRoutes);
+server.use('/part-time-jobs', requireLogin, JobRoutes);
+server.use('/applications', requireLogin, ApplicationRoutes);
 
 // superadmin
 server.use('/superadmin', requireSuperAdmin, superadminRoutes);

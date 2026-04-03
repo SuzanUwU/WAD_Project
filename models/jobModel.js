@@ -19,20 +19,25 @@ jobSchema.index(
 
 const Job = mongoose.model('Job', jobSchema);
 
-exports.searchJob = function (keyword,salary) {
-  let search = {} 
+// ================= SEARCH =================
+exports.searchJob = function (keyword, salary) {
+  let search = {};
 
-  if(keyword){
-    search.$or= [  //works for string values only 
-      { jobtitle: { $regex: keyword, $options: 'i' } },  // case insensitve
-      { company: { $regex: keyword, $options: 'i' } },
+  // KEYWORD SEARCH
+  if (keyword && keyword.trim() !== "") {
+    search.$or = [
+      { jobtitle: { $regex: keyword, $options: 'i' } },
+      { companyname: { $regex: keyword, $options: 'i' } },
       { jobdescription: { $regex: keyword, $options: 'i' } }
-    ]
+    ];
   }
-  if (salary){
-    search.salary= {$gte:salary}; // retrieve salary that is greater than entered amount
+
+  // SALARY FILTER (FIXED)
+  if (salary && !isNaN(salary)) {
+    search.salary = { $gte: Number(salary) };
   }
+
   return Job.find(search);
-}
+};
 
 module.exports = Job;
