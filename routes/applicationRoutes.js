@@ -8,7 +8,6 @@ const { requireLogin, requireAdmin } = require('../middleware/auth');
 router.post('/apply/:id', requireLogin, ApplicationController.applyJob);
 router.get('/applied-job', requireLogin, ApplicationController.retrieveAppliedJobs);
 router.get('/cancel/:id', requireLogin, ApplicationController.deleteApplication);
-router.get('/complete-review/:id', requireAdmin, ApplicationController.completeReview);
 
 
 // View all applicants
